@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="5efba21b-1db6-41c5-bddb-15b269b2de44" name="Default Changelist" comment="" />
+    <list default="true" id="5efba21b-1db6-41c5-bddb-15b269b2de44" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spectrum_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/spectrum_generation.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -14,7 +18,11 @@
       </list>
     </option>
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="ProjectId" id="1WztErvyotSbOyn88AAvWMjcgG2" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showExcludedFiles" value="true" />
@@ -22,6 +30,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="SvnConfiguration">
@@ -37,11 +46,18 @@
     </task>
     <servers />
   </component>
+  <component name="VcsManagerConfiguration">
+    <option name="LAST_COMMIT_MESSAGE" value="" />
+  </component>
   <component name="WindowStateProjectService">
     <state x="414" y="191" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1580164648798">
       <screen x="0" y="27" width="1920" height="1026" />
     </state>
     <state x="414" y="191" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.27.1920.1026@0.27.1920.1026" timestamp="1580164648798" />
+    <state x="540" y="98" width="1016" height="955" key="CommitChangelistDialog2" timestamp="1580237940176">
+      <screen x="0" y="27" width="1920" height="1026" />
+    </state>
+    <state x="540" y="98" width="1016" height="955" key="CommitChangelistDialog2/0.27.1920.1026@0.27.1920.1026" timestamp="1580237940176" />
     <state x="318" y="88" width="1284" height="910" key="SettingsEditor" timestamp="1580164721423">
       <screen x="0" y="27" width="1920" height="1026" />
     </state>
