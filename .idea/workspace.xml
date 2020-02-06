@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5efba21b-1db6-41c5-bddb-15b269b2de44" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/spectrum_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/spectrum_generation.py" afterDir="false" />
     </list>
@@ -44,23 +43,40 @@
       <option name="presentableId" value="Default" />
       <updated>1580164142302</updated>
     </task>
+    <task id="LOCAL-00001" summary="Generate the spectrum wavelengths, and plot a section">
+      <created>1580258498619</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1580258498619</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <option name="LAST_COMMIT_MESSAGE" value="" />
+    <MESSAGE value="Generate the spectrum wavelengths, and plot a section" />
+    <option name="LAST_COMMIT_MESSAGE" value="Generate the spectrum wavelengths, and plot a section" />
   </component>
   <component name="WindowStateProjectService">
     <state x="414" y="191" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1580164648798">
       <screen x="0" y="27" width="1920" height="1026" />
     </state>
     <state x="414" y="191" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.27.1920.1026@0.27.1920.1026" timestamp="1580164648798" />
-    <state x="540" y="98" width="1016" height="955" key="CommitChangelistDialog2" timestamp="1580237940176">
+    <state x="540" y="98" width="1016" height="955" key="CommitChangelistDialog2" timestamp="1580258498551">
       <screen x="0" y="27" width="1920" height="1026" />
     </state>
-    <state x="540" y="98" width="1016" height="955" key="CommitChangelistDialog2/0.27.1920.1026@0.27.1920.1026" timestamp="1580237940176" />
+    <state x="540" y="98" width="1016" height="955" key="CommitChangelistDialog2/0.27.1920.1026@0.27.1920.1026" timestamp="1580258498551" />
     <state x="318" y="88" width="1284" height="910" key="SettingsEditor" timestamp="1580164721423">
       <screen x="0" y="27" width="1920" height="1026" />
     </state>
     <state x="318" y="88" width="1284" height="910" key="SettingsEditor/0.27.1920.1026@0.27.1920.1026" timestamp="1580164721423" />
+    <state x="455" y="213" width="1002" height="659" key="Vcs.Push.Dialog.v2" timestamp="1580258509436">
+      <screen x="0" y="27" width="1920" height="1026" />
+    </state>
+    <state x="455" y="213" width="1002" height="659" key="Vcs.Push.Dialog.v2/0.27.1920.1026@0.27.1920.1026" timestamp="1580258509436" />
+    <state x="514" y="329" key="com.intellij.ide.util.TipDialog" timestamp="1580324466490">
+      <screen x="0" y="27" width="1920" height="1026" />
+    </state>
+    <state x="514" y="329" key="com.intellij.ide.util.TipDialog/0.27.1920.1026@0.27.1920.1026" timestamp="1580324466490" />
   </component>
 </project>
