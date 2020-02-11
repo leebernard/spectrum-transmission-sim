@@ -49,7 +49,7 @@ gauss_kernel = _gaussian_kernel1d(sigma, order=0, radius=lw)
 '''
 
 # filter the full spectrum
-resolution = 500  # /.002  # the resolution of the spectrum in angstroms. This corresponds to FWHM
+resolution = 500  # 1/.002  # the resolution of the spectrum in angstroms. This corresponds to FWHM
 sigma = resolution/(2.0 * np.sqrt(2.0 * np.log(2.0)))
 filtered_sun = gaussian_filter(sun.data, sigma)
 
@@ -74,28 +74,20 @@ plt.xlim(7000, angstrom[-1])
 plt.xlim(5400, 5500)  # fairly isolated feature at 5455.6 angs, prob a Fe I line
 plt.xlim(5454, 5457)
 
-# take a slice of the data at the point of interest
-fe_angstroms, fe_data = spectrum_slicer(5454, 5457, angstrom, filtered_sun)
+sim_angstroms_per_pixel = .25  # resolution of the simlulated pixel grid
+bin_factor = int(sim_angstroms_per_pixel/angstrom_per_pix)
 
-# Fit the data using a Gaussian with vertical offset
-gauss_init = models.Gaussian1D(amplitude=-2500., mean=5456., stddev=1.) + models.Shift(offset=10000)
+excess_data_index = int(filtered_sun.size % bin_factor)
+binned_angstroms = angstrom[:-excess_data_index]
+binned_spectrum = filtered_sun[:-excess_data_index]
 
-fit_gauss = fitting.LevMarLSQFitter()
-g = fit_gauss(gauss_init, fe_angstroms, fe_data)
-# fit results
-print(g.parameters)
-# errors on the parameters
-print(np.diag(fit_gauss.fit_info['param_cov']))
-# fwhw result
-fwhm = g.stddev_0.value * (2.0 * np.sqrt(2.0 * np.log(2.0)))
+binned_angstroms = np.reshape(binned_angstroms, (int(binned_angstroms.size/bin_factor), bin_factor))
+binned_spectrum = np.reshape(binned_spectrum, (int(binned_spectrum.size/bin_factor), bin_factor))
 
-print(f'FWHM of fit: {fwhm: .4f}')
-# cov matrix
-print(fit_gauss.fit_info['param_cov'])
+binned_angstroms = np.mean(binned_angstroms, axis=1)
+binned_spectrum = np.mean(binned_spectrum, axis=1)
 
+plt.bar(binned_angstroms, binned_spectrum)
 
-plt.figure('Fe I feature')
-plt.scatter(fe_angstroms, fe_data, s=2)
-plt.plot(fe_angstroms, g(fe_angstroms))
 
 
