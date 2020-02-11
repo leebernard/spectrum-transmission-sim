@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="5efba21b-1db6-41c5-bddb-15b269b2de44" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/bf-spectrum-sim.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/bf-spectrum-sim.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="5efba21b-1db6-41c5-bddb-15b269b2de44" name="Default Changelist" comment="found a testable feature at 5456 angs">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/spectrum_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/spectrum_generation.py" afterDir="false" />
     </list>
@@ -59,32 +57,41 @@
       <option name="project" value="LOCAL" />
       <updated>1581023400742</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="found a testable feature at 5456 angs">
+      <created>1581036778492</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1581036778492</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Generate the spectrum wavelengths, and plot a section" />
     <MESSAGE value="Did a bunch of testing" />
-    <option name="LAST_COMMIT_MESSAGE" value="Did a bunch of testing" />
+    <MESSAGE value="found a testable feature at 5456 angs" />
+    <option name="LAST_COMMIT_MESSAGE" value="found a testable feature at 5456 angs" />
   </component>
   <component name="WindowStateProjectService">
     <state x="414" y="191" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1580164648798">
       <screen x="0" y="27" width="1920" height="1026" />
     </state>
     <state x="414" y="191" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.27.1920.1026@0.27.1920.1026" timestamp="1580164648798" />
-    <state x="720" y="120" width="1016" height="955" key="CommitChangelistDialog2" timestamp="1581036707877">
+    <state x="722" y="118" width="1354" height="1274" key="CommitChangelistDialog2" timestamp="1581098794299">
       <screen x="0" y="24" width="2560" height="1392" />
     </state>
-    <state x="720" y="120" key="CommitChangelistDialog2/0.24.2560.1392@0.24.2560.1392" timestamp="1581036707877" />
+    <state x="722" y="118" width="1354" height="1274" key="CommitChangelistDialog2/0.24.2560.1392@0.24.2560.1392" timestamp="1581098794299" />
     <state x="540" y="98" width="1016" height="955" key="CommitChangelistDialog2/0.27.1920.1026@0.27.1920.1026" timestamp="1581023400551" />
     <state x="424" y="107" width="1284" height="910" key="SettingsEditor" timestamp="1581033481426">
       <screen x="0" y="24" width="2560" height="1392" />
     </state>
     <state x="424" y="107" key="SettingsEditor/0.24.2560.1392@0.24.2560.1392" timestamp="1581033481426" />
     <state x="318" y="88" width="1284" height="910" key="SettingsEditor/0.27.1920.1026@0.27.1920.1026" timestamp="1580164721423" />
-    <state x="455" y="213" width="1002" height="659" key="Vcs.Push.Dialog.v2" timestamp="1581023412528">
-      <screen x="0" y="27" width="1920" height="1026" />
+    <state x="607" y="276" width="1002" height="659" key="Vcs.Push.Dialog.v2" timestamp="1581036805000">
+      <screen x="0" y="24" width="2560" height="1392" />
     </state>
+    <state x="607" y="276" key="Vcs.Push.Dialog.v2/0.24.2560.1392@0.24.2560.1392" timestamp="1581036805000" />
     <state x="455" y="213" width="1002" height="659" key="Vcs.Push.Dialog.v2/0.27.1920.1026@0.27.1920.1026" timestamp="1581023412528" />
     <state x="685" y="434" key="com.intellij.ide.util.TipDialog" timestamp="1581033460305">
       <screen x="0" y="24" width="2560" height="1392" />
