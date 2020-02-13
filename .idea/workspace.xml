@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5efba21b-1db6-41c5-bddb-15b269b2de44" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/spectrum_fitter.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spectrum_fitter.py" beforeDir="false" afterPath="$PROJECT_DIR$/spectrum_fitter.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/spectrum_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/spectrum_generation.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -72,7 +72,14 @@
       <option name="project" value="LOCAL" />
       <updated>1581449154343</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Generated a 1-D binned spectrum, with R=1 ang, and 4 pixels per angstrom">
+      <created>1581462390514</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1581462390514</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -80,17 +87,18 @@
     <MESSAGE value="Did a bunch of testing" />
     <MESSAGE value="found a testable feature at 5456 angs" />
     <MESSAGE value="found a testable feature at 5456 angs. Wrote a spectrum slicing function, and used it to make a sanity check" />
-    <option name="LAST_COMMIT_MESSAGE" value="found a testable feature at 5456 angs. Wrote a spectrum slicing function, and used it to make a sanity check" />
+    <MESSAGE value="Generated a 1-D binned spectrum, with R=1 ang, and 4 pixels per angstrom" />
+    <option name="LAST_COMMIT_MESSAGE" value="Generated a 1-D binned spectrum, with R=1 ang, and 4 pixels per angstrom" />
   </component>
   <component name="WindowStateProjectService">
     <state x="414" y="191" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1580164648798">
       <screen x="0" y="27" width="1920" height="1026" />
     </state>
     <state x="414" y="191" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.27.1920.1026@0.27.1920.1026" timestamp="1580164648798" />
-    <state x="722" y="118" width="1354" height="1274" key="CommitChangelistDialog2" timestamp="1581449154279">
+    <state x="722" y="118" width="1354" height="1274" key="CommitChangelistDialog2" timestamp="1581462390456">
       <screen x="0" y="24" width="2560" height="1392" />
     </state>
-    <state x="722" y="118" width="1354" height="1274" key="CommitChangelistDialog2/0.24.2560.1392@0.24.2560.1392" timestamp="1581449154279" />
+    <state x="722" y="118" width="1354" height="1274" key="CommitChangelistDialog2/0.24.2560.1392@0.24.2560.1392" timestamp="1581462390456" />
     <state x="540" y="98" width="1016" height="955" key="CommitChangelistDialog2/0.27.1920.1026@0.27.1920.1026" timestamp="1581023400551" />
     <state x="424" y="107" width="1284" height="910" key="SettingsEditor" timestamp="1581033481426">
       <screen x="0" y="24" width="2560" height="1392" />

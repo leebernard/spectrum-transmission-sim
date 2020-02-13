@@ -41,3 +41,4 @@ print(fit_gauss.fit_info['param_cov'])
 plt.figure('Fe I feature')
 plt.scatter(fe_angstroms, fe_data, s=2)
 plt.plot(fe_angstroms, g(fe_angstroms))
+

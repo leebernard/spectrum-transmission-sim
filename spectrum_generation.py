@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 from astropy.io import fits
 from astropy.modeling import models, fitting
 from scipy.ndimage import gaussian_filter
+from scipy.ndimage import gaussian_filter1d
+from scipy.ndimage import convolve1d
 # from scipy.ndimage.filters import _gaussian_kernel1d
 # from scipy import integrate
 
@@ -74,6 +76,7 @@ plt.xlim(7000, angstrom[-1])
 plt.xlim(5400, 5500)  # fairly isolated feature at 5455.6 angs, prob a Fe I line
 plt.xlim(5454, 5457)
 
+'''bin the 1D data into pixels'''
 sim_angstroms_per_pixel = .25  # resolution of the simlulated pixel grid
 bin_factor = int(sim_angstroms_per_pixel/angstrom_per_pix)
 
@@ -89,5 +92,24 @@ binned_spectrum = np.mean(binned_spectrum, axis=1)
 
 plt.bar(binned_angstroms, binned_spectrum)
 
+'''2D spectrum'''
+moffat_model = models.Moffat1D()
+moffat_model.gamma = 10
+moffat_model.alpha = 5
+
+moffat_kernel = moffat_model(np.arange(-10, 11))
+
+# take a slice of data
+start_ang = 5400
+end_ang = 5500
+angstrom_slice, sun_slice = spectrum_slicer(start_ang, end_ang, angstrom, filtered_sun)
+# expand the array
+num_spacial_pixels = int(10/.002)
+spectrum2d = np.insert(np.zeros((num_spacial_pixels, sun_slice.size)),  # generate an array of zeros
+                       int(num_spacial_pixels/2),                               # location to insert data, the middle
+                       sun_slice,                                       # spectrum to be inserted
+                       axis=0)                                             # axis the spectrum is inserted along
+
+test = gaussian_filter1d(spectrum2d, sigma=3, axis=0)
 
 
