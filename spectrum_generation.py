@@ -8,6 +8,7 @@ idealized output from a spectrograph
 
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
 
 from astropy.io import fits
 from astropy.modeling import models, fitting
@@ -88,28 +89,37 @@ binned_angstroms = np.reshape(binned_angstroms, (int(binned_angstroms.size/bin_f
 binned_spectrum = np.reshape(binned_spectrum, (int(binned_spectrum.size/bin_factor), bin_factor))
 
 binned_angstroms = np.mean(binned_angstroms, axis=1)
-binned_spectrum = np.mean(binned_spectrum, axis=1)
+binned_spectrum = np.sum(binned_spectrum, axis=1) * sim_angstroms_per_pixel
 
 plt.bar(binned_angstroms, binned_spectrum)
 
 '''2D spectrum'''
-moffat_model = models.Moffat1D()
-moffat_model.gamma = 10
-moffat_model.alpha = 5
-
-moffat_kernel = moffat_model(np.arange(-10, 11))
 
 # take a slice of data
 start_ang = 5400
 end_ang = 5500
 angstrom_slice, sun_slice = spectrum_slicer(start_ang, end_ang, angstrom, filtered_sun)
 # expand the array
-num_spacial_pixels = int(10/.002)
-spectrum2d = np.insert(np.zeros((num_spacial_pixels, sun_slice.size)),  # generate an array of zeros
+num_spacial_pixels = int(10/sim_angstroms_per_pixel)
+spectrum2d = np.insert(np.zeros((num_spacial_pixels, binned_spectrum.size)),  # generate an array of zeros
                        int(num_spacial_pixels/2),                               # location to insert data, the middle
-                       sun_slice,                                       # spectrum to be inserted
+                       binned_spectrum,                                       # spectrum to be inserted
                        axis=0)                                             # axis the spectrum is inserted along
 
 test = gaussian_filter1d(spectrum2d, sigma=3, axis=0)
+
+sys.getsizeof(test)
+
+x_lower = 10000
+x_upper = 10100
+plt.figure('unsmeared spectrum')
+plt.imshow(spectrum2d, cmap='viridis')
+plt.xlim(x_lower, x_upper)
+
+plt.figure('smeared spectrum')
+from matplotlib.colors import LogNorm
+plt.imshow(test, norm=LogNorm(1, test.max()), cmap='viridis')
+plt.xlim(x_lower, x_upper)
+
 
 

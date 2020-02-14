@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5efba21b-1db6-41c5-bddb-15b269b2de44" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/bf-spectrum-sim.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/bf-spectrum-sim.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectrum_fitter.py" beforeDir="false" afterPath="$PROJECT_DIR$/spectrum_fitter.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/spectrum_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/spectrum_generation.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -100,11 +101,11 @@
     </state>
     <state x="722" y="118" width="1354" height="1274" key="CommitChangelistDialog2/0.24.2560.1392@0.24.2560.1392" timestamp="1581462390456" />
     <state x="540" y="98" width="1016" height="955" key="CommitChangelistDialog2/0.27.1920.1026@0.27.1920.1026" timestamp="1581023400551" />
-    <state x="424" y="107" width="1284" height="910" key="SettingsEditor" timestamp="1581033481426">
-      <screen x="0" y="24" width="2560" height="1392" />
+    <state x="318" y="88" width="1284" height="910" key="SettingsEditor" timestamp="1581621998625">
+      <screen x="0" y="27" width="1920" height="1026" />
     </state>
     <state x="424" y="107" key="SettingsEditor/0.24.2560.1392@0.24.2560.1392" timestamp="1581033481426" />
-    <state x="318" y="88" width="1284" height="910" key="SettingsEditor/0.27.1920.1026@0.27.1920.1026" timestamp="1580164721423" />
+    <state x="318" y="88" width="1284" height="910" key="SettingsEditor/0.27.1920.1026@0.27.1920.1026" timestamp="1581621998625" />
     <state x="607" y="276" width="1002" height="659" key="Vcs.Push.Dialog.v2" timestamp="1581036805000">
       <screen x="0" y="24" width="2560" height="1392" />
     </state>
@@ -115,5 +116,9 @@
     </state>
     <state x="685" y="434" key="com.intellij.ide.util.TipDialog/0.24.2560.1392@0.24.2560.1392" timestamp="1581033460305" />
     <state x="514" y="329" key="com.intellij.ide.util.TipDialog/0.27.1920.1026@0.27.1920.1026" timestamp="1580324466490" />
+    <state x="655" y="443" width="602" height="200" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1581698805068">
+      <screen x="0" y="27" width="1920" height="1026" />
+    </state>
+    <state x="655" y="443" width="602" height="200" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.27.1920.1026@0.27.1920.1026" timestamp="1581698805068" />
   </component>
 </project>
