@@ -51,6 +51,7 @@ lw = int(4.0 * float(sigma) + 0.5)
 gauss_kernel = _gaussian_kernel1d(sigma, order=0, radius=lw)
 '''
 
+
 # filter the full spectrum
 resolution = 500  # 1/.002  # the resolution of the spectrum in angstroms. This corresponds to FWHM
 sigma = resolution/(2.0 * np.sqrt(2.0 * np.log(2.0)))
@@ -68,37 +69,42 @@ angstrom_slice, sun_slice = spectrum_slicer(start_ang, end_ang, angstrom, filter
 
 plt.figure('Slice of Filtered Solar Spectrum')
 plt.scatter(angstrom_slice, sun_slice, s=1)
-plt.xlim(5000, 5500)
-plt.xlim(5500, 6000)
-plt.xlim(6000, 6500)
-plt.xlim(6500, 7000)
-plt.xlim(7000, angstrom[-1])
+# plt.xlim(5000, 5500)
+# plt.xlim(5500, 6000)
+# plt.xlim(6000, 6500)
+# plt.xlim(6500, 7000)
+# plt.xlim(7000, angstrom[-1])
 
 plt.xlim(5400, 5500)  # fairly isolated feature at 5455.6 angs, prob a Fe I line
-plt.xlim(5454, 5457)
+# plt.xlim(5454, 5457)
+
 
 '''bin the 1D data into pixels'''
-sim_angstroms_per_pixel = .25  # resolution of the simlulated pixel grid
-bin_factor = int(sim_angstroms_per_pixel/angstrom_per_pix)
-
-excess_data_index = int(filtered_sun.size % bin_factor)
-binned_angstroms = angstrom[:-excess_data_index]
-binned_spectrum = filtered_sun[:-excess_data_index]
-
-binned_angstroms = np.reshape(binned_angstroms, (int(binned_angstroms.size/bin_factor), bin_factor))
-binned_spectrum = np.reshape(binned_spectrum, (int(binned_spectrum.size/bin_factor), bin_factor))
-
-binned_angstroms = np.mean(binned_angstroms, axis=1)
-binned_spectrum = np.sum(binned_spectrum, axis=1) * sim_angstroms_per_pixel
-
-plt.bar(binned_angstroms, binned_spectrum)
-
-'''2D spectrum'''
 
 # take a slice of data
 start_ang = 5400
 end_ang = 5500
 angstrom_slice, sun_slice = spectrum_slicer(start_ang, end_ang, angstrom, filtered_sun)
+
+sim_angstroms_per_pixel = .25  # resolution of the simlulated pixel grid
+bin_factor = int(sim_angstroms_per_pixel/angstrom_per_pix)
+
+excess_data_index = int(sun_slice.size % bin_factor)
+if excess_data_index:
+    angstrom_slice = angstrom_slice[:-excess_data_index]
+    sun_slice = sun_slice[:-excess_data_index]
+
+binned_angstroms = np.reshape(angstrom_slice, (int(angstrom_slice.size/bin_factor), bin_factor))
+binned_spectrum = np.reshape(sun_slice, (int(sun_slice.size/bin_factor), bin_factor))
+
+binned_angstroms = np.mean(binned_angstroms, axis=1)
+binned_spectrum = np.sum(binned_spectrum, axis=1) * sim_angstroms_per_pixel
+
+plt.figure('Pixeled data')
+plt.bar(binned_angstroms, binned_spectrum)
+
+
+'''2D spectrum'''
 # expand the array
 num_spacial_pixels = int(10/sim_angstroms_per_pixel)
 spectrum2d = np.insert(np.zeros((num_spacial_pixels, binned_spectrum.size)),  # generate an array of zeros
@@ -106,20 +112,20 @@ spectrum2d = np.insert(np.zeros((num_spacial_pixels, binned_spectrum.size)),  # 
                        binned_spectrum,                                       # spectrum to be inserted
                        axis=0)                                             # axis the spectrum is inserted along
 
-test = gaussian_filter1d(spectrum2d, sigma=3, axis=0)
+smeared_spectrum2d = gaussian_filter1d(spectrum2d, sigma=3, axis=0)
 
-sys.getsizeof(test)
+# sys.getsizeof(smeared_spectrum2d)
 
 x_lower = 10000
-x_upper = 10100
+x_upper = 10500
 plt.figure('unsmeared spectrum')
 plt.imshow(spectrum2d, cmap='viridis')
-plt.xlim(x_lower, x_upper)
+# plt.xlim(x_lower, x_upper)
 
 plt.figure('smeared spectrum')
 from matplotlib.colors import LogNorm
-plt.imshow(test, norm=LogNorm(1, test.max()), cmap='viridis')
-plt.xlim(x_lower, x_upper)
+plt.imshow(smeared_spectrum2d, cmap='viridis')
+# plt.xlim(x_lower, x_upper)
 
-
+plt.show()
 
