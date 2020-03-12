@@ -9,6 +9,7 @@ idealized output from a spectrograph
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+import galsim
 
 from astropy.io import fits
 from astropy.modeling import models, fitting
@@ -62,9 +63,8 @@ plt.scatter(angstrom, sun.data, s=1)
 plt.scatter(angstrom, filtered_sun, s=1)
 
 # find a slice of data
-start_ang = 5000
-end_ang = angstrom[-1]
-
+start_ang =5440
+end_ang = 5470
 angstrom_slice, sun_slice = spectrum_slicer(start_ang, end_ang, angstrom, filtered_sun)
 
 plt.figure('Slice of Filtered Solar Spectrum')
@@ -80,13 +80,13 @@ plt.xlim(5400, 5500)  # fairly isolated feature at 5455.6 angs, prob a Fe I line
 
 
 '''bin the 1D data into pixels'''
-
+'''
 # take a slice of data
-start_ang = 5400
-end_ang = 5500
+start_ang = 6530
+end_ang = 6590
 angstrom_slice, sun_slice = spectrum_slicer(start_ang, end_ang, angstrom, filtered_sun)
-
-sim_angstroms_per_pixel = .25  # resolution of the simlulated pixel grid
+'''
+sim_angstroms_per_pixel = .35  # resolution of the simlulated pixel grid
 bin_factor = int(sim_angstroms_per_pixel/angstrom_per_pix)
 
 excess_data_index = int(sun_slice.size % bin_factor)
@@ -112,10 +112,10 @@ spectrum2d = np.insert(np.zeros((num_spacial_pixels, binned_spectrum.size)),  # 
                        binned_spectrum,                                       # spectrum to be inserted
                        axis=0)                                             # axis the spectrum is inserted along
 
-smeared_spectrum2d = gaussian_filter1d(spectrum2d, sigma=3, axis=0)
+smeared_spectrum2d = gaussian_filter1d(spectrum2d, sigma=4, axis=0)
 
 # sys.getsizeof(smeared_spectrum2d)
-
+'''
 x_lower = 10000
 x_upper = 10500
 plt.figure('unsmeared spectrum')
@@ -123,9 +123,70 @@ plt.imshow(spectrum2d, cmap='viridis')
 # plt.xlim(x_lower, x_upper)
 
 plt.figure('smeared spectrum')
-from matplotlib.colors import LogNorm
+# from matplotlib.colors import LogNorm
 plt.imshow(smeared_spectrum2d, cmap='viridis')
 # plt.xlim(x_lower, x_upper)
 
 plt.show()
+'''
 
+rng = galsim.BaseDeviate(5678)
+# transform the spectrum image into a galsim object
+spectrum_image = galsim.Image(smeared_spectrum2d, scale=1.0)  # scale is pixel/pixel
+# interpolate the image so GalSim can manipulate it
+spectrum_interpolated = galsim.InterpolatedImage(spectrum_image)
+spectrum_interpolated.drawImage(image=spectrum_image,
+                                method='phot',
+                                use_true_center=True,
+                                sensor=galsim.Sensor())
+
+print('image center', spectrum_image.center)
+print('image true center', spectrum_image.true_center)
+galsim_sensor_image = spectrum_image.array.copy()
+
+
+# now do it again, but with the BF effect
+# spectrum_image = galsim.Image(smeared_spectrum2d, scale=.25)  # scale is angstroms/pixel
+# interpolate the image so GalSim can manipulate it
+# spectrum_interpolated = galsim.InterpolatedImage(spectrum_image)
+
+spectrum_interpolated.drawImage(image=spectrum_image,
+                                method='phot',
+                                use_true_center=True,
+                                offset=(0, -0.25),
+                                sensor=galsim.SiliconSensor(name='lsst_e2v_32', rng=rng, diffusion_factor=0.0))
+
+print('image center', spectrum_image.center)
+print('image true center', spectrum_image.true_center)
+galsim_bf_image = spectrum_image.array.copy()
+
+difference_image = galsim_sensor_image[:, 5:-5] - galsim_bf_image[:, 5:-5]
+
+plt.figure('GalSim image')
+plt.imshow(galsim_sensor_image[:, 5:-5], cmap='viridis')
+plt.title('H-alpha line')
+plt.colorbar()
+
+plt.figure('GalSim image after bf')
+plt.imshow(galsim_bf_image[:, 5:-5], cmap='viridis')
+plt.title('H-alpha line after BF is applied')
+plt.colorbar()
+
+plt.figure('difference image.25')
+plt.imshow(difference_image, cmap='viridis')
+plt.title('Residuals')
+plt.colorbar()
+
+plt.figure('slice at pixel 25')
+plt.subplot(311)
+plt.title('original data')
+plt.plot(smeared_spectrum2d[:, 25])
+plt.subplot(312)
+plt.title('Sensor sim')
+plt.plot(galsim_sensor_image[:, 25])
+plt.subplot(313)
+plt.title('Sensor with BF sim')
+plt.plot(galsim_bf_image[:, 25])
+
+
+plt.show()
