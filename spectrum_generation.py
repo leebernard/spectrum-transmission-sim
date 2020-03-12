@@ -63,8 +63,8 @@ plt.scatter(angstrom, sun.data, s=1)
 plt.scatter(angstrom, filtered_sun, s=1)
 
 # find a slice of data
-start_ang =5440
-end_ang = 5470
+start_ang = 5450
+end_ang = 5460
 angstrom_slice, sun_slice = spectrum_slicer(start_ang, end_ang, angstrom, filtered_sun)
 
 plt.figure('Slice of Filtered Solar Spectrum')
@@ -105,7 +105,8 @@ plt.bar(binned_angstroms, binned_spectrum)
 
 
 '''2D spectrum'''
-# expand the array
+"""
+# expand the array, using gausssian
 num_spacial_pixels = int(10/sim_angstroms_per_pixel)
 spectrum2d = np.insert(np.zeros((num_spacial_pixels, binned_spectrum.size)),  # generate an array of zeros
                        int(num_spacial_pixels/2),                               # location to insert data, the middle
@@ -113,6 +114,19 @@ spectrum2d = np.insert(np.zeros((num_spacial_pixels, binned_spectrum.size)),  # 
                        axis=0)                                             # axis the spectrum is inserted along
 
 smeared_spectrum2d = gaussian_filter1d(spectrum2d, sigma=4, axis=0)
+"""
+# expand the array, making a tophat
+
+num_spacial_pixels = int(8)
+tophat_width = 11
+
+spectrum2d = np.zeros((num_spacial_pixels, binned_spectrum.size))  # loop lead-in
+for n in range(4):
+    spectrum2d = np.insert(spectrum2d,  # generate an array of zeros
+                           int(num_spacial_pixels / 2),  # location to insert data, the middle
+                           binned_spectrum,  # spectrum to be inserted
+                           axis=0)
+smeared_spectrum2d = spectrum2d
 
 # sys.getsizeof(smeared_spectrum2d)
 '''
@@ -137,7 +151,7 @@ spectrum_image = galsim.Image(smeared_spectrum2d, scale=1.0)  # scale is pixel/p
 spectrum_interpolated = galsim.InterpolatedImage(spectrum_image)
 spectrum_interpolated.drawImage(image=spectrum_image,
                                 method='phot',
-                                use_true_center=True,
+                                # use_true_center=True,
                                 sensor=galsim.Sensor())
 
 print('image center', spectrum_image.center)
@@ -153,7 +167,7 @@ galsim_sensor_image = spectrum_image.array.copy()
 spectrum_interpolated.drawImage(image=spectrum_image,
                                 method='phot',
                                 use_true_center=True,
-                                offset=(0, -0.25),
+                                offset=(0, 0),
                                 sensor=galsim.SiliconSensor(name='lsst_e2v_32', rng=rng, diffusion_factor=0.0))
 
 print('image center', spectrum_image.center)
@@ -172,21 +186,21 @@ plt.imshow(galsim_bf_image[:, 5:-5], cmap='viridis')
 plt.title('H-alpha line after BF is applied')
 plt.colorbar()
 
-plt.figure('difference image.25')
+plt.figure('difference image')
 plt.imshow(difference_image, cmap='viridis')
 plt.title('Residuals')
 plt.colorbar()
 
-plt.figure('slice at pixel 25')
+plt.figure('slice at row 15')
 plt.subplot(311)
 plt.title('original data')
-plt.plot(smeared_spectrum2d[:, 25])
+plt.plot(smeared_spectrum2d[15])
 plt.subplot(312)
 plt.title('Sensor sim')
-plt.plot(galsim_sensor_image[:, 25])
+plt.plot(galsim_sensor_image[15])
 plt.subplot(313)
 plt.title('Sensor with BF sim')
-plt.plot(galsim_bf_image[:, 25])
+plt.plot(galsim_bf_image[15])
 
 
 plt.show()
