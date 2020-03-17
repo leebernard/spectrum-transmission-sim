@@ -28,6 +28,8 @@ def spectrum_slicer(start_angstrom, end_angstrom, angstrom_data, spectrum_data):
 
     return angstrom_slice, spectrum_slice
 
+# set if the plots will display or not
+display = False
 
 # with fits.open('sun.fits') as hdul:
 hdul = fits.open('sun.fits')
@@ -58,34 +60,35 @@ resolution = 500  # 1/.002  # the resolution of the spectrum in angstroms. This 
 sigma = resolution/(2.0 * np.sqrt(2.0 * np.log(2.0)))
 filtered_sun = gaussian_filter(sun.data, sigma)
 
-plt.figure('Full available solar spectrum')
-plt.scatter(angstrom, sun.data, s=1)
-plt.scatter(angstrom, filtered_sun, s=1)
+if display:
+    plt.figure('Full available solar spectrum')
+    plt.scatter(angstrom, sun.data, s=1)
+    plt.scatter(angstrom, filtered_sun, s=1)
 
-# find a slice of data
-start_ang = 5450
-end_ang = 5460
-angstrom_slice, sun_slice = spectrum_slicer(start_ang, end_ang, angstrom, filtered_sun)
+    # find a slice of data
+    start_ang = 5450
+    end_ang = 5460
+    angstrom_slice, sun_slice = spectrum_slicer(start_ang, end_ang, angstrom, filtered_sun)
 
-plt.figure('Slice of Filtered Solar Spectrum')
-plt.scatter(angstrom_slice, sun_slice, s=1)
-# plt.xlim(5000, 5500)
-# plt.xlim(5500, 6000)
-# plt.xlim(6000, 6500)
-# plt.xlim(6500, 7000)
-# plt.xlim(7000, angstrom[-1])
+    plt.figure('Slice of Filtered Solar Spectrum')
+    plt.scatter(angstrom_slice, sun_slice, s=1)
+    # plt.xlim(5000, 5500)
+    # plt.xlim(5500, 6000)
+    # plt.xlim(6000, 6500)
+    # plt.xlim(6500, 7000)
+    # plt.xlim(7000, angstrom[-1])
 
-plt.xlim(5400, 5500)  # fairly isolated feature at 5455.6 angs, prob a Fe I line
-# plt.xlim(5454, 5457)
+    plt.xlim(5400, 5500)  # fairly isolated feature at 5455.6 angs, prob a Fe I line
+    # plt.xlim(5454, 5457)
 
 
 '''bin the 1D data into pixels'''
-'''
+
 # take a slice of data
 start_ang = 6530
 end_ang = 6590
 angstrom_slice, sun_slice = spectrum_slicer(start_ang, end_ang, angstrom, filtered_sun)
-'''
+
 sim_angstroms_per_pixel = .35  # resolution of the simlulated pixel grid
 bin_factor = int(sim_angstroms_per_pixel/angstrom_per_pix)
 
@@ -100,8 +103,9 @@ binned_spectrum = np.reshape(sun_slice, (int(sun_slice.size/bin_factor), bin_fac
 binned_angstroms = np.mean(binned_angstroms, axis=1)
 binned_spectrum = np.sum(binned_spectrum, axis=1) * sim_angstroms_per_pixel
 
-plt.figure('Pixeled data')
-plt.bar(binned_angstroms, binned_spectrum)
+if display:
+    plt.figure('Pixeled data')
+    plt.bar(binned_angstroms, binned_spectrum)
 
 
 '''2D spectrum'''
@@ -156,6 +160,7 @@ spectrum_interpolated.drawImage(image=spectrum_image,
 
 print('image center', spectrum_image.center)
 print('image true center', spectrum_image.true_center)
+spectrum_image.write('spectrum_sim_tophat_bffalse.fits')
 galsim_sensor_image = spectrum_image.array.copy()
 
 
@@ -172,35 +177,37 @@ spectrum_interpolated.drawImage(image=spectrum_image,
 
 print('image center', spectrum_image.center)
 print('image true center', spectrum_image.true_center)
+spectrum_image.write('spectrum_sim_tophat_bftrue.fits')
 galsim_bf_image = spectrum_image.array.copy()
 
-difference_image = galsim_sensor_image[:, 5:-5] - galsim_bf_image[:, 5:-5]
+if display:
+    difference_image = galsim_sensor_image[:, 5:-5] - galsim_bf_image[:, 5:-5]
 
-plt.figure('GalSim image')
-plt.imshow(galsim_sensor_image[:, 5:-5], cmap='viridis')
-plt.title('H-alpha line')
-plt.colorbar()
+    plt.figure('GalSim image')
+    plt.imshow(galsim_sensor_image[:, 5:-5], cmap='viridis')
+    plt.title('H-alpha line')
+    plt.colorbar()
 
-plt.figure('GalSim image after bf')
-plt.imshow(galsim_bf_image[:, 5:-5], cmap='viridis')
-plt.title('H-alpha line after BF is applied')
-plt.colorbar()
+    plt.figure('GalSim image after bf')
+    plt.imshow(galsim_bf_image[:, 5:-5], cmap='viridis')
+    plt.title('H-alpha line after BF is applied')
+    plt.colorbar()
 
-plt.figure('difference image')
-plt.imshow(difference_image, cmap='viridis')
-plt.title('Residuals')
-plt.colorbar()
+    plt.figure('difference image')
+    plt.imshow(difference_image, cmap='viridis')
+    plt.title('Residuals')
+    plt.colorbar()
 
-plt.figure('slice at row 15')
-plt.subplot(311)
-plt.title('original data')
-plt.plot(smeared_spectrum2d[15])
-plt.subplot(312)
-plt.title('Sensor sim')
-plt.plot(galsim_sensor_image[15])
-plt.subplot(313)
-plt.title('Sensor with BF sim')
-plt.plot(galsim_bf_image[15])
+    plt.figure('slice at row 15')
+    plt.subplot(311)
+    plt.title('original data')
+    plt.plot(smeared_spectrum2d[15])
+    plt.subplot(312)
+    plt.title('Sensor sim')
+    plt.plot(galsim_sensor_image[15])
+    plt.subplot(313)
+    plt.title('Sensor with BF sim')
+    plt.plot(galsim_bf_image[15])
 
 
-plt.show()
+    plt.show()
