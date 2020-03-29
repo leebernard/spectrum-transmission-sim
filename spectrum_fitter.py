@@ -40,5 +40,11 @@ print(fit_gauss.fit_info['param_cov'])
 
 plt.figure('Fe I feature')
 plt.scatter(fe_angstroms, fe_data, s=2)
-plt.plot(fe_angstroms, g(fe_angstroms))
+plt.plot(fe_angstroms, g(fe_angstroms), color='C1')
+plt.title('Fe I feature')
+plt.xlabel('Angstroms')
+plt.ylabel('Power')
+plt.legend(['fit profile', 'Spectrum after smoothing'])
+
+plt.show()
 

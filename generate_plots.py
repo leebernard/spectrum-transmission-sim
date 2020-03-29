@@ -5,10 +5,10 @@ from astropy.io import fits
 
 # open the files
 
-with fits.open('spectrum_sim_guassian_bffalse.fits') as hdul:
+with fits.open('spectrum_sim_gaussian_bffalse2.fits') as hdul:
     galsim_sensor_image = hdul[0].data.copy()
 
-with fits.open('spectrum_sim_gaussian_bftrue.fits') as hdul:
+with fits.open('spectrum_sim_gaussian_bftrue2.fits') as hdul:
     galsim_bf_image = hdul[0].data.copy()
 
 difference_image = galsim_sensor_image[:, 5:-5] - galsim_bf_image[:, 5:-5]

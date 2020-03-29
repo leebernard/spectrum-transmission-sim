@@ -65,6 +65,9 @@ if display:
     plt.figure('Full available solar spectrum')
     plt.scatter(angstrom, sun.data, s=1)
     plt.scatter(angstrom, filtered_sun, s=1)
+    plt.title('Slice of Solar spectrum')
+    plt.xlabel('Angstroms')
+    plt.legend(['Before smoothing', 'After smoothing'])
 
     # find a slice of data
     start_ang = 5450
