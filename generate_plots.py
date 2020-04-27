@@ -2,13 +2,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from astropy.io import fits
+from spectrum_fitter import spectrum_gaussian_fit
 
 # open the files
 
-with fits.open('spectrum_sim_gaussian_bffalse2.fits') as hdul:
+with fits.open('spectrum_sim_gaussian_bffalse.fits') as hdul:
     galsim_sensor_image = hdul[0].data.copy()
 
-with fits.open('spectrum_sim_gaussian_bftrue2.fits') as hdul:
+with fits.open('spectrum_sim_gaussian_bftrue.fits') as hdul:
     galsim_bf_image = hdul[0].data.copy()
 
 difference_image = galsim_sensor_image[:, 5:-5] - galsim_bf_image[:, 5:-5]
@@ -37,6 +38,8 @@ np.mean(galsim_sensor_image[14, 15:30])
 mean_sensor_profile = np.mean(galsim_sensor_image[:, 15:30], axis=1)
 mean_bf_profile = np.mean(galsim_bf_image[:, 15:30], axis=1)
 mean_profile_residuals = mean_bf_profile - mean_sensor_profile
+
+# fit the profile
 
 
 plt.figure('mean profile analysis')
