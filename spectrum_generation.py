@@ -157,6 +157,9 @@ plt.imshow(smeared_spectrum2d, cmap='viridis')
 plt.show()
 """
 
+nobf_filename = 'spectrum_sim_gaussian_bffalse2.fits'
+yesbf_filename = 'spectrum_sim_gaussian_bftrue2.fits'
+
 rng = galsim.BaseDeviate(5678)
 # transform the spectrum image into a galsim object
 spectrum_image = galsim.Image(smeared_spectrum2d, scale=1.0)  # scale is pixel/pixel
@@ -169,7 +172,7 @@ spectrum_interpolated.drawImage(image=spectrum_image,
 
 print('image center:', spectrum_image.center)
 print('image true center:', spectrum_image.true_center)
-spectrum_image.write('spectrum_sim_gaussian_bffalse2.fits')
+spectrum_image.write(nobf_filename)
 galsim_sensor_image = spectrum_image.array.copy()
 
 
@@ -186,15 +189,15 @@ spectrum_interpolated.drawImage(image=spectrum_image,
 
 print('image center:', spectrum_image.center)
 print('image true center:', spectrum_image.true_center)
-spectrum_image.write('spectrum_sim_gaussian_bftrue2.fits')
+spectrum_image.write(yesbf_filename)
 galsim_bf_image = spectrum_image.array.copy()
 
 
 """Measure the offset between the two data sets:"""
-with fits.open('spectrum_sim_gaussian_bffalse2.fits') as hdul:
+with fits.open(nobf_filename) as hdul:
     galsim_sensor_image = hdul[0].data
 
-    with fits.open('spectrum_sim_gaussian_bftrue2.fits') as hdul:
+    with fits.open(yesbf_filename) as hdul:
         galsim_bf_image = hdul[0].data
 
         # take an average profile
@@ -225,7 +228,7 @@ spectrum_interpolated.drawImage(image=spectrum_image,
 
 print('image center:', spectrum_image.center)
 print('image true center:', spectrum_image.true_center)
-spectrum_image.write('spectrum_sim_gaussian_bffalse2.fits')
+spectrum_image.write(nobf_filename)
 galsim_sensor_image = spectrum_image.array.copy()
 
 
@@ -242,7 +245,7 @@ spectrum_interpolated.drawImage(image=spectrum_image,
 
 print('image center:', spectrum_image.center)
 print('image true center:', spectrum_image.true_center)
-spectrum_image.write('spectrum_sim_gaussian_bftrue2.fits')
+spectrum_image.write(yesbf_filename)
 galsim_bf_image = spectrum_image.array.copy()
 
 
