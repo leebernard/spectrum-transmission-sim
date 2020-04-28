@@ -28,8 +28,9 @@ def spectrum_slicer(start_angstrom, end_angstrom, angstrom_data, spectrum_data):
 
     return angstrom_slice, spectrum_slice
 
+
 # set if the plots will display or not
-display = False
+display = True
 
 # with fits.open('sun.fits') as hdul:
 hdul = fits.open('sun.fits')
@@ -64,6 +65,9 @@ if display:
     plt.figure('Full available solar spectrum')
     plt.scatter(angstrom, sun.data, s=1)
     plt.scatter(angstrom, filtered_sun, s=1)
+    plt.title('Slice of Solar spectrum')
+    plt.xlabel('Angstroms')
+    plt.legend(['Before smoothing', 'After smoothing'])
 
     # find a slice of data
     start_ang = 5450
@@ -211,5 +215,6 @@ if display:
     plt.title('Sensor with BF sim')
     plt.plot(galsim_bf_image[15])
 
-
     plt.show()
+
+
