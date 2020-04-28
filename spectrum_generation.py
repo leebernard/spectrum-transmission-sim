@@ -12,12 +12,13 @@ import sys
 import galsim
 
 from astropy.io import fits
-from astropy.modeling import models, fitting
+# from astropy.modeling import models, fitting
 from scipy.ndimage import gaussian_filter
 from scipy.ndimage import gaussian_filter1d
-from scipy.ndimage import convolve1d
+# from scipy.ndimage import convolve1d
 # from scipy.ndimage.filters import _gaussian_kernel1d
 # from scipy import integrate
+from spectrum_fitter import spectrum_gaussian_fit
 
 
 def spectrum_slicer(start_angstrom, end_angstrom, angstrom_data, spectrum_data):
@@ -166,8 +167,8 @@ spectrum_interpolated.drawImage(image=spectrum_image,
                                 # center=(15, 57),
                                 sensor=galsim.Sensor())
 
-print('image center', spectrum_image.center)
-print('image true center', spectrum_image.true_center)
+print('image center:', spectrum_image.center)
+print('image true center:', spectrum_image.true_center)
 spectrum_image.write('spectrum_sim_gaussian_bffalse2.fits')
 galsim_sensor_image = spectrum_image.array.copy()
 
@@ -180,13 +181,70 @@ galsim_sensor_image = spectrum_image.array.copy()
 spectrum_interpolated.drawImage(image=spectrum_image,
                                 method='phot',
                                 # center=(15,57),
-                                offset=(0, -.2568),  # this needs 4 digits
+                                offset=(0, 0),  # this needs 4 digits
                                 sensor=galsim.SiliconSensor(name='lsst_e2v_32', rng=rng, diffusion_factor=0.0))
 
-print('image center', spectrum_image.center)
-print('image true center', spectrum_image.true_center)
+print('image center:', spectrum_image.center)
+print('image true center:', spectrum_image.true_center)
 spectrum_image.write('spectrum_sim_gaussian_bftrue2.fits')
 galsim_bf_image = spectrum_image.array.copy()
+
+
+"""Measure the offset between the two data sets:"""
+with fits.open('spectrum_sim_gaussian_bffalse2.fits') as hdul:
+    galsim_sensor_image = hdul[0].data
+
+    with fits.open('spectrum_sim_gaussian_bftrue2.fits') as hdul:
+        galsim_bf_image = hdul[0].data
+
+        # take an average profile
+        np.std(galsim_sensor_image[14, 15:30])  # center row, relatively flat area in spectrum
+        np.mean(galsim_sensor_image[14, 15:30])
+
+        mean_sensor_profile = np.mean(galsim_sensor_image[:, 15:30], axis=1)
+        mean_nobf_pixels = np.arange(mean_sensor_profile.size)
+        mean_bf_profile = np.mean(galsim_bf_image[:, 15:30], axis=1)
+        mean_bf_pixels = np.arange(mean_bf_profile.size)
+
+        # fit the profiles
+        g_nobf, nobf_fitter = spectrum_gaussian_fit(mean_nobf_pixels, mean_sensor_profile, amplitude=50000., mean=14.,
+                                                    stddev=1.)
+        g_withbf, withbf_fitter = spectrum_gaussian_fit(mean_bf_pixels, mean_bf_profile, amplitude=50000., mean=14.,
+                                                        stddev=1.)
+        print('Fit Results:')
+        print('No bf:', g_nobf.parameters)
+        print('With bf', g_withbf.parameters)
+        mean_difference = g_nobf.parameters[1] - g_withbf.parameters[1]
+        print('Difference in mean:', mean_difference)
+
+"""Run the simulation again, with the correction"""
+spectrum_interpolated.drawImage(image=spectrum_image,
+                                method='phot',
+                                # center=(15, 57),
+                                sensor=galsim.Sensor())
+
+print('image center:', spectrum_image.center)
+print('image true center:', spectrum_image.true_center)
+spectrum_image.write('spectrum_sim_gaussian_bffalse2.fits')
+galsim_sensor_image = spectrum_image.array.copy()
+
+
+# now do it again, but with the BF effect
+# spectrum_image = galsim.Image(smeared_spectrum2d, scale=.25)  # scale is angstroms/pixel
+# interpolate the image so GalSim can manipulate it
+# spectrum_interpolated = galsim.InterpolatedImage(spectrum_image)
+
+spectrum_interpolated.drawImage(image=spectrum_image,
+                                method='phot',
+                                # center=(15,57),
+                                offset=(0, mean_difference),  # this needs 4 digits
+                                sensor=galsim.SiliconSensor(name='lsst_e2v_32', rng=rng, diffusion_factor=0.0))
+
+print('image center:', spectrum_image.center)
+print('image true center:', spectrum_image.true_center)
+spectrum_image.write('spectrum_sim_gaussian_bftrue2.fits')
+galsim_bf_image = spectrum_image.array.copy()
+
 
 if display:
     difference_image = galsim_sensor_image[:, 5:-5] - galsim_bf_image[:, 5:-5]

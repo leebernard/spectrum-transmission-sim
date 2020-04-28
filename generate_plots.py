@@ -47,6 +47,8 @@ g_withbf, withbf_fitter = spectrum_gaussian_fit(mean_bf_pixels, mean_bf_profile,
 print('Results:')
 print('No bf:', g_nobf.parameters)
 print('With bf', g_withbf.parameters)
+mean_difference = g_nobf.parameters[1] - g_withbf.parameters[1]
+print('Difference in mean:', mean_difference)
 
 
 plt.figure('mean profile analysis')
@@ -73,9 +75,9 @@ plt.ylabel('(flux)')
 plt.legend(('Data', 'Fits'))
 
 plt.figure('Fit Residuals')
-
-plt.subplot()
-plt.title('residuals of fits')
+plt.plot(g_withbf(mean_bf_pixels) - g_nobf(mean_nobf_pixels))
+#plt.subplot()
+plt.title('residuals of fits, after fixing .002px goof')
 plt.xlabel('(pixels)')
 plt.ylabel('(flux)')
 
