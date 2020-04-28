@@ -6,10 +6,10 @@ from spectrum_fitter import spectrum_gaussian_fit
 
 # open the files
 
-with fits.open('spectrum_sim_gaussian_bffalse.fits') as hdul:
+with fits.open('spectrum_sim_gaussian_bffalse2.fits') as hdul:
     galsim_sensor_image = hdul[0].data.copy()
 
-with fits.open('spectrum_sim_gaussian_bftrue.fits') as hdul:
+with fits.open('spectrum_sim_gaussian_bftrue2.fits') as hdul:
     galsim_bf_image = hdul[0].data.copy()
 
 difference_image = galsim_sensor_image[:, 5:-5] - galsim_bf_image[:, 5:-5]
@@ -66,11 +66,18 @@ plt.ylabel('(flux)')
 
 plt.subplot(313)
 plt.plot(mean_profile_residuals)
-plt.title('residuals')
+plt.plot(g_withbf(mean_bf_pixels) - g_nobf(mean_nobf_pixels))  # residuals of the two fits
+plt.title('BF - No_BF')
 plt.xlabel('(pixels)')
 plt.ylabel('(flux)')
+plt.legend(('Data', 'Fits'))
 
+plt.figure('Fit Residuals')
 
+plt.subplot()
+plt.title('residuals of fits')
+plt.xlabel('(pixels)')
+plt.ylabel('(flux)')
 
 plt.show()
 
