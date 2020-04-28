@@ -180,7 +180,7 @@ galsim_sensor_image = spectrum_image.array.copy()
 spectrum_interpolated.drawImage(image=spectrum_image,
                                 method='phot',
                                 # center=(15,57),
-                                offset=(0, -.258),
+                                offset=(0, -.256),
                                 sensor=galsim.SiliconSensor(name='lsst_e2v_32', rng=rng, diffusion_factor=0.0))
 
 print('image center', spectrum_image.center)
