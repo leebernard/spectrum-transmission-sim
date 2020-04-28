@@ -36,21 +36,34 @@ np.std(galsim_sensor_image[14, 15:30])  # center row, relatively flat area in sp
 np.mean(galsim_sensor_image[14, 15:30])
 
 mean_sensor_profile = np.mean(galsim_sensor_image[:, 15:30], axis=1)
+mean_nobf_pixels = np.arange(mean_sensor_profile.size)
 mean_bf_profile = np.mean(galsim_bf_image[:, 15:30], axis=1)
+mean_bf_pixels = np.arange(mean_bf_profile.size)
 mean_profile_residuals = mean_bf_profile - mean_sensor_profile
 
-# fit the profile
+# fit the profiles
+g_nobf, nobf_fitter = spectrum_gaussian_fit(mean_nobf_pixels, mean_sensor_profile, amplitude=50000., mean=14., stddev=1.)
+g_withbf, withbf_fitter = spectrum_gaussian_fit(mean_bf_pixels, mean_bf_profile, amplitude=50000., mean=14., stddev=1.)
+print('Results:')
+print('No bf:', g_nobf.parameters)
+print('With bf', g_withbf.parameters)
 
 
 plt.figure('mean profile analysis')
+
 plt.subplot(311)
-plt.plot(mean_sensor_profile)
+plt.plot(mean_nobf_pixels, mean_sensor_profile)
+plt.plot(mean_nobf_pixels, g_nobf(mean_nobf_pixels))
 plt.title('Average profile')
 plt.ylabel('(flux)')
+plt.legend(('Profile', 'Fit'))
+
 plt.subplot(312)
-plt.plot(mean_bf_profile)
+plt.plot(mean_bf_pixels, mean_bf_profile)
+plt.plot(mean_bf_pixels, g_withbf(mean_bf_pixels))
 plt.title('Profile after bf is applied')
 plt.ylabel('(flux)')
+
 plt.subplot(313)
 plt.plot(mean_profile_residuals)
 plt.title('residuals')

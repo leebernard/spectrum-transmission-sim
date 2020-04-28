@@ -24,9 +24,9 @@ def spectrum_gaussian_fit(wavelength_values, flux_values, amplitude=1., mean=0, 
     gauss_model_init = models.Gaussian1D(amplitude=amplitude, mean=mean, stddev=stddev) + models.Shift(offset=offset)
 
     fit_gauss = fitting.LevMarLSQFitter()
-    g_fit_results = fit_gauss(gauss_init, wavelength_values, flux_values)
+    g_fit_results = fit_gauss(gauss_model_init, wavelength_values, flux_values)
 
-    return g_fit_results
+    return g_fit_results, fit_gauss
 
 
 if __name__ == "__main__":
@@ -35,13 +35,13 @@ if __name__ == "__main__":
     fe_angstroms, fe_data = spectrum_slicer(5454, 5457, angstrom, filtered_sun)
 
     # Fit the data using a Gaussian with vertical offset
-    gauss_init = models.Gaussian1D(amplitude=-2500., mean=5456., stddev=1.) + models.Shift(offset=10000)
+    # gauss_init = models.Gaussian1D(amplitude=-2500., mean=5456., stddev=1.) + models.Shift(offset=10000)
 
-    fit_gauss = fitting.LevMarLSQFitter()
-    g = fit_gauss(gauss_init, fe_angstroms, fe_data)
+    # fit_gauss = fitting.LevMarLSQFitter()
+    # g = fit_gauss(gauss_init, fe_angstroms, fe_data)
 
     # test the new function wrapper
-    g = spectrum_gaussian_fit(fe_angstroms, fe_data, amplitude=-2500., mean=5456., stddev=1., offset=10000)
+    g, fit_gauss = spectrum_gaussian_fit(fe_angstroms, fe_data, amplitude=-2500., mean=5456., stddev=1., offset=10000)
 
 
     # fit results
