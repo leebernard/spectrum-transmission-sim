@@ -157,8 +157,8 @@ plt.imshow(smeared_spectrum2d, cmap='viridis')
 plt.show()
 """
 
-nobf_filename = 'spectrum_sim_gaussian_bffalse2.fits'
-yesbf_filename = 'spectrum_sim_gaussian_bftrue2.fits'
+nobf_filename = 'spectrum_sim_gaussian_bffalse3.fits'
+yesbf_filename = 'spectrum_sim_gaussian_bftrue3.fits'
 
 rng = galsim.BaseDeviate(5678)
 # transform the spectrum image into a galsim object
