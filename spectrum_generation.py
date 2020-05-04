@@ -197,7 +197,8 @@ print('image true center:', spectrum_image.true_center)
 spectrum_image.write(yesbf_filename)
 galsim_bf_image = spectrum_image.array.copy()
 
-
+''' take out the center correction
+ apparently the correction is flux dependant, and therefore part of the data
 """Measure the offset between the two data sets:"""
 with fits.open(nobf_filename) as hdul:
     galsim_sensor_image = hdul[0].data
@@ -253,6 +254,8 @@ print('image true center:', spectrum_image.true_center)
 spectrum_image.write(yesbf_filename)
 galsim_bf_image = spectrum_image.array.copy()
 
+# end comment out
+'''
 
 if display:
     difference_image = galsim_sensor_image[:, 5:-5] - galsim_bf_image[:, 5:-5]
