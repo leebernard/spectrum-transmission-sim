@@ -31,7 +31,7 @@ def spectrum_slicer(start_angstrom, end_angstrom, angstrom_data, spectrum_data):
 
 
 # set if the plots will display or not
-display = True
+display = False
 
 # with fits.open('sun.fits') as hdul:
 hdul = fits.open('sun.fits')
@@ -157,8 +157,8 @@ plt.imshow(smeared_spectrum2d, cmap='viridis')
 plt.show()
 """
 
-nobf_filename = 'spectrum_sim_gauss_transpose_bffalse.fits'
-yesbf_filename = 'spectrum_sim_gauss_transpose_bftrue.fits'
+nobf_filename = 'spectrum_sim_gauss_transpose2_bffalse.fits'
+yesbf_filename = 'spectrum_sim_gauss_transpose2_bftrue.fits'
 
 rng = galsim.BaseDeviate(5678)
 
