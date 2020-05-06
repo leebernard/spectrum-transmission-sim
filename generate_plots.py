@@ -8,9 +8,9 @@ fig_size = (8, 12)
 
 # open the files
 
-title_label = 'Spectrum Simulation with Flux Doubled'
-bffalse_name = 'spectrum_sim_gaussdouble_bffalse.fits'
-bftrue_name = 'spectrum_sim_gaussdouble_bftrue.fits'
+# title_label = 'Spectrum Simulation with Flux Doubled'
+# bffalse_name = 'spectrum_sim_gaussdouble_bffalse.fits'
+# bftrue_name = 'spectrum_sim_gaussdouble_bftrue.fits'
 
 # title_label = 'Simulated Spectrum with Gaussian Profiles'
 # bffalse_name = 'spectrum_sim_gaussian_bffalse.fits'
@@ -20,9 +20,10 @@ bftrue_name = 'spectrum_sim_gaussdouble_bftrue.fits'
 # bffalse_name = 'spectrum_sim_gauss_transpose_bffalse.fits'
 # bftrue_name = 'spectrum_sim_gauss_transpose_bftrue.fits'
 
-# bffalse_name = 'spectrum_sim_gausshalf_bffalse.fits'
-# bftrue_name = 'spectrum_sim_gausshalf_bftrue.fits'
-
+title_label = 'Spectrum Simulation with Flux Halved'
+bffalse_name = 'spectrum_sim_gausshalf_bffalse.fits'
+bftrue_name = 'spectrum_sim_gausshalf_bftrue.fits'
+#
 # title_label = 'Simulated Spectrum using ITL sensor'
 # bffalse_name = 'spectrum_sim_gauss_transpose_itl_bffalse.fits'
 # bftrue_name = 'spectrum_sim_gauss_transpose_itl_bftrue.fits'
