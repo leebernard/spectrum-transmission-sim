@@ -157,14 +157,13 @@ plt.imshow(smeared_spectrum2d, cmap='viridis')
 plt.show()
 """
 
-nobf_filename = 'spectrum_sim_gauss_transpose_itl_bffalse.fits'
-yesbf_filename = 'spectrum_sim_gauss_transpose_itl_bftrue.fits'
+nobf_filename = 'spectrum_sim_gausshalf_bffalse.fits'
+yesbf_filename = 'spectrum_sim_gausshalf_bftrue.fits'
 
 rng = galsim.BaseDeviate(5678)
 
 # multiply the total flux by a scalar
-scalar = 2.0
-
+scalar = 0.5
 # transform the spectrum image into a galsim object
 spectrum_image = galsim.Image(smeared_spectrum2d * scalar, scale=1.0)  # scale is pixel/pixel
 # interpolate the image so GalSim can manipulate it
@@ -177,7 +176,8 @@ spectrum_interpolated.drawImage(image=spectrum_image,
 print('image center:', spectrum_image.center)
 print('image true center:', spectrum_image.true_center)
 spectrum_image.write(nobf_filename)
-galsim_sensor_image = spectrum_image.array.copy()
+if display:
+    galsim_sensor_image = spectrum_image.array.copy()
 
 
 # now do it again, but with the BF effect
@@ -194,7 +194,8 @@ spectrum_interpolated.drawImage(image=spectrum_image,
 print('image center:', spectrum_image.center)
 print('image true center:', spectrum_image.true_center)
 spectrum_image.write(yesbf_filename)
-galsim_bf_image = spectrum_image.array.copy()
+if display:
+    galsim_bf_image = spectrum_image.array.copy()
 
 ''' block comment out the center correction
  apparently the correction is flux dependant, and therefore part of the data
