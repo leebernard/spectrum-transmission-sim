@@ -4,18 +4,28 @@ import numpy as np
 from astropy.io import fits
 from spectrum_fitter import spectrum_gaussian_fit
 
+fig_size = (8, 12)
+
 # open the files
-# bffalse_name = 'spectrum_sim_gaussdouble_bffalse.fits'
-# bftrue_name = 'spectrum_sim_gaussdouble_bftrue.fits'
-#
-# bffalse_name = 'spectrum_sim_gaussian_bffalse3.fits'
-# bftrue_name = 'spectrum_sim_gaussian_bftrue3.fits'
-#
+
+title_label = 'Spectrum Simulation with Flux Doubled'
+bffalse_name = 'spectrum_sim_gaussdouble_bffalse.fits'
+bftrue_name = 'spectrum_sim_gaussdouble_bftrue.fits'
+
+# title_label = 'Simulated Spectrum with Gaussian Profiles'
+# bffalse_name = 'spectrum_sim_gaussian_bffalse.fits'
+# bftrue_name = 'spectrum_sim_gaussian_bftrue.fits'
+
+# title_label = 'Simulated Spectrum, Transposed'
+# bffalse_name = 'spectrum_sim_gauss_transpose_bffalse.fits'
+# bftrue_name = 'spectrum_sim_gauss_transpose_bftrue.fits'
+
 # bffalse_name = 'spectrum_sim_gausshalf_bffalse.fits'
 # bftrue_name = 'spectrum_sim_gausshalf_bftrue.fits'
 
-bffalse_name = 'spectrum_sim_gauss_transpose_bffalse.fits'
-bftrue_name = 'spectrum_sim_gauss_transpose_bftrue.fits'
+# title_label = 'Simulated Spectrum using ITL sensor'
+# bffalse_name = 'spectrum_sim_gauss_transpose_itl_bffalse.fits'
+# bftrue_name = 'spectrum_sim_gauss_transpose_itl_bftrue.fits'
 
 with fits.open(bffalse_name) as hdul:
     galsim_sensor_image = hdul[0].data.copy()
@@ -25,8 +35,8 @@ with fits.open(bftrue_name) as hdul:
 
 difference_image = galsim_sensor_image[:, 5:-5] - galsim_bf_image[:, 5:-5]
 
-plt.figure('GalSim simulated spectrum image')
-plt.suptitle(bftrue_name)
+plt.figure('GalSim simulated spectrum image', figsize=(8, 8))
+plt.suptitle(title_label)
 
 plt.subplot(311)
 plt.imshow(galsim_sensor_image[:, 5:-5], cmap='viridis')
@@ -42,6 +52,7 @@ plt.subplot(313)
 plt.imshow(difference_image, cmap='viridis')
 plt.title('Residuals')
 plt.colorbar()
+
 
 # take an average profile
 np.std(galsim_sensor_image[14, 15:30])  # center row, relatively flat area in spectrum
@@ -61,31 +72,34 @@ print('No bf:', g_nobf.parameters)
 print('With bf', g_withbf.parameters)
 mean_difference = g_nobf.parameters[1] - g_withbf.parameters[1]
 print('Difference in mean:', mean_difference)
+bf_growth = (g_withbf.parameters[2] - g_nobf.parameters[2])/g_nobf.parameters[2]
+print('Fractional growth in FWHM:', bf_growth)
 
 
-plt.figure('mean profile analysis')
-plt.suptitle(bftrue_name)
+plt.figure('mean profile analysis', figsize=fig_size)
 
 plt.subplot(311)
 plt.plot(mean_nobf_pixels, mean_sensor_profile)
 plt.plot(mean_nobf_pixels, g_nobf(mean_nobf_pixels))
-plt.title('Average profile')
+plt.title('Average profile in spacial direction, no BF')
 plt.ylabel('(flux)')
 plt.legend(('Profile', 'Fit'))
 
 plt.subplot(312)
 plt.plot(mean_bf_pixels, mean_bf_profile)
 plt.plot(mean_bf_pixels, g_withbf(mean_bf_pixels))
-plt.title('Profile after bf is applied')
+plt.title('Profile after BF is applied')
 plt.ylabel('(flux)')
 
 plt.subplot(313)
 plt.plot(mean_profile_residuals)
 plt.plot(g_withbf(mean_bf_pixels) - g_nobf(mean_nobf_pixels))  # residuals of the two fits
-plt.title('BF - No_BF')
+plt.title('BF - no-BF')
 plt.xlabel('(pixels)')
 plt.ylabel('(flux)')
-plt.legend(('Data', 'Fits'))
+plt.legend(('Profile', 'Fits'))
+
+plt.tight_layout()
 
 
 # analyze the fit residuals
@@ -112,24 +126,25 @@ print('Normalized residual values')
 print('no BF:', no_bf_residuals)
 print('yes BF:', yes_bf_residuals)
 
-plt.figure('Fit Residuals')
-plt.suptitle(bftrue_name)
+plt.figure('Fit Residuals', figsize=fig_size)
 
 plt.subplot(311)
 plt.plot(g_nobf(mean_nobf_pixels) - mean_sensor_profile)
-plt.title('Residuals of the noBF fit')
-plt.ylabel(r'(flux? ergs?)')
+plt.title('Residuals of the no-BF fit')
+plt.ylabel(r'(flux)')
 
 plt.subplot(312)
 plt.plot(g_withbf(mean_bf_pixels) - mean_bf_profile)
-plt.title('Residuals of the yesBF fit')
-plt.ylabel(r'(flux? ergs?)')
+plt.title('Residuals of the yes-BF fit')
+plt.ylabel(r'(flux)')
 
 plt.subplot(313)
 plt.plot(g_withbf(mean_bf_pixels) - g_nobf(mean_nobf_pixels))
-plt.title('BF fit minus noBF fit')
+plt.title('Residuals of the yes-BF fit minus no-BF fit')
 plt.xlabel('(pixels)')
 plt.ylabel('(flux)')
+
+plt.tight_layout()
 
 plt.show()
 
