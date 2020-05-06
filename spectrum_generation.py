@@ -164,8 +164,6 @@ rng = galsim.BaseDeviate(5678)
 
 # multiply the total flux by a scalar
 scalar = 2.0
-# choose sensor options
-si_sensor = galsim.SiliconSensor(name='lsst_e2v_32', transpose=False, rng=rng, diffusion_factor=0.0)
 # transform the spectrum image into a galsim object
 spectrum_image = galsim.Image(smeared_spectrum2d * scalar, scale=1.0)  # scale is pixel/pixel
 # interpolate the image so GalSim can manipulate it
@@ -190,7 +188,7 @@ spectrum_interpolated.drawImage(image=spectrum_image,
                                 method='phot',
                                 # center=(15,57),                               
                                 offset=(0, 0),  # this needs 4 digits
-                                sensor=si_sensor)
+                                sensor=galsim.SiliconSensor(name='lsst_e2v_32', transpose=False, rng=rng, diffusion_factor=0.0))
 
 print('image center:', spectrum_image.center)
 print('image true center:', spectrum_image.true_center)
