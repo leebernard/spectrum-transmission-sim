@@ -164,6 +164,7 @@ rng = galsim.BaseDeviate(5678)
 
 # multiply the total flux by a scalar
 scalar = 2.0
+
 # transform the spectrum image into a galsim object
 spectrum_image = galsim.Image(smeared_spectrum2d * scalar, scale=1.0)  # scale is pixel/pixel
 # interpolate the image so GalSim can manipulate it
