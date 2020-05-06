@@ -157,13 +157,13 @@ plt.imshow(smeared_spectrum2d, cmap='viridis')
 plt.show()
 """
 
-nobf_filename = 'spectrum_sim_gaussdouble_bffalse.fits'
-yesbf_filename = 'spectrum_sim_gaussdouble_bftrue.fits'
+nobf_filename = 'spectrum_sim_gausshalf_bffalse.fits'
+yesbf_filename = 'spectrum_sim_gausshalf_bftrue.fits'
 
 rng = galsim.BaseDeviate(5678)
 
 # multiply the total flux by a scalar
-scalar = 2.0
+scalar = 0.5
 # transform the spectrum image into a galsim object
 spectrum_image = galsim.Image(smeared_spectrum2d * scalar, scale=1.0)  # scale is pixel/pixel
 # interpolate the image so GalSim can manipulate it
