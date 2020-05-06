@@ -157,15 +157,15 @@ plt.imshow(smeared_spectrum2d, cmap='viridis')
 plt.show()
 """
 
-nobf_filename = 'spectrum_sim_gauss_transpose_itl_bffalse.fits'
-yesbf_filename = 'spectrum_sim_gauss_transpose_itl_bftrue.fits'
+nobf_filename = 'spectrum_sim_gaussdouble_bffalse.fits'
+yesbf_filename = 'spectrum_sim_gaussdouble_bftrue.fits'
 
 rng = galsim.BaseDeviate(5678)
 
 # multiply the total flux by a scalar
-scalar = 1.0
+scalar = 2.0
 # choose sensor options
-si_sensor = galsim.SiliconSensor(name='lsst_itl_32', transpose=True, rng=rng, diffusion_factor=0.0)
+si_sensor = galsim.SiliconSensor(name='lsst_e2v_32', transpose=False, rng=rng, diffusion_factor=0.0)
 # transform the spectrum image into a galsim object
 spectrum_image = galsim.Image(smeared_spectrum2d * scalar, scale=1.0)  # scale is pixel/pixel
 # interpolate the image so GalSim can manipulate it
