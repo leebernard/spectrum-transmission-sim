@@ -176,7 +176,8 @@ spectrum_interpolated.drawImage(image=spectrum_image,
 print('image center:', spectrum_image.center)
 print('image true center:', spectrum_image.true_center)
 spectrum_image.write(nobf_filename)
-galsim_sensor_image = spectrum_image.array.copy()
+if display:
+    galsim_sensor_image = spectrum_image.array.copy()
 
 
 # now do it again, but with the BF effect
@@ -193,7 +194,8 @@ spectrum_interpolated.drawImage(image=spectrum_image,
 print('image center:', spectrum_image.center)
 print('image true center:', spectrum_image.true_center)
 spectrum_image.write(yesbf_filename)
-galsim_bf_image = spectrum_image.array.copy()
+if display:
+    galsim_bf_image = spectrum_image.array.copy()
 
 ''' block comment out the center correction
  apparently the correction is flux dependant, and therefore part of the data
