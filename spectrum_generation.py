@@ -189,7 +189,10 @@ spectrum_interpolated.drawImage(image=spectrum_image,
                                 method='phot',
                                 # center=(15,57),                               
                                 offset=(0, 0),  # this needs 4 digits
-                                sensor=galsim.SiliconSensor(name='lsst_e2v_32', transpose=False, rng=rng, diffusion_factor=0.0))
+                                sensor=galsim.SiliconSensor(name='lsst_e2v_32',
+                                                            transpose=False,
+                                                            rng=rng,
+                                                            diffusion_factor=0.0))
 
 print('image center:', spectrum_image.center)
 print('image true center:', spectrum_image.true_center)

@@ -76,7 +76,7 @@ def main(argv):
     gal_sigma = 2.     # arcsec
     psf_sigma = 1.     # arcsec
     # MOD decrease the resolution
-    pixel_scale = 1.0  # arcsec / pixel
+    pixel_scale = 2.0  # arcsec / pixel
     noise = 30.        # standard deviation of the counts in each pixel
 
     logger.info('Starting demo script 1 using:')
@@ -108,12 +108,20 @@ def main(argv):
     #                         method='phot',
     #                         sensor=galsim.Sensor())
     # logger.debug('Made image of the profile: flux = %f, added_flux = %f', gal_flux, image.added_flux)
+    # file_name = os.path.join('output', 'large_spot_nobf.fits')
 
+    # sensor_name = 'lsst_e2v_50_32'
+    sensor_name = 'lsst_itl_50_32'
     # MOD use the 'phot method, with a e2v sensor
+    rng = galsim.BaseDeviate(5678)
     image = final.drawImage(scale=pixel_scale,
                             method='phot',
-                            sensor=galsim.Sensor())
+                            sensor=galsim.SiliconSensor(name=sensor_name,
+                                                        transpose=False,
+                                                        rng=rng,
+                                                        diffusion_factor=0.0))
     logger.debug('Made image of the profile: flux = %f, added_flux = %f', gal_flux, image.added_flux)
+    file_name = os.path.join('output', 'spot_' + sensor_name + '_bf.fits')
 
     # Add Gaussian noise to the image with specified sigma
     # MOD actually, don't add any noise
@@ -124,7 +132,7 @@ def main(argv):
     # Write the image to a file
     if not os.path.isdir('output'):
         os.mkdir('output')
-    file_name = os.path.join('output', 'spot_e2v_bf.fits')
+
     # Note: if the file already exists, this will overwrite it.
     image.write(file_name)
     logger.info('Wrote image to %r' % file_name)  # using %r adds quotes around filename for us
