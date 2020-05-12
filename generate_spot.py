@@ -72,7 +72,9 @@ def main(argv):
     logger = logging.getLogger("demo1")
 
     # MOD crank up the flux
-    gal_flux = 2.e6    # total counts on the image
+    data_index = 20
+    flux_factor = 20
+    gal_flux = 2.e6 * flux_factor   # total counts on the image
     gal_sigma = 2.     # arcsec
     psf_sigma = 1.     # arcsec
     # MOD decrease the resolution
@@ -104,15 +106,32 @@ def main(argv):
     # the image.  One could use this value to check if the image is large enough for some desired
     # accuracy level.  Here, we just ignore it.
     # MOD use the 'phot' method with an ideal sensor
-    # image = final.drawImage(scale=pixel_scale,
-    #                         method='phot',
-    #                         sensor=galsim.Sensor())
-    # logger.debug('Made image of the profile: flux = %f, added_flux = %f', gal_flux, image.added_flux)
-    # file_name = os.path.join('output', 'large_spot_nobf.fits')
+    image = final.drawImage(scale=pixel_scale,
+                            method='phot',
+                            sensor=galsim.Sensor())
+    logger.debug('Made image of the profile: flux = %f, added_flux = %f', gal_flux, image.added_flux)
+    file_name = os.path.join('output', 'spot_nobf_' + str(data_index) + '.fits')
+
+    # Write the image to a file
+    if not os.path.isdir('output'):
+        os.mkdir('output')
+
+    # Note: if the file already exists, this will overwrite it.
+    image.write(file_name)
+    logger.info('Wrote Ideal image to %r' % file_name)  # using %r adds quotes around filename for us
+
+    results = image.FindAdaptiveMom()
+
+    logger.info('HSM reports that the image has observed shape and size:')
+    logger.info('    e1 = %.3f, e2 = %.3f, sigma = %.3f (pixels)', results.observed_shape.e1,
+                results.observed_shape.e2, results.moments_sigma)
+    logger.info('Expected values in the limit that pixel response and noise are negligible:')
+    logger.info('    e1 = %.3f, e2 = %.3f, sigma = %.3f', 0.0, 0.0,
+                math.sqrt(gal_sigma ** 2 + psf_sigma ** 2) / pixel_scale)
 
     # sensor_name = 'lsst_e2v_50_32'
     sensor_name = 'lsst_itl_50_32'
-    # MOD use the 'phot method, with a e2v sensor
+    # MOD use the 'phot' method, with a e2v sensor
     rng = galsim.BaseDeviate(5678)
     image = final.drawImage(scale=pixel_scale,
                             method='phot',
@@ -121,7 +140,7 @@ def main(argv):
                                                         rng=rng,
                                                         diffusion_factor=0.0))
     logger.debug('Made image of the profile: flux = %f, added_flux = %f', gal_flux, image.added_flux)
-    file_name = os.path.join('output', 'spot_' + sensor_name + '_bf.fits')
+    file_name = os.path.join('output', 'spot_' + sensor_name + '_bf_' + str(data_index) + '.fits')
 
     # Add Gaussian noise to the image with specified sigma
     # MOD actually, don't add any noise
@@ -135,7 +154,7 @@ def main(argv):
 
     # Note: if the file already exists, this will overwrite it.
     image.write(file_name)
-    logger.info('Wrote image to %r' % file_name)  # using %r adds quotes around filename for us
+    logger.info('Wrote bfed image to %r' % file_name)  # using %r adds quotes around filename for us
 
     results = image.FindAdaptiveMom()
 
