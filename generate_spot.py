@@ -72,8 +72,8 @@ def main(argv):
     logger = logging.getLogger("demo1")
 
     # MOD crank up the flux
-    data_index = 20
-    flux_factor = 20
+    data_index = 1
+    flux_factor = 1
     gal_flux = 2.e6 * flux_factor   # total counts on the image
     gal_sigma = 2.     # arcsec
     psf_sigma = 1.     # arcsec
@@ -129,8 +129,8 @@ def main(argv):
     logger.info('    e1 = %.3f, e2 = %.3f, sigma = %.3f', 0.0, 0.0,
                 math.sqrt(gal_sigma ** 2 + psf_sigma ** 2) / pixel_scale)
 
-    # sensor_name = 'lsst_e2v_50_32'
-    sensor_name = 'lsst_itl_50_32'
+    sensor_name = 'lsst_e2v_50_32'
+    # sensor_name = 'lsst_itl_50_32'
     # MOD use the 'phot' method, with a e2v sensor
     rng = galsim.BaseDeviate(5678)
     image = final.drawImage(scale=pixel_scale,

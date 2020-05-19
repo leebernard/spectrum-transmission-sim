@@ -9,8 +9,8 @@ script_dir = os.path.dirname(__file__) # <-- absolute dir the script is in
 
 title_label = 'Gaussian Spot Image'
 bffalse_name = os.path.join(script_dir, r'output/spot_nobf.fits')
-bftrue_name = os.path.join(script_dir, r'output/spot_lsst_e2v_50_32_bf.fits')
-bf_itl_name = os.path.join(script_dir, r'output/spot_lsst_itl_50_32_bf.fits')
+bftrue_name = os.path.join(script_dir, r'output/spot_lsst_e2v_50_32_bf_1.fits')
+bf_itl_name = os.path.join(script_dir, r'output/spot_lsst_itl_50_32_bf_1.fits')
 
 with fits.open(bffalse_name) as hdul:
     galsim_sensor_image = hdul[0].data.copy()
