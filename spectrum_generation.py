@@ -33,12 +33,12 @@ def spectrum_slicer(start_angstrom, end_angstrom, angstrom_data, spectrum_data):
 # set if the plots will display or not
 display = False
 
-# with fits.open('sun.fits') as hdul:
-hdul = fits.open('sun.fits')
-sun = hdul[0]
+with fits.open('sun.fits') as hdul:
+    # hdul = fits.open('sun.fits')
+    sun = hdul[0]
 
-angstrom_per_pix = sun.header['CDELT1']
-intial_angstrom = sun.header['CRVAL1']
+    angstrom_per_pix = sun.header['CDELT1']
+    intial_angstrom = sun.header['CRVAL1']
 
 # generate an x-data set
 angstrom = np.arange(0, sun.data.size, step=1) * angstrom_per_pix + intial_angstrom
