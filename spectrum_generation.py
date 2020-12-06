@@ -21,14 +21,7 @@ from scipy.ndimage import gaussian_filter1d
 from spectrum_fitter import spectrum_gaussian_fit
 
 
-def spectrum_slicer(start_angstrom, end_angstrom, angstrom_data, spectrum_data):
-    start_index = np.where(angstrom_data == start_angstrom)[0][0]
-    end_index = np.where(angstrom_data == end_angstrom)[0][0]
-    spectrum_slice = spectrum_data[start_index:end_index]
-    angstrom_slice = angstrom_data[start_index:end_index]
-
-    return angstrom_slice, spectrum_slice
-
+from toolkit import spectrum_slicer
 
 # set if the plots will display or not
 display = False
@@ -58,6 +51,7 @@ gauss_kernel = _gaussian_kernel1d(sigma, order=0, radius=lw)
 
 
 # filter the full spectrum
+# the 1/.002 accounts for the spacing being .002
 resolution = 500  # 1/.002  # the resolution of the spectrum in angstroms. This corresponds to FWHM
 sigma = resolution/(2.0 * np.sqrt(2.0 * np.log(2.0)))
 filtered_sun = gaussian_filter(sun.data, sigma)

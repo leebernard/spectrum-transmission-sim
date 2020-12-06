@@ -16,7 +16,6 @@ from scipy.interpolate import griddata
 
 from toolkit import spectrum_slicer
 
-
 filename = '../ast_521/ChromaStarPy/Outputs/BF_sim-5777.0-4.44-0.0-588.0-750.0-Run.sed.txt'
 
 with open(filename, 'r') as file:
@@ -26,7 +25,7 @@ with open(filename, 'r') as file:
     # skip unit definitions
     print(file.readline())
 
-    #read all the data columns
+    # read all the data columns
     raw_data = file.readlines()
 
     # split the lines into data
@@ -40,49 +39,67 @@ with open(filename, 'r') as file:
     nanometers = np.array([float(number) for number in spectrum_data[0]])
     log_flux = np.array([float(number) for number in spectrum_data[1]])
 
-spectrum_flux = 10**log_flux
+spectrum_flux = 10 ** log_flux
 
 # convert from ergs/μm to watts/nm
-spectrum_flux = spectrum_flux * 10**-7 * 10**-3
+spectrum_flux = spectrum_flux * 10 ** -7 * 10 ** -3
 
 # convert from flux/m^2 to photons/m^2
 c = constants.speed_of_light
 h = constants.h
 
-spectrum_counts = spectrum_flux * nanometers / (h*c)
-
-'''
-# filter the full spectrum
-resolution = 50  # the resolution of the spectrum in nanometers. This corresponds to FWHM
-sigma = resolution/(2.0 * np.sqrt(2.0 * np.log(2.0)))
-filtered_flux = gaussian_filter(spectrum_flux.data, sigma)
-filtered_counts = gaussian_filter(spectrum_counts.data, sigma)
-
-plt.figure('Full available solar spectrum')
-plt.scatter(nanometers, spectrum_counts, s=1)
-plt.scatter(nanometers, filtered_counts, s=1)
-plt.title('Slice of Solar spectrum')
-plt.xlabel('Angstroms')
-plt.legend(['Before smoothing', 'After smoothing'])
-# plt.xlim(585, 595)
-'''
+spectrum_counts = spectrum_flux * nanometers / (h * c)
 
 # grab a slice of data
 spectrum_start = 588
 spectrum_end = 750
-nm_slice, spectrum_slice = spectrum_slicer(spectrum_start,
-                                           spectrum_end,
-                                           nanometers,
-                                           spectrum_counts)
+nm_slice, spectrum_counts_slice = spectrum_slicer(spectrum_start,
+                                                  spectrum_end,
+                                                  nanometers,
+                                                  spectrum_counts)
 
 # interpolate the data to even spacing
-sim_nm_per_pixel = .35
+number_pixels = nm_slice.size
+nm_grid = np.linspace(nm_slice[0], nm_slice[-1], num=number_pixels)
 
-number_pixels = int((nm_slice[-1] - nm_slice[0])/sim_nm_per_pixel)
-pixel_nanometers = np.linspace()
+gridded_spectrum = griddata(nm_slice, spectrum_counts_slice, xi=nm_grid, method='linear')
 
-xi = np.linspace(nanometers[0], nanometers[-1], 500)
-test = griddata(nanometers, spectrum_counts, xi=xi)
+# filter the spectrum slice
+resolution = .1 # the resolution of the spectrum in nanometers. This corresponds to FWHM of spectrum lines
+fwhm = 1/np.mean(np.diff(nm_grid)) * resolution  # the fwhm in terms of data spacing
+sigma = fwhm / (2.0 * np.sqrt(2.0 * np.log(2.0)))
+filtered_counts = gaussian_filter(gridded_spectrum.data, sigma)
+
+plt.figure('Slice of solar spectrum')
+plt.scatter(nm_slice, spectrum_counts_slice, s=1)
+plt.scatter(nm_grid, gridded_spectrum, s=1)
+plt.scatter(nm_grid, filtered_counts, s=1)
+plt.title('Slice of Solar spectrum')
+plt.xlabel('Nanometers')
+plt.legend(['Orignal data', 'after gridding', 'After smoothing'])
+# plt.xlim(587, 595)
+
+
+# interpolate the data a pixel grid
+sim_nm_per_pixel = .05
+
+number_pixels = int((nm_slice[-1] - nm_slice[0]) / sim_nm_per_pixel)
+pixel_grid = np.linspace(nm_slice[0], nm_slice[-1], num=number_pixels)
+
+test = griddata(nm_grid, filtered_counts, xi=pixel_grid, method='linear')
+
+plt.figure('pixel gridding', figsize=(10, 6))
+plt.scatter(nm_grid, filtered_counts, s=1)
+plt.scatter(pixel_grid, test, s=1)
+plt.title('Slice of Solar Spectrum')
+plt.xlabel('Nanometers')
+plt.ylabel('Photons')
+plt.legend(['Smoothed spectrum', 'Interpolated to pixels'])
+
+
+
+
+
 
 
 
