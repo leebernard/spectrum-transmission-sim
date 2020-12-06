@@ -5,14 +5,14 @@ for producing a spectrum image from the ChromaStarPy simulation software
 import numpy as np
 import matplotlib.pyplot as plt
 # import sys
-# import galsim
+import galsim
 
 # from astropy.io import fits
 # from astropy.modeling import models, fitting
 from scipy.ndimage import gaussian_filter
 from scipy import constants
 from scipy.interpolate import griddata
-# from scipy.ndimage import gaussian_filter1d
+from scipy.ndimage import gaussian_filter1d
 
 from toolkit import spectrum_slicer
 
@@ -52,7 +52,7 @@ spectrum_counts = spectrum_flux * nanometers / (h * c)
 
 # grab a slice of data
 spectrum_start = 588
-spectrum_end = 750
+spectrum_end = 591
 nm_slice, spectrum_counts_slice = spectrum_slicer(spectrum_start,
                                                   spectrum_end,
                                                   nanometers,
@@ -70,6 +70,7 @@ fwhm = 1/np.mean(np.diff(nm_grid)) * resolution  # the fwhm in terms of data spa
 sigma = fwhm / (2.0 * np.sqrt(2.0 * np.log(2.0)))
 filtered_counts = gaussian_filter(gridded_spectrum.data, sigma)
 
+
 plt.figure('Slice of solar spectrum')
 plt.scatter(nm_slice, spectrum_counts_slice, s=1)
 plt.scatter(nm_grid, gridded_spectrum, s=1)
@@ -86,17 +87,58 @@ sim_nm_per_pixel = .05
 number_pixels = int((nm_slice[-1] - nm_slice[0]) / sim_nm_per_pixel)
 pixel_grid = np.linspace(nm_slice[0], nm_slice[-1], num=number_pixels)
 
-test = griddata(nm_grid, filtered_counts, xi=pixel_grid, method='linear')
+pixel_spectrum = griddata(nm_grid, filtered_counts, xi=pixel_grid, method='linear')
 
 plt.figure('pixel gridding', figsize=(10, 6))
 plt.scatter(nm_grid, filtered_counts, s=1)
-plt.scatter(pixel_grid, test, s=1)
+plt.scatter(pixel_grid, pixel_spectrum, s=1)
 plt.title('Slice of Solar Spectrum')
 plt.xlabel('Nanometers')
 plt.ylabel('Photons')
 plt.legend(['Smoothed spectrum', 'Interpolated to pixels'])
 
 
+# expand the array, using gaussian
+num_spacial_pixels = int(5 * resolution/sim_nm_per_pixel)
+spectrum2d = np.insert(np.zeros((num_spacial_pixels, pixel_spectrum.size)),  # generate an array of zeros
+                       int(num_spacial_pixels/2),                               # location to insert data, the middle
+                       pixel_spectrum,                                       # spectrum to be inserted
+                       axis=0)                                             # axis the spectrum is inserted along
+
+scaling = 2e-27  # this represents (R_star/R)**2 * instrument power * exposure time
+smeared_spectrum2d = gaussian_filter1d(spectrum2d * scaling, sigma=resolution/sim_nm_per_pixel, axis=0)
+
+
+# run it through galsim to produce a sensor image
+rng = galsim.BaseDeviate(5678)
+
+spectrum_image = galsim.Image(smeared_spectrum2d, scale=1.0)  # scale is pixel/pixel
+# interpolate the image so GalSim can manipulate it
+spectrum_interpolated = galsim.InterpolatedImage(spectrum_image)
+spectrum_interpolated.drawImage(image=spectrum_image,
+                                method='phot',
+                                # center=(15, 57),
+                                sensor=galsim.Sensor())
+galsim_sensor_image = spectrum_image.array.copy()
+
+plt.figure('GalSim image')
+plt.imshow(galsim_sensor_image[:, 5:-5], cmap='viridis')
+plt.title('Sodium doublet')
+
+# now do it again, but with the BF effect
+
+spectrum_image = galsim.Image(smeared_spectrum2d, scale=1.0)  # scale is pixel/pixel
+# interpolate the image so GalSim can manipulate it
+spectrum_interpolated = galsim.InterpolatedImage(spectrum_image)
+spectrum_interpolated.drawImage(image=spectrum_image,
+                                method='phot',
+                                # center=(15,57),
+                                offset=(0, 0),  # this needs 4 digits
+                                sensor=galsim.SiliconSensor(name='lsst_e2v_32',
+                                                            transpose=False,
+                                                            rng=rng,
+                                                            diffusion_factor=0.0))
+galsim_bf_image = spectrum_image.array.copy()
 
 
 
