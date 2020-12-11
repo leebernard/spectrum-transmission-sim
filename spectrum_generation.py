@@ -183,7 +183,7 @@ spectrum_interpolated.drawImage(image=spectrum_image,
                                 method='phot',
                                 # center=(15,57),                               
                                 offset=(0, 0),  # this needs 4 digits
-                                sensor=galsim.SiliconSensor(name='lsst_e2v_32',
+                                sensor=galsim.SiliconSensor(name='lsst_e2v_50_32',
                                                             transpose=False,
                                                             rng=rng,
                                                             diffusion_factor=0.0))
@@ -255,31 +255,36 @@ galsim_bf_image = spectrum_image.array.copy()
 '''
 
 if display:
-    difference_image = galsim_sensor_image[:, 5:-5] - galsim_bf_image[:, 5:-5]
+    difference_image = galsim_bf_image[:, 5:-5] - galsim_sensor_image[:, 5:-5]
 
-    plt.figure('GalSim image')
+    plt.figure('GalSim image', figsize=(8, 12))
+    plt.subplot(311)
     plt.imshow(galsim_sensor_image[:, 5:-5], cmap='viridis')
-    plt.title('H-alpha line')
-    plt.figure('GalSim image after bf')
+    plt.title('H-alpha line, ideal sensor')
+    plt.colorbar()
+
+    plt.subplot(312)
     plt.imshow(galsim_bf_image[:, 5:-5], cmap='viridis')
-    plt.title('H-alpha line after BF is applied')
+    plt.title('H-alpha line, with sensor noise')
     plt.colorbar()
 
-    plt.figure('difference image')
+    # plt.figure('Noise Image - Ideal Image')
+    plt.subplot(313)
     plt.imshow(difference_image, cmap='viridis')
-    plt.title('Residuals')
+    plt.title('Residuals: Noise Image - Ideal Image')
     plt.colorbar()
 
-    plt.figure('slice at row 15')
+    plt.figure('slice at row 15', figsize=(8, 6))
+    row = 20
     plt.subplot(311)
     plt.title('original data')
-    plt.plot(smeared_spectrum2d[15])
+    plt.plot(smeared_spectrum2d[row])
     plt.subplot(312)
     plt.title('Sensor sim')
-    plt.plot(galsim_sensor_image[15])
+    plt.plot(galsim_sensor_image[row])
     plt.subplot(313)
     plt.title('Sensor with BF sim')
-    plt.plot(galsim_bf_image[15])
+    plt.plot(galsim_bf_image[row])
 
     plt.show()
 
