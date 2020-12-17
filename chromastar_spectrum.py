@@ -67,7 +67,7 @@ nm_grid = np.linspace(nm_slice[0], nm_slice[-1], num=number_pixels)
 gridded_spectrum = griddata(nm_slice, spectrum_counts_slice, xi=nm_grid, method='linear')
 
 # filter the spectrum slice
-resolution = 10 # the resolution of the spectrum in nanometers. This corresponds to FWHM of spectrum lines
+resolution = .1 # the resolution of the spectrum in nanometers. This corresponds to FWHM of spectrum lines
 fwhm = 1/np.mean(np.diff(nm_grid)) * resolution  # the fwhm in terms of data spacing
 sigma = fwhm / (2.0 * np.sqrt(2.0 * np.log(2.0)))
 filtered_counts = gaussian_filter(gridded_spectrum.data, sigma)
@@ -148,15 +148,14 @@ galsim_bf_image = spectrum_image.array.copy()
 
 difference_image = galsim_bf_image[:, 5:-5] - galsim_sensor_image[:, 5:-5]
 
-
 trace_ideal = np.sum(galsim_sensor_image, axis=0)
 trace_bf = np.sum(galsim_bf_image, axis=0)
 plt.figure('Spectrum Trace', figsize=(8, 6))
 # plt.plot(smeared_spectrum2d[row], label='original data')
-plt.plot(trace_ideal, label='Ideal sensor')
-plt.plot(trace_bf, label='Sensor with charge diffusion')
+plt.plot(pixel_grid, trace_ideal, label='No charge diffusion')
+plt.plot(pixel_grid, trace_bf, label='With charge diffusion')
 plt.title('Spectrum Profile Trace')
-plt.xlabel('Pixels')
+plt.xlabel('Wavelength (nm)')
 plt.ylabel('Photons (e-)')
 plt.legend()
 

@@ -28,7 +28,7 @@ display = False
 
 with fits.open('sun.fits') as hdul:
     # hdul = fits.open('sun.fits')
-    sun = hdul[0]
+    sun = hdul[0].copy()
 
     angstrom_per_pix = sun.header['CDELT1']
     intial_angstrom = sun.header['CRVAL1']
