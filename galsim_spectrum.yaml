@@ -1,4 +1,0 @@
-# this is for spoofing GalSim into generating a spectrum profile.
-# Once the inherent spectrum profile is generated, various instrument systematics can be added using GalSim modules.
-# The first systematic to be studied is the B-F effect
-
