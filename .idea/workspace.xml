@@ -1,38 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="5efba21b-1db6-41c5-bddb-15b269b2de44" name="Default Changelist" comment="bunch of galsim stuff">
-      <change beforePath="$PROJECT_DIR$/galsim_spectrum.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lsst_e2v_32.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/ccd_config/lsst_e2v_32.cfg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lsst_e2v_32.dat" beforeDir="false" afterPath="$PROJECT_DIR$/ccd_config/lsst_e2v_32.dat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lsst_e2v_50_32.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/ccd_config/lsst_e2v_50_32.cfg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lsst_e2v_50_32.dat" beforeDir="false" afterPath="$PROJECT_DIR$/ccd_config/lsst_e2v_50_32.dat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lsst_e2v_50_8.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/ccd_config/lsst_e2v_50_8.cfg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lsst_e2v_50_8.dat" beforeDir="false" afterPath="$PROJECT_DIR$/ccd_config/lsst_e2v_50_8.dat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lsst_e2v_8.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/ccd_config/lsst_e2v_8.cfg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lsst_e2v_8.dat" beforeDir="false" afterPath="$PROJECT_DIR$/ccd_config/lsst_e2v_8.dat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lsst_itl_50_32.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/ccd_config/lsst_itl_50_32.cfg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lsst_itl_50_32.dat" beforeDir="false" afterPath="$PROJECT_DIR$/ccd_config/lsst_itl_50_32.dat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lsst_itl_50_8.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/ccd_config/lsst_itl_50_8.cfg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lsst_itl_50_8.dat" beforeDir="false" afterPath="$PROJECT_DIR$/ccd_config/lsst_itl_50_8.dat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectrum_sim_gauss_transpose2_bffalse.fits" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectrum_sim_gauss_transpose2_bftrue.fits" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectrum_sim_gauss_transpose_bffalse.fits" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectrum_sim_gauss_transpose_bftrue.fits" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectrum_sim_gauss_transpose_itl_bffalse.fits" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectrum_sim_gauss_transpose_itl_bftrue.fits" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectrum_sim_gaussdouble_bffalse.fits" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectrum_sim_gaussdouble_bftrue.fits" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectrum_sim_gausshalf_bffalse.fits" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectrum_sim_gausshalf_bftrue.fits" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectrum_sim_gaussian_bffalse.fits" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectrum_sim_gaussian_bffalse2.fits" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectrum_sim_gaussian_bffalse3.fits" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectrum_sim_gaussian_bftrue.fits" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectrum_sim_gaussian_bftrue2.fits" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectrum_sim_gaussian_bftrue3.fits" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectrum_sim_tophat_bffalse.fits" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spectrum_sim_tophat_bftrue.fits" beforeDir="false" />
+    <list default="true" id="5efba21b-1db6-41c5-bddb-15b269b2de44" name="Default Changelist" comment="Initial commit! Forked from bf-spectrum-sim">
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/AtomicMass.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/ChromaStarPy.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Convec.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/DepthScale.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Flux.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/FormalSoln.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Gauss2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/HjertingComponents.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Hydrostat.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Input.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/InputData/atomLineListFeb2017.dat" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/InputData/atomLineListFeb2017Bytes.dat" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Inputs/A0Halpha.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Inputs/AGBStarTiO516.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Inputs/AlfBooCaIIHK.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Inputs/AlfBooTiO516.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Inputs/RGBNaID.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Inputs/SunCaIIHK.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Inputs/SunNaID.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Inputs/T4300g45CaIIHK.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Inputs/VegaHalpha.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Inputs/VegaHgamma.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/IonizationEnergy.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Jola.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Kappas.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/KappasMetal.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/KappasRayl.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/LDC.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/LICENSE.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/LamGrid.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/LevelPopsServer.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/LineGrid.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/LineKappa.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/LineListPy.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/LineProf.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/LineTau2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/MolecData.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/MulGrayTCorr.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Outputs/Project-5777.0-4.44-0.0-588.0-592.0-Run.ldc.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Outputs/Project-5777.0-4.44-0.0-588.0-592.0-Run.sed.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Outputs/Project-5777.0-4.44-0.0-588.0-592.0-Run.spec.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Outputs/Project-5777.0-4.44-0.0-588.0-592.0-Run.struc.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Outputs/Project-5777.0-4.44-0.0-588.0-592.0-Run.tla.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Outputs/Project-5777.0-4.44-0.0-588.0-592.0-Run_restart.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Outputs/Project-5777.0-4.44-0.0588.0592.0-Run.ldc.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Outputs/Project-5777.0-4.44-0.0588.0592.0-Run.sed.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Outputs/Project-5777.0-4.44-0.0588.0592.0-Run.spec.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Outputs/Project-5777.0-4.44-0.0588.0592.0-Run.spec.txt.bak" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Outputs/Project-5777.0-4.44-0.0588.0592.0-Run.struc.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Outputs/Project-5777.0-4.44-0.0588.0592.0-Run.struc.txt.bak" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Outputs/Project-5777.0-4.44-0.0588.0592.0-Run.tla.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Outputs/Project-5777.0-4.44-0.0588.0592.0-Run_restart.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/PartitionFn.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Planck.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/PostProcess.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/README.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Restart.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/ScaleSolar.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/ScaleT10000.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/ScaleT4250g20.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/ScaleT5000.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/SpecSyn.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/SpecSyn2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/State.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/TauScale.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Thetas.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/ToolBox.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ChromaStarPy/Useful.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,7 +97,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/../ast_521" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="settings.editor.selected.configurable" value="http.certificates" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -135,7 +172,14 @@
       <option name="project" value="LOCAL" />
       <updated>1584053016149</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Initial commit! Forked from bf-spectrum-sim">
+      <created>1613082917644</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1613082917644</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -158,6 +202,7 @@
     <MESSAGE value="started work on 2D spectrum simulation" />
     <MESSAGE value="bunch of galsim stuff" />
     <MESSAGE value="tried a step function spacial profile" />
-    <option name="LAST_COMMIT_MESSAGE" value="tried a step function spacial profile" />
+    <MESSAGE value="Initial commit! Forked from bf-spectrum-sim" />
+    <option name="LAST_COMMIT_MESSAGE" value="Initial commit! Forked from bf-spectrum-sim" />
   </component>
 </project>
