@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="5efba21b-1db6-41c5-bddb-15b269b2de44" name="Default Changelist" comment="Added ChromaStarPy">
-      <change afterPath="$PROJECT_DIR$/test/learn_emcee.py" afterDir="false" />
+    <list default="true" id="5efba21b-1db6-41c5-bddb-15b269b2de44" name="Default Changelist" comment="Learned basics of emcee">
+      <change afterPath="$PROJECT_DIR$/test/learn_mcmc_fitting.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -121,7 +121,14 @@
       <option name="project" value="LOCAL" />
       <updated>1613086022563</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="Learned basics of emcee">
+      <created>1614295365060</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1614295365060</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -147,6 +154,7 @@
     <MESSAGE value="tried a step function spacial profile" />
     <MESSAGE value="Initial commit! Forked from bf-spectrum-sim" />
     <MESSAGE value="Added ChromaStarPy" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added ChromaStarPy" />
+    <MESSAGE value="Learned basics of emcee" />
+    <option name="LAST_COMMIT_MESSAGE" value="Learned basics of emcee" />
   </component>
 </project>
