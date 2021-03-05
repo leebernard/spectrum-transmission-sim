@@ -95,6 +95,75 @@ plt.xlabel("x")
 plt.ylabel("y")
 
 
+'''
+Now I want uncertainties on m and b, but don't really care much about f
+MCMC will let me do both in one go
+But first, I need to construct a prior function
+'''
 
+
+def log_prior(theta):
+    '''Bascially just saying, the parameters are within these values'''
+    m, b, log_f = theta
+    if -5.0 < m < 0.5 and 0.0 < b < 10.0 and -10 < log_f < 1.0:
+        return 0.0
+    else:
+        return -np.inf
+
+
+def log_probability(theta, x, y, yerr):
+    '''full probability function
+    If parameters are withing the range defined by log_prior, return the likelihood.
+    otherwise, return a flag'''
+    lp = log_prior(theta)
+    if not np.isfinite(lp):
+        return -np.inf
+    else:
+        # why are they summed?
+        return lp + log_likelihood(theta, x, y, yerr)
+
+
+import emcee
+
+# generate 32 walkers, with small gaussian deviations from minimization soln
+pos = soln.x + 1e-4 * np.random.randn(32, 3)
+nwalkers, ndim = pos.shape
+
+sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, args=(x, y, yerr))
+sampler.run_mcmc(pos, 5000, progress=True)
+
+
+# examine the results
+fig, axes = plt.subplots(3, figsize=(10, 7), sharex=True)
+samples = sampler.get_chain()
+labels = ["m", "b", "log(f)"]
+for i in range(ndim):
+    ax = axes[i]
+    ax.plot(samples[:, :, i], "k", alpha=0.3)
+    ax.set_xlim(0, len(samples))
+    ax.set_ylabel(labels[i])
+    ax.yaxis.set_label_coords(-0.1, 0.5)
+
+axes[-1].set_xlabel("step number")
+
+# hard to say how quickly it filled the posterior distribution from the tiny prior walkers
+# but we can look at estimate of ingerated autocorrelation time (whatever that means)
+tau = sampler.get_autocorr_time()
+print(tau)
+# in this case, looks like about 40 steps needed to 'forget' where it started
+# this is the 'burn in' time
+
+# examine it with the initial burn-in period discarded
+# also, what does thinning the autocorrelation time do?
+flat_samples = sampler.get_chain(discard=100, thin=15, flat=True)
+print(flat_samples.shape)
+
+
+# generate a corner plot
+import corner
+
+fig = corner.corner(flat_samples, labels=labels, truths=[m_true, b_true, np.log(f_true)])
+fig.suptitle('Corner plot of a meaningless line fit', fontsize=14)
+fig.savefig('/test/my_first_cornerplot.png')
 
 
