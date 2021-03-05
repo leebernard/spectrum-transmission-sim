@@ -26,8 +26,8 @@ def alpha_lambda(star_radius, planet_radius, z):
 '''
 generate absorption profile from cross section data
 '''
-# filename = 'project_data/1H2-16O_6250-12500_300K_20.000000.sigma'
-filename = 'project_data/1H2-16O_6250-12500_300K_100.000000.sigma'
+# filename = './line_lists/1H2-16O_6250-12500_300K_20.000000.sigma'
+filename = './line_lists/1H2-16O_6250-12500_300K_100.000000.sigma'
 with open(filename) as file:
     raw_data = file.readlines()
     wave_numbers = []
@@ -42,23 +42,42 @@ with open(filename) as file:
 # convert wavenumber to wavelength
 cross_wavelengths = 1e7/wave_numbers
 
+# star and planet radii
+r_earth = 6.3710e6
+r_sun = 6.957e8
+g_earth = 10
+
+# using data from Gliese 876 d, pulled from Wikipedia
+rad_planet = 1.65  # earth radii
+rad_star = .376  # solar radii
+m_planet = 6.8  # in earth masses
+
+# fuck it, use made up shit
+# data from Kepler-10c
+rad_planet = 2.35
+m_planet = 7.37
+
+
+
 # reference pressure: 1 barr
 p0 = 1 * 1e5
 
 # scale height
 k = 1.38e-23  # boltzmann constant k_b in J/K
 amu_kg = 1.66e-27  # kg/amu
-g = 10  # m/s^2
+g = g_earth * m_planet/(rad_planet**2)  # m/s^2
 T = 290  # K
 mass = 18  # amu
 H = k*T/(mass*amu_kg * g)
 
-# star and planet radii
-r_p = 6.3710e6
-r_star = 6.957e8
+# scale reference pressure up
+# maybe later
+
+r_p = r_earth * rad_planet
+r_star = r_sun * rad_star
 baseline_depth = (r_p/r_star)**2
 
-eclipse_depth = alpha_lambda(star_radius=r_star,
+transit_depth = alpha_lambda(star_radius=r_star,
                              planet_radius=r_p,
                              z=z_lambda(sigma=cross_sections,
                                         scale_h=H,
@@ -68,6 +87,14 @@ eclipse_depth = alpha_lambda(star_radius=r_star,
                                         T=T,
                                         g=g)
                              )
+
+# generate photon noise from a signal value
+signal = 1.22e8
+photon_noise = 1/np.sqrt(signal)  # calculate noise as fraction of signal
+noise = np.random.normal(scale=photon_noise, size=transit_depth.size)
+
+# add noise to the transit depth
+noisey_transit_depth = transit_depth + noise
 
 # mean spectral resolution
 spec_res = np.mean(np.diff(np.flip(cross_wavelengths)))
@@ -80,8 +107,10 @@ plt.xlabel('Wavelength (nm)')
 plt.ylabel('cm^2/molecule')
 
 plt.subplot(211)
-plt.plot(cross_wavelengths, eclipse_depth)
+plt.plot(cross_wavelengths, transit_depth)
+plt.plot(cross_wavelengths, noisey_transit_depth)
 plt.title('Transit depth, resolution %.2f nm' %spec_res)
+plt.legend(('Ideal', 'Photon noise'))
 plt.ylabel('($R_p$/$R_{star}$)$^2$')
 plt.subplot(211).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
 
