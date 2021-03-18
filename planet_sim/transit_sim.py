@@ -57,20 +57,18 @@ mass = 18  # amu
 H = scale_h(mass, T, g)
 
 
-r_p = r_earth * rad_planet
-r_star = r_sun * rad_star
-baseline_depth = (r_p/r_star)**2
+# baseline_depth = (r_p/r_star)**2
 # scale reference pressure up
 # maybe later
-p0 = p_earth * 10
+p0 = 1  # bars
 
 transit_depth = alpha_lambda(sigma=cross_sections,
-                             planet_radius=r_p,
+                             planet_radius=rad_planet,
                              p0=p0,
                              T=T,
                              mass=mass,
-                             g=g,
-                             star_radius=r_star,)
+                             planet_mass=m_planet,
+                             star_radius=rad_star)
 
 # generate photon noise from a signal value
 signal = 1.22e6

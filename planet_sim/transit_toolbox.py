@@ -10,6 +10,8 @@ import numpy as np
 k = 1.38e-23  # boltzmann constant k_b in J/K
 amu_kg = 1.66e-27  # kg/amu
 g_earth = 10
+r_earth = 6.3710e6  # meters
+r_sun = 6.957e8  # meters
 
 
 def gravity(mass_planet, rad_planet):
@@ -36,7 +38,7 @@ def scale_h(mass, T, g):
     return k*T/(mass*amu_kg * g)
 
 
-def z_lambda(sigma, p0, planet_radius, mass, T, g):
+def z_lambda(sigma, p0, planet_radius, mass, T, planet_mass):
     '''
 
     Parameters
@@ -51,8 +53,8 @@ def z_lambda(sigma, p0, planet_radius, mass, T, g):
         mass of planet
     T:
         Effective temperature of planet
-    g:
-        Gravitational constant of planet. Assumes thin shell of atmosphere
+    planet_mass: float
+        mass of the planet in earth masses
 
     Returns
     -------
@@ -60,6 +62,12 @@ def z_lambda(sigma, p0, planet_radius, mass, T, g):
         The amount by which the planet's occultation disk is increased by
         opacity of the atmosphere, as a function of wavelength.
     '''
+    # convert planet radius to meters
+    r_p = r_earth * planet_radius
+    # convert from bars to pa
+    pressure = p0 * 100000
+
+    g = gravity(planet_mass, planet_radius)
     h = scale_h(mass, T, g)
     # set mixing ratio to 1
     xi = 1
@@ -67,11 +75,11 @@ def z_lambda(sigma, p0, planet_radius, mass, T, g):
     tau_eq = 1
 
     # calculate beta
-    beta = p0 / tau_eq * np.sqrt(2*np.pi*planet_radius)
+    beta = pressure / tau_eq * np.sqrt(2*np.pi*r_p)
     return h * np.log(xi * sigma * 1/np.sqrt(k*mass*amu_kg*T*g) * beta)
 
 
-def alpha_lambda(sigma, planet_radius, p0, T, mass, g, star_radius):
+def alpha_lambda(sigma, planet_radius, p0, T, mass, planet_mass, star_radius):
     '''
 
     Parameters
@@ -81,17 +89,20 @@ def alpha_lambda(sigma, planet_radius, p0, T, mass, g, star_radius):
     p0
     T
     mass
-    g
+    planet_mass
     star_radius
 
     Returns
     -------
     The eclipse depth as a function of wavelength
     '''
+    # convert to meters
+    r_planet = r_earth * planet_radius
+    r_star = r_sun * star_radius
 
-    z = z_lambda(sigma, p0, planet_radius, mass, T, g)
+    z = z_lambda(sigma, p0, planet_radius, mass, T, planet_mass)
 
-    return (planet_radius / star_radius)**2 + (2 * planet_radius * z)/(star_radius**2)
+    return (r_planet / r_star)**2 + (2 * r_planet * z)/(r_star**2)
 
 
 
