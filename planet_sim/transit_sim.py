@@ -3,53 +3,8 @@ import matplotlib.pyplot as plt
 
 from matplotlib.ticker import FormatStrFormatter
 
-
-def z_lambda(sigma, scale_h, p0, planet_radius, mass, T, g):
-    '''
-
-    Parameters
-    ----------
-    sigma: array
-        Absorption cross section of atmosphere species as a function of wavelength
-    scale_h: float
-        Scale height of atmosphere
-    p0: float
-        Reference pressure of atmosphere; pressure at z=0
-    planet_radius: float
-        Minimum radius of planet
-    mass:
-        mass of planet
-    T:
-        Effective temperature of planet
-    g:
-        Graviational constant of planet. Assumes thin shell of atmosphere
-
-    Returns
-    -------
-    z: float, array
-        The amount by which the planet's occultation disk is increased by
-        opacity of the atmosphere, as a function of wavelength.
-    '''
-    # constants
-    k = 1.38e-23  # boltzmann constant k_b in J/K
-    amu_kg = 1.66e-27  # kg/amu
-
-    # set mixing ratio to 1
-    xi = 1
-    # set equiv scale height to 1
-    tau_eq = 1
-
-    # calculate beta
-    beta = p0 / tau_eq * np.sqrt(2*np.pi*planet_radius)
-    return scale_h * np.log(xi * sigma * 1/np.sqrt(k*mass*amu_kg*T*g) * beta)
-
-
-def alpha_lambda(sigma, planet_radius, scale_h, p0, T, mass, g, star_radius):
-
-    z = z_lambda(sigma, scale_h, p0, planet_radius, mass, T, g)
-
-    return (planet_radius / star_radius)**2 + (2 * planet_radius * z)/(star_radius**2)
-
+from planet_sim.transit_toolbox import alpha_lambda
+from planet_sim.transit_toolbox import scale_h
 
 '''
 generate absorption profile from cross section data
@@ -98,7 +53,8 @@ amu_kg = 1.66e-27  # kg/amu
 g = g_earth * m_planet/(rad_planet**2)  # m/s^2
 T = 290  # K
 mass = 18  # amu
-H = k*T/(mass*amu_kg * g)
+# I need to turn this into a dedicated function
+H = scale_h(mass, T, g)
 
 
 r_p = r_earth * rad_planet
@@ -110,7 +66,6 @@ p0 = p_earth * 10
 
 transit_depth = alpha_lambda(sigma=cross_sections,
                              planet_radius=r_p,
-                             scale_h=H,
                              p0=p0,
                              T=T,
                              mass=mass,
@@ -146,6 +101,24 @@ plt.subplot(211).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
 'project_data/1H2-16O_6250-12500_300K_20.000000.sigma'
 'project_data/1H2-16O_6250-12500_300K_100.000000.sigma'
 
+
+'''Fit the data'''
+
+
+# define a likelyhood function
+def log_likelihood(theta, x, y, yerr, fixed):
+    r_p, p0, H, T = theta
+    mass, g, rad_star = fixed
+    model = alpha_lambda(sigma=x,
+                         planet_radius=r_p,
+                         scale_h=H,
+                         p0=p0,
+                         T=T,
+                         mass=mass,
+                         g=g,
+                         star_radius=rad_star)
+    sigma2 = yerr**2
+    return -0.5 * np.sum((y - model) ** 2 / sigma2 + np.log(sigma2))
 
 
 
