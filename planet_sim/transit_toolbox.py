@@ -14,6 +14,21 @@ r_earth = 6.3710e6  # meters
 r_sun = 6.957e8  # meters
 
 
+def open_cross_section(filename):
+    with open(filename) as file:
+        raw_data = file.readlines()
+        wave_numbers = []
+        cross_sections = []
+        for x in raw_data:
+            wave_string, cross_string = x.split()
+            wave_numbers.append(float(wave_string))
+            cross_sections.append(float(cross_string))
+        wave_numbers = np.array(wave_numbers)
+        cross_sections = np.array(cross_sections)
+
+        return wave_numbers, cross_sections
+
+
 def gravity(mass_planet, rad_planet):
     return g_earth * mass_planet / (rad_planet ** 2)
 
@@ -70,7 +85,7 @@ def z_lambda(sigma_trace, xi, p0, planet_radius, mass, T, planet_mass, sigma_fil
     g = gravity(planet_mass, planet_radius)
     h = scale_h(mass, T, g)
 
-    if sigma_filler:
+    if sigma_filler is not None:
         # calculate average cross section
         sigma = (1 - xi)*sigma_filler + xi*sigma_trace
     else:
