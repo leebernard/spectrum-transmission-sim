@@ -38,20 +38,20 @@ def scale_h(mass, T, g):
     return k*T/(mass*amu_kg * g)
 
 
-def z_lambda(sigma, p0, planet_radius, mass, T, planet_mass):
+def z_lambda(sigma_trace, xi, p0, planet_radius, mass, T, planet_mass, sigma_filler=False):
     '''
 
     Parameters
     ----------
-    sigma: array
+    sigma_trace: array
         Absorption cross section of atmosphere species as a function of wavelength
     p0: float
         Reference pressure of atmosphere; pressure at z=0
     planet_radius: float
         Minimum radius of planet
-    mass:
-        mass of planet
-    T:
+    mass: float
+        mass of trace atomic species
+    T: float
         Effective temperature of planet
     planet_mass: float
         mass of the planet in earth masses
@@ -69,8 +69,15 @@ def z_lambda(sigma, p0, planet_radius, mass, T, planet_mass):
 
     g = gravity(planet_mass, planet_radius)
     h = scale_h(mass, T, g)
-    # set mixing ratio to 1
-    xi = 1
+
+    if sigma_filler:
+        # calculate average cross section
+        sigma = (1 - xi)*sigma_filler + xi*sigma_trace
+    else:
+        # set volume mixing ratio to 1
+        xi = 1
+        sigma = sigma_trace
+
     # set equiv scale height to 1
     tau_eq = 1
 
@@ -79,7 +86,7 @@ def z_lambda(sigma, p0, planet_radius, mass, T, planet_mass):
     return h * np.log(xi * sigma * 1/np.sqrt(k*mass*amu_kg*T*g) * beta)
 
 
-def alpha_lambda(sigma, planet_radius, p0, T, mass, planet_mass, star_radius):
+def alpha_lambda(sigma_trace, xi, planet_radius, p0, T, mass, planet_mass, star_radius, sigma_filler=False):
     '''
 
     Parameters
@@ -100,7 +107,7 @@ def alpha_lambda(sigma, planet_radius, p0, T, mass, planet_mass, star_radius):
     r_planet = r_earth * planet_radius
     r_star = r_sun * star_radius
 
-    z = z_lambda(sigma, p0, planet_radius, mass, T, planet_mass)
+    z = z_lambda(sigma_trace, xi, p0, planet_radius, mass, T, planet_mass, sigma_filler)
 
     return (r_planet / r_star)**2 + (2 * r_planet * z)/(r_star**2)
 

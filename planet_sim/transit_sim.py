@@ -58,7 +58,8 @@ mass = 18  # amu
 # maybe later
 
 
-transit_depth = alpha_lambda(sigma=cross_sections,
+transit_depth = alpha_lambda(sigma_trace=cross_sections,
+                             xi=1,
                              planet_radius=rad_planet,
                              p0=p0,
                              T=T,
