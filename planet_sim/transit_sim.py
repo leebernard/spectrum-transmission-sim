@@ -28,6 +28,16 @@ _, h2_cross_sections = open_cross_section(h2_data_file)
 # convert wavenumber to wavelength
 cross_wavelengths = 1e7/wave_numbers
 
+# plot them to check
+plt.figure('compare_cross_section')
+plt.plot(cross_wavelengths, cross_sections)
+plt.plot(cross_wavelengths, h2_cross_sections)
+plt.xlabel('Wavelength (nm)')
+plt.ylabel('Cross section (cm^2/molecule)')
+plt.yscale('log')
+plt.legend(('H2O', 'H2'))
+
+
 # using data from Gliese 876 d, pulled from Wikipedia
 rad_planet = 1.65  # earth radii
 rad_star = .376  # solar radii
@@ -51,7 +61,7 @@ mass = 18  # amu
 # hot jupiter time!
 p0 = 10
 T = 1500
-water_ratio = .01
+water_ratio = .0
 
 # need to calculate average molecular mass of atmosphere
 mass_water = 18
@@ -60,7 +70,7 @@ mass_h2he = (1 - h2he_ratio)*2 + h2he_ratio*4
 mass = (1 - water_ratio)*mass_h2he + water_ratio*mass_water
 
 # temporary mass cause I don't have He cross sections yet
-placeholder_mass = (1 - water_ratio)*2 + water_ratio*mass_water
+mass = (1 - water_ratio)*2 + water_ratio*mass_water
 
 # baseline_depth = (r_p/r_star)**2
 # scale reference pressure up
