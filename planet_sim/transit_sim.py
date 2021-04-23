@@ -2,10 +2,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from matplotlib.ticker import FormatStrFormatter
+from scipy.ndimage import gaussian_filter
+from scipy.interpolate import griddata
 
 from planet_sim.transit_toolbox import alpha_lambda
 from planet_sim.transit_toolbox import open_cross_section
 from planet_sim.transit_toolbox import scale_h
+from toolkit import spectrum_slicer
+
 
 '''
 generate absorption profile from cross section data
@@ -19,18 +23,36 @@ Future expansions needed:
 Account for temperature structure in scale height
 '''
 
-water_data_file = './line_lists/1H2-16O_4000-10000_1500K_100.000000.sigma'
-wave_numbers, cross_sections = open_cross_section(water_data_file)
+# define some housekeeping variables
+wn_start = 4000
+wn_end = 10000
 
-h2_data_file = './line_lists/1H2_4000-10000_1500K_100.000000.sigma'
-_, h2_cross_sections = open_cross_section(h2_data_file)
+# open these files carefully, because they are potentially over 1Gb in size
+water_data_file = './line_lists/H2O_30mbar_1500K.txt'
+try:
+    water_data = open_cross_section(water_data_file)
+    water_wno, water_cross_sections = spectrum_slicer(wn_start, wn_end, *water_data)
+finally:
+    del water_data
 
+h2_data_file = './line_lists/H2H2_CIA_30mbar_1500K.txt'
+try:
+    h2_data = open_cross_section(h2_data_file)
+    h2_wno, h2_cross_sections = spectrum_slicer(wn_start, wn_end, *h2_data)
+finally:
+    del h2_data
+
+# interpolate the two different wavenumbers to the same wavenumber
+wave_numbers = np.arange(wn_start, wn_end, .1)
 # convert wavenumber to wavelength
 cross_wavelengths = 1e7/wave_numbers
 
+water_cross_sections = 10**np.interp(wave_numbers, water_wno, np.log10(water_cross_sections))
+h2_cross_sections = 10**np.interp(wave_numbers, h2_wno, np.log10(h2_cross_sections))
+
 # plot them to check
 plt.figure('compare_cross_section')
-plt.plot(cross_wavelengths, cross_sections)
+plt.plot(cross_wavelengths, water_cross_sections)
 plt.plot(cross_wavelengths, h2_cross_sections)
 plt.xlabel('Wavelength (nm)')
 plt.ylabel('Cross section (cm^2/molecule)')
@@ -77,7 +99,7 @@ mass = (1 - water_ratio)*2 + water_ratio*mass_water
 # maybe later
 
 
-transit_depth = alpha_lambda(sigma_trace=cross_sections,
+transit_depth = alpha_lambda(sigma_trace=water_cross_sections,
                              xi=water_ratio,
                              planet_radius=rad_planet,
                              p0=p0,
@@ -88,27 +110,54 @@ transit_depth = alpha_lambda(sigma_trace=cross_sections,
                              sigma_filler=h2_cross_sections
                              )
 
+'''Turn the data into a spectrum'''
+# first, flip the data to ascending order
+cross_wavelengths = np.flip(cross_wavelengths)
+transit_depth = np.flip(transit_depth)
+
+# interpolate the data to even spacing
+nm_grid = np.linspace(cross_wavelengths[0], cross_wavelengths[-1], num=cross_wavelengths.size)
+
+gridded_transit = griddata(cross_wavelengths, transit_depth, xi=nm_grid, method='linear')
+
+# filter the spectrum slice
+R = 20
+resolution = np.mean(nm_grid)/R  # the resolution of the spectrum in nanometers. This corresponds to FWHM of spectrum lines
+fwhm = 1/np.mean(np.diff(nm_grid)) * resolution  # the fwhm in terms of data spacing
+sigma = fwhm / (2.0 * np.sqrt(2.0 * np.log(2.0)))
+filtered_transit = gaussian_filter(gridded_transit.data, sigma)
+
+# interpolate the data a pixel grid
+sim_nm_per_pixel = resolution/2  # nyquist sample the spectrum
+
+number_pixels = int((nm_grid[-1] - nm_grid[0]) / sim_nm_per_pixel)
+pixel_wavelengths = np.linspace(cross_wavelengths[0], cross_wavelengths[-1], num=number_pixels)
+
+pixel_transit_depth = griddata(nm_grid, filtered_transit, xi=pixel_wavelengths, method='linear')
+'''end turn data into spectrum'''
+
 # generate photon noise from a signal value
 signal = 1.22e6
 photon_noise = 1/np.sqrt(signal)  # calculate noise as fraction of signal
-noise = np.random.normal(scale=photon_noise, size=transit_depth.size)
+noise = np.random.normal(scale=photon_noise, size=pixel_transit_depth.size)
 
 # add noise to the transit depth
-noisey_transit_depth = transit_depth + noise
+noisey_transit_depth = pixel_transit_depth + noise
 
 # mean spectral resolution
-spec_res = np.mean(np.diff(np.flip(cross_wavelengths)))
+spec_res = resolution
 
 plt.figure('transit depth %.2f' %spec_res, figsize=(8, 8))
 plt.subplot(212)
-plt.plot(cross_wavelengths, np.log(cross_sections))
+plt.plot(cross_wavelengths, np.log(water_cross_sections))
 plt.title('Cross section of H2O')
 plt.xlabel('Wavelength (nm)')
-plt.ylabel('ln[cm^2/molecule]')
+plt.ylabel('Cross section (cm^2/molecule)')
+plt.yscale('log')
 
 plt.subplot(211)
-plt.plot(cross_wavelengths, transit_depth)
-plt.plot(cross_wavelengths, noisey_transit_depth)
+plt.plot(pixel_wavelengths, pixel_transit_depth)
+plt.plot(pixel_wavelengths, noisey_transit_depth)
 plt.title('Transit depth, resolution %.2f nm' %spec_res)
 plt.legend(('Ideal', 'Photon noise'))
 plt.ylabel('($R_p$/$R_{star}$)$^2$')

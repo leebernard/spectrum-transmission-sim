@@ -26,7 +26,7 @@ def open_cross_section(filename):
         wave_numbers = np.array(wave_numbers)
         cross_sections = np.array(cross_sections)
 
-        return wave_numbers, cross_sections
+    return wave_numbers, cross_sections
 
 
 def gravity(mass_planet, rad_planet):
