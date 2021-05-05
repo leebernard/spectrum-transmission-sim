@@ -4,7 +4,7 @@ Functions for running the planet transit simulation
 
 import numpy as np
 # import matplotlib.pyplot as plt
-
+from toolkit import spectrum_slicer
 
 # global constants
 k = 1.38e-23  # boltzmann constant k_b in J/K
@@ -14,7 +14,7 @@ r_earth = 6.3710e6  # meters
 r_sun = 6.957e8  # meters
 
 
-def open_cross_section(filename):
+def open_cross_section(filename, wn_range=None):
     with open(filename) as file:
         raw_data = file.readlines()
         wave_numbers = []
@@ -26,7 +26,13 @@ def open_cross_section(filename):
         wave_numbers = np.array(wave_numbers)
         cross_sections = np.array(cross_sections)
 
-    return wave_numbers, cross_sections
+    if wn_range is None:
+        return wave_numbers, cross_sections
+    else:
+        # wn range needs to be exactly 2 values
+        # explicitly pass those two values
+        wn_start, wn_end = wn_range
+        return spectrum_slicer(wn_start, wn_end, wave_numbers, cross_sections)
 
 
 def gravity(mass_planet, rad_planet):

@@ -29,18 +29,10 @@ wn_end = 10000
 
 # open these files carefully, because they are potentially over 1Gb in size
 water_data_file = './line_lists/H2O_30mbar_1500K.txt'
-try:
-    water_data = open_cross_section(water_data_file)
-    water_wno, water_cross_sections = spectrum_slicer(wn_start, wn_end, *water_data)
-finally:
-    del water_data
+water_wno, water_cross_sections = open_cross_section(water_data_file, wn_range=(wn_start, wn_end))
 
 h2_data_file = './line_lists/H2H2_CIA_30mbar_1500K.txt'
-try:
-    h2_data = open_cross_section(h2_data_file)
-    h2_wno, h2_cross_sections = spectrum_slicer(wn_start, wn_end, *h2_data)
-finally:
-    del h2_data
+h2_wno, h2_cross_sections = open_cross_section(h2_data_file, wn_range=(wn_start, wn_end))
 
 # interpolate the two different wavenumbers to the same wavenumber
 wave_numbers = np.arange(wn_start, wn_end, .1)
