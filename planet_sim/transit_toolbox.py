@@ -98,7 +98,7 @@ def z_lambda(sigma_trace, xi, p0, planet_radius, mass, T, planet_mass, sigma_fil
 
     # calculate beta
     beta = pressure / tau_eq * np.sqrt(2*np.pi*r_p)
-    return h * np.log(xi * sigma * 1/np.sqrt(k*mass*amu_kg*T*g) * beta)
+    return h * np.log(sigma * 1/np.sqrt(k*mass*amu_kg*T*g) * beta)
 
 
 def alpha_lambda(sigma_trace, xi, planet_radius, p0, T, mass, planet_mass, star_radius, sigma_filler=False):
