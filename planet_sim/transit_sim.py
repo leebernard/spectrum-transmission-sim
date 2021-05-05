@@ -81,9 +81,9 @@ mass = 18  # amu
 
 
 # hot jupiter time!
-p0 = 10
+p0 = 1
 T = 1500
-water_ratio = .0
+water_ratio = 1500. * 1e-6  # in parts per million
 
 # need to calculate average molecular mass of atmosphere
 mass_water = 18
@@ -149,7 +149,8 @@ spec_res = resolution
 
 plt.figure('transit depth %.2f' %spec_res, figsize=(8, 8))
 plt.subplot(212)
-plt.plot(cross_wavelengths, np.log(water_cross_sections))
+plt.plot(cross_wavelengths, np.flip(water_cross_sections))
+plt.plot(cross_wavelengths, np.flip(h2_cross_sections))
 plt.title('Cross section of H2O')
 plt.xlabel('Wavelength (nm)')
 plt.ylabel('Cross section (cm^2/molecule)')
@@ -157,8 +158,8 @@ plt.yscale('log')
 
 plt.subplot(211)
 plt.plot(pixel_wavelengths, pixel_transit_depth)
-plt.plot(pixel_wavelengths, noisey_transit_depth)
-plt.title('Transit depth, resolution %.2f nm' %spec_res)
+plt.errorbar(pixel_wavelengths, noisey_transit_depth, yerr=photon_noise, fmt='o', capsize=2.0)
+plt.title('Transit depth, R= %d, water= %d ppm' % (R, water_ratio/1e-6) )
 plt.legend(('Ideal', 'Photon noise'))
 plt.ylabel('($R_p$/$R_{star}$)$^2$')
 plt.subplot(211).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
