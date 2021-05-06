@@ -10,7 +10,7 @@ from toolkit import spectrum_slicer
 k = 1.38e-23  # boltzmann constant k_b in J/K
 amu_kg = 1.66e-27  # kg/amu
 g_earth = 10
-r_earth = 6.3710e6  # meters
+r_jovian = 7.1492e7  # meters
 r_sun = 6.957e8  # meters
 
 
@@ -84,7 +84,7 @@ def z_lambda(sigma_trace, xi, p0, planet_radius, mass, T, planet_mass, sigma_fil
         opacity of the atmosphere, as a function of wavelength.
     '''
     # convert planet radius to meters
-    r_p = r_earth * planet_radius
+    r_p = r_jovian * planet_radius
     # convert from bars to pa
     pressure = p0 * 100000
 
@@ -125,7 +125,7 @@ def alpha_lambda(sigma_trace, xi, planet_radius, p0, T, mass, planet_mass, star_
     The eclipse depth as a function of wavelength
     '''
     # convert to meters
-    r_planet = r_earth * planet_radius
+    r_planet = r_jovian * planet_radius
     r_star = r_sun * star_radius
 
     z = z_lambda(sigma_trace, xi, p0, planet_radius, mass, T, planet_mass, sigma_filler)

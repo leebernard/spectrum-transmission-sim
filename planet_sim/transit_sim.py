@@ -51,28 +51,30 @@ plt.ylabel('Cross section (cm^2/molecule)')
 plt.yscale('log')
 plt.legend(('H2O', 'H2'))
 
-
-# using data from Gliese 876 d, pulled from Wikipedia
-rad_planet = 1.65  # earth radii
-rad_star = .376  # solar radii
-m_planet = 6.8  # in earth masses
-
-# data from Kepler-10c
-rad_planet = 2.35
-m_planet = 7.37
-
-# fuck it, use made up shit
-# assuming relationship of r = m^0.55
-rad_planet = 3.5
-m_planet = 10
-
-# reference pressure: 1 barr
-p0 = 1  # bars
-T = 290  # K
-mass = 18  # amu
-
+#
+# # using data from Gliese 876 d, pulled from Wikipedia
+# rad_planet = 1.65  # earth radii
+# rad_star = .376  # solar radii
+# m_planet = 6.8  # in earth masses
+#
+# # data from Kepler-10c
+# rad_planet = 2.35
+# m_planet = 7.37
+#
+# # fuck it, use made up shit
+# # assuming relationship of r = m^0.55
+# rad_planet = 3.5
+# m_planet = 10
+#
+# # reference pressure: 1 barr
+# p0 = 1  # bars
+# T = 290  # K
+# mass = 18  # amu
+#
 
 # hot jupiter time!
+# based upon KELT-11b
+
 p0 = 1
 T = 1500
 water_ratio = 1500. * 1e-6  # in parts per million
