@@ -9,7 +9,7 @@ from toolkit import spectrum_slicer
 # global constants
 k = 1.38e-23  # boltzmann constant k_b in J/K
 amu_kg = 1.66e-27  # kg/amu
-g_earth = 10
+g_jovian = 24.79  # m/s^2
 r_jovian = 7.1492e7  # meters
 r_sun = 6.957e8  # meters
 
@@ -36,7 +36,7 @@ def open_cross_section(filename, wn_range=None):
 
 
 def gravity(mass_planet, rad_planet):
-    return g_earth * mass_planet / (rad_planet ** 2)
+    return g_jovian * mass_planet / (rad_planet ** 2)
 
 
 def scale_h(mass, T, g):
@@ -75,7 +75,7 @@ def z_lambda(sigma_trace, xi, p0, planet_radius, mass, T, planet_mass, sigma_fil
     T: float
         Effective temperature of planet
     planet_mass: float
-        mass of the planet in earth masses
+        mass of the planet in jovian masses
 
     Returns
     -------

@@ -73,11 +73,15 @@ plt.legend(('H2O', 'H2'))
 #
 
 # hot jupiter time!
-# based upon KELT-11b
-
+# based upon KELT-11b, taken from Beatty et al 2017
+rad_planet = 1.47  # in jovian radii
+m_planet = 0.235  # jovian masses
+rad_star = 2.94
 p0 = 1
+# temperature is made up
 T = 1500
-water_ratio = 1500. * 1e-6  # in parts per million
+# water ratio taken from Chageat et al 2020
+water_ratio = 2600. * 1e-6  # in parts per million
 
 # need to calculate average molecular mass of atmosphere
 mass_water = 18
