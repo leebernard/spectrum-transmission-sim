@@ -36,11 +36,11 @@ h2_wno, h2_cross_sections = open_cross_section(h2_data_file, wn_range=(wn_start,
 
 # interpolate the two different wavenumbers to the same wavenumber
 wave_numbers = np.arange(wn_start, wn_end, .1)
-# convert wavenumber to wavelength
-cross_wavelengths = 1e7/wave_numbers
-
 water_cross_sections = 10**np.interp(wave_numbers, water_wno, np.log10(water_cross_sections))
 h2_cross_sections = 10**np.interp(wave_numbers, h2_wno, np.log10(h2_cross_sections))
+
+# convert wavenumber to wavelength
+cross_wavelengths = 1e7/wave_numbers
 
 # plot them to check
 plt.figure('compare_cross_section')
@@ -120,7 +120,7 @@ sigma = fwhm / (2.0 * np.sqrt(2.0 * np.log(2.0)))
 filtered_transit = gaussian_filter(gridded_transit.data, sigma)
 
 # interpolate the data a pixel grid
-sim_nm_per_pixel = resolution/2  # nyquist sample the spectrum
+sim_nm_per_pixel = resolution/2  # nyquist sample the spectrum5
 
 number_pixels = int((nm_grid[-1] - nm_grid[0]) / sim_nm_per_pixel)
 pixel_wavelengths = np.linspace(cross_wavelengths[0], cross_wavelengths[-1], num=number_pixels)
