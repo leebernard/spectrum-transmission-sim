@@ -14,18 +14,18 @@ def spectrum_slicer(start_angstrom, end_angstrom, angstrom_data, spectrum_data):
     return angstrom_slice, spectrum_slice
 
 
-def instrument_non_uniform_tophat(wlgrid, wno, Fp):
+def instrument_non_uniform_tophat(wlgrid, fine_wl, Fp):
     '''
-    This function takes a wavenumber, spectrum dataset, and bins it to a
-    provided wavelength grid. The wavelength grid must be in microns, and can
+    This function takes a wavelength, spectrum dataset, and bins it to a
+    provided wavelength grid. The wlgrid and fine_wl must have matching units, and can
     have arbitrary spacing.
 
     Parameters
     ----------
     wlgrid:
         Wave length grid to interpolate to, in microns
-    wno:
-        wavenumbers of input spectrum
+    fine_wl:
+        wavelengthss of input spectrum
     Fp:
         values corresponding to wavenumbers
 
@@ -50,14 +50,14 @@ def instrument_non_uniform_tophat(wlgrid, wno, Fp):
         i = i+1
 
         # find wavenumber locations within .5 delta of desired wavelength
-        loc = np.where((1E4/wno >= wlgrid[i] - 0.5*delta[i-1]) & (1E4/wno < wlgrid[i] + 0.5*delta[i]))
+        loc = np.where((fine_wl >= wlgrid[i] - 0.5*delta[i-1]) & (fine_wl < wlgrid[i] + 0.5*delta[i]))
         # take the mean of those locations, and store it
         Fint[i] = np.mean(Fp[loc])
         #print(wlgrid[i]-0.5*delta[i-1], wlgrid[i]+0.5*delta[i])
         #print(1E4/wno[loc][::-1])
 
     # fill in the missing location
-    loc = np.where((1E4/wno > wlgrid[0]-0.5*delta[0]) & (1E4/wno < wlgrid[0]+0.5*delta[0]))
+    loc = np.where((fine_wl > wlgrid[0]-0.5*delta[0]) & (fine_wl < wlgrid[0]+0.5*delta[0]))
     Fint[0] = np.mean(Fp[loc])
 
     return Fint, Fp
