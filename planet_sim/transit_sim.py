@@ -7,6 +7,7 @@ from scipy.interpolate import griddata
 
 from planet_sim.transit_toolbox import alpha_lambda
 from planet_sim.transit_toolbox import open_cross_section
+from planet_sim.transit_toolbox import gen_measured_transit
 from toolkit import instrument_non_uniform_tophat
 
 
@@ -108,29 +109,17 @@ transit_depth = alpha_lambda(sigma_trace=water_cross_sections,
                              )
 
 '''Turn the data into a spectrum'''
-# first, flip the data to ascending order
+# set the resolution of the spectrometer
+R = 20
+# flip the data to ascending order
 fine_wavelengths = np.flip(fine_wavelengths)
 transit_depth = np.flip(transit_depth)
 
 # interpolate the data to even spacing
 fine_um_grid = np.linspace(fine_wavelengths[0], fine_wavelengths[-1], num=fine_wavelengths.size)
+fine_transit_grid = griddata(fine_wavelengths, transit_depth, xi=fine_um_grid, method='linear')
 
-gridded_transit = griddata(fine_wavelengths, transit_depth, xi=fine_um_grid, method='linear')
-
-# filter the spectrum slice with a gaussian
-R = 20
-resolution = np.mean(fine_um_grid)/R  # the average resolution of the spectrum in micrometers. This corresponds to FWHM of spectrum lines
-fwhm = 1/np.mean(np.diff(fine_um_grid)) * resolution  # the fwhm in terms of data spacing
-sigma = fwhm / (2.0 * np.sqrt(2.0 * np.log(2.0)))
-filtered_transit = gaussian_filter(gridded_transit.data, sigma)
-
-# interpolate the data a pixel grid
-sim_um_per_pixel = resolution/2  # nyquist sample the spectrum at the blue end
-
-number_pixels = int((fine_um_grid[-1] - fine_um_grid[0]) / sim_um_per_pixel)
-pixel_wavelengths = np.linspace(fine_wavelengths[0], fine_wavelengths[-1], num=number_pixels)
-
-pixel_transit_depth, _ = instrument_non_uniform_tophat(pixel_wavelengths, fine_um_grid, filtered_transit)
+pixel_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, fine_wl=fine_um_grid, fine_transit=fine_transit_grid)
 '''end turn data into spectrum'''
 
 # generate photon noise from a signal value
@@ -142,9 +131,9 @@ noise = (np.random.poisson(lam=signal, size=pixel_transit_depth.size) - signal)/
 noisey_transit_depth = pixel_transit_depth + noise
 
 # mean spectral resolution
-spec_res = resolution
+# spec_res = resolution
 
-plt.figure('transit depth %.2f' %spec_res, figsize=(8, 8))
+plt.figure('transit depth R%.2f' %R, figsize=(8, 8))
 plt.subplot(212)
 plt.plot(fine_wavelengths, np.flip(water_cross_sections))
 plt.plot(fine_wavelengths, np.flip(h2_cross_sections))
