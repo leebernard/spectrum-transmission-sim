@@ -110,7 +110,7 @@ transit_depth = alpha_lambda(sigma_trace=water_cross_sections,
 
 '''Turn the data into a spectrum'''
 # set the resolution of the spectrometer
-R = 20
+R = 70
 # flip the data to ascending order
 fine_wavelengths = np.flip(fine_wavelengths)
 transit_depth = np.flip(transit_depth)

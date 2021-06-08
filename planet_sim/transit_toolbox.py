@@ -3,8 +3,12 @@ Functions for running the planet transit simulation
 """
 
 import numpy as np
+
+from scipy.ndimage import gaussian_filter
+
 # import matplotlib.pyplot as plt
 from toolkit import spectrum_slicer
+from toolkit import instrument_non_uniform_tophat
 
 # global constants
 k = 1.38e-23  # boltzmann constant k_b in J/K
@@ -133,6 +137,35 @@ def alpha_lambda(sigma_trace, xi, planet_radius, p0, T, mass, planet_mass, star_
     return (r_planet / r_star)**2 + (2 * r_planet * z)/(r_star**2)
 
 
+def gen_measured_transit(R, fine_wl, fine_transit):
+    # filter the spectrum slice with a gaussian
+    # the average resolution of the spectrum in micrometers. This corresponds to FWHM of spectrum lines
+    resolution = np.mean(fine_wl)/R
+    fwhm = 1/np.mean(np.diff(fine_wl)) * resolution  # the fwhm in terms of data spacing
+    sigma = fwhm / (2.0 * np.sqrt(2.0 * np.log(2.0)))
+    filtered_transit = gaussian_filter(fine_transit.data, sigma)
+    
+    # interpolate the data a pixel grid
+    # nyquist sample the spectrum at the blue end
+    sim_um_per_pixel = resolution/2
+    number_pixels = int((fine_wl[-1] - fine_wl[0]) / sim_um_per_pixel)
+    pixel_wavelengths = np.linspace(fine_wl[0], fine_wl[-1], num=number_pixels)
+    
+    pixel_transit_depth, _ = instrument_non_uniform_tophat(pixel_wavelengths, fine_wl, filtered_transit)
+
+    return pixel_wavelengths, pixel_transit_depth
+
+
+def transit_sim(x, fixed):
+    # fixed global variables
+    p0 = 1
+    mass_h2 = 2
+    mass_water = 18
+
+    # unpack model variables
+    rad_planet, T, water_ratio = x
+    # unpack known priors
+    fine_wavelengths, water_cross_sections, h2_cross_sections, m_planet, rad_star, R, noise = fixed
 
 
 
