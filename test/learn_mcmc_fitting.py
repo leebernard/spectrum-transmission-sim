@@ -4,6 +4,11 @@ Learn to fit a line to data when I don't trust error bars
 
 import numpy as np
 import matplotlib.pyplot as plt
+import emcee
+import corner
+
+from scipy.optimize import minimize
+
 
 np.random.seed(123)
 
@@ -70,7 +75,7 @@ def log_likelihood(theta, x, y, yerr):
     return -0.5 * np.sum((y - model) ** 2 / sigma2 + np.log(sigma2))
 
 
-from scipy.optimize import minimize
+# from scipy.optimize import minimize
 np.random.seed(42)
 nll = lambda *args: -log_likelihood(*args)
 # create initial guess from true values, by adding a little noise
@@ -123,7 +128,7 @@ def log_probability(theta, x, y, yerr):
         return lp + log_likelihood(theta, x, y, yerr)
 
 
-import emcee
+# import emcee
 
 # generate 32 walkers, with small gaussian deviations from minimization soln
 pos = soln.x + 1e-4 * np.random.randn(32, 3)
@@ -160,7 +165,7 @@ print(flat_samples.shape)
 
 
 # generate a corner plot
-import corner
+# import corner
 
 fig = corner.corner(flat_samples, labels=labels, truths=[m_true, b_true, np.log(f_true)])
 fig.suptitle('Corner plot of a meaningless line fit', fontsize=14)
