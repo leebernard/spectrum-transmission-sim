@@ -43,6 +43,7 @@ h2_cross_sections = 10**np.interp(fine_wave_numbers, h2_wno, np.log10(h2_cross_s
 # convert wavenumber to wavelength in microns
 fine_wavelengths = 1e4/fine_wave_numbers
 
+
 # plot them to check
 plt.figure('compare_cross_section')
 plt.plot(fine_wavelengths, water_cross_sections)
@@ -83,50 +84,22 @@ p0 = 1
 T = 1500
 # water ratio taken from Chageat et al 2020
 water_ratio = 2600. * 1e-6  # in parts per million
-
-# need to calculate average molecular mass of atmosphere
-mass_water = 18
-h2he_ratio = .17
-mass_h2he = (1 - h2he_ratio)*2 + h2he_ratio*4
-mass = (1 - water_ratio)*mass_h2he + water_ratio*mass_water
-
-# temporary mass cause I don't have He cross sections yet
-mass = (1 - water_ratio)*2 + water_ratio*mass_water
-
-# baseline_depth = (r_p/r_star)**2
-# scale reference pressure up
-# maybe later
-
-
-transit_depth = alpha_lambda(sigma_trace=water_cross_sections,
-                             xi=water_ratio,
-                             planet_radius=rad_planet,
-                             p0=p0,
-                             T=T,
-                             mass=mass,
-                             planet_mass=m_planet,
-                             star_radius=rad_star,
-                             sigma_filler=h2_cross_sections
-                             )
-
-'''Turn the data into a spectrum'''
-# set the resolution of the spectrometer
+# resolution of spectrograph
 R = 70
+
+# generate wavelength sampling of spectrum
 # flip the data to ascending order
-fine_wavelengths = np.flip(fine_wavelengths)
-transit_depth = np.flip(transit_depth)
-
-# interpolate the data to even spacing
-fine_um_grid = np.linspace(fine_wavelengths[0], fine_wavelengths[-1], num=fine_wavelengths.size)
-fine_transit_grid = griddata(fine_wavelengths, transit_depth, xi=fine_um_grid, method='linear')
-
-pixel_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, fine_wl=fine_um_grid, fine_transit=fine_transit_grid)
-'''end turn data into spectrum'''
+fine_wl = np.flip(fine_wavelengths)
+resolution = np.mean(fine_wl)/R
+# Choose the Nyquest sampling rate at the blue end
+samplerate_per_pixel = resolution/2
+number_pixels = int((fine_wl[-1] - fine_wl[0]) / samplerate_per_pixel)
+pixel_wavelengths = np.linspace(fine_wl[0], fine_wl[-1], num=number_pixels)
 
 # test the model generation function
 parameters = fine_wavelengths, water_cross_sections, h2_cross_sections, m_planet, rad_star, R
 variables = rad_planet, T, water_ratio
-test_wavelengths, test_transit_depth = transit_spectra_model(variables, parameters)
+pixel_wavelengths, pixel_transit_depth = transit_spectra_model(pixel_wavelengths, variables, parameters)
 
 # generate photon noise from a signal value
 signal = 1.22e9
@@ -165,15 +138,8 @@ plt.subplot(211).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
 
 # define a likelyhood function
 def log_likelihood(theta, x, y, yerr, fixed):
-    r_p, T = theta
-    mass, p0, rad_star, m_planet = fixed
-    model = alpha_lambda(sigma=x,
-                         planet_radius=r_p,
-                         p0=p0,
-                         T=T,
-                         mass=mass,
-                         planet_mass=m_planet,
-                         star_radius=rad_star)
+
+    model = transit_spectra_model(theta, fixed)
     sigma2 = yerr**2
     return -0.5 * np.sum((y - model) ** 2 / sigma2 + np.log(sigma2))
 

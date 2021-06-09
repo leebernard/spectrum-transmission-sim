@@ -138,33 +138,28 @@ def alpha_lambda(sigma_trace, xi, planet_radius, p0, T, mass, planet_mass, star_
     return (r_planet / r_star)**2 + (2 * r_planet * z)/(r_star**2)
 
 
-def gen_measured_transit(R, fine_wl, fine_transit):
+def gen_measured_transit(R, pixel_wavelengths, fine_wl, fine_transit):
     # filter the spectrum slice with a gaussian
     # the average resolution of the spectrum in micrometers. This corresponds to FWHM of spectrum lines
     resolution = np.mean(fine_wl)/R
     fwhm = 1/np.mean(np.diff(fine_wl)) * resolution  # the fwhm in terms of data spacing
     sigma = fwhm / (2.0 * np.sqrt(2.0 * np.log(2.0)))
     filtered_transit = gaussian_filter(fine_transit.data, sigma)
-    
-    # interpolate the data a pixel grid
-    # nyquist sample the spectrum at the blue end
-    sim_um_per_pixel = resolution/2
-    number_pixels = int((fine_wl[-1] - fine_wl[0]) / sim_um_per_pixel)
-    pixel_wavelengths = np.linspace(fine_wl[0], fine_wl[-1], num=number_pixels)
+
     
     pixel_transit_depth, _ = instrument_non_uniform_tophat(pixel_wavelengths, fine_wl, filtered_transit)
 
     return pixel_wavelengths, pixel_transit_depth
 
 
-def transit_spectra_model(x, fixed):
+def transit_spectra_model(pixel_wavelengths, theta, fixed):
     # fixed global variables
     p0 = 1
     mass_h2 = 2
     mass_water = 18
 
     # unpack model variables
-    rad_planet, T, water_ratio = x
+    rad_planet, T, water_ratio = theta
     # unpack known priors
     fine_wavelengths, water_cross_sections, h2_cross_sections, m_planet, rad_star, R = fixed
 
@@ -197,7 +192,8 @@ def transit_spectra_model(x, fixed):
     fine_um_grid = np.linspace(fine_wavelengths[0], fine_wavelengths[-1], num=fine_wavelengths.size)
     fine_transit_grid = griddata(fine_wavelengths, transit_depth, xi=fine_um_grid, method='linear')
 
-    pixel_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, fine_wl=fine_um_grid,
+    pixel_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, pixel_wavelengths=pixel_wavelengths,
+                                                                  fine_wl=fine_um_grid,
                                                                   fine_transit=fine_transit_grid)
     '''end turn data into spectrum'''
 
