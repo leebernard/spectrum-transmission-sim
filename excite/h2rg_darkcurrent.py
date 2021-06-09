@@ -6,7 +6,7 @@ This is specifically for the H2RGs used in the James Webb Space Telescope (JWST)
 import numpy as np
 import matplotlib.pyplot as plt
 
-from scipy import signal
+from scipy.interpolate import interp1d
 
 
 
@@ -49,25 +49,24 @@ def i_dark(T, parameters=(.004, 507.0, 4.6), lambda_co=5.4):
 
 # pick length of observation run
 observation_duration = 3600  # 1 hour, in seconds
-raw_sample_rate = 1000  # in Hz
-time = np.linspace(0, observation_duration, num=observation_duration * raw_sample_rate)
-# generate noise at 1000 samples per sec
-raw_noise = np.random.normal(size=observation_duration * raw_sample_rate)
-# filter down to 50 Hz
+interpolated_sample_rate = 1000  # in Hz
+time = np.linspace(0, observation_duration, num=observation_duration * interpolated_sample_rate)
 noise_freq = 50  # in Hz
-order = 3  # this is how steep the rolloff is
-norm_cutoff = noise_freq / 1000
-output = 'sos'  # recommended by documentation
-sos = signal.butter(N=order, Wn=norm_cutoff, output=output)
 
-filtered_noise = signal.sosfilt(sos, raw_noise)
+# generate noise at choosen freqency
+raw_time = np.linspace(0, observation_duration, num=observation_duration * noise_freq)
+raw_noise = np.random.normal(size=observation_duration * noise_freq)
+# interpolated up to desired sample rate
+noise_func = interp1d(raw_time, raw_noise, kind='cubic')
+# generate the new sampling
+noise = noise_func(time)
 
 # test the rms
 print('Raw Noise std =', np.std(raw_noise))
-print('Filtered Noise std =', np.std(filtered_noise))
+print('Filtered Noise std =', np.std(noise))
 # test plots
 stop_time = 600
-plt.plot(time[:stop_time], raw_noise[:stop_time])
-plt.plot(time[:stop_time], filtered_noise[:stop_time])
+plt.scatter(time[:stop_time], raw_noise[:stop_time], color='tab:orange')
+plt.plot(time[:stop_time], noise[:stop_time])
 
 
