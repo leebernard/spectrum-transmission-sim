@@ -8,6 +8,7 @@ from scipy.interpolate import griddata
 from planet_sim.transit_toolbox import alpha_lambda
 from planet_sim.transit_toolbox import open_cross_section
 from planet_sim.transit_toolbox import gen_measured_transit
+from planet_sim.transit_toolbox import transit_spectra_model
 from toolkit import instrument_non_uniform_tophat
 
 
@@ -121,6 +122,11 @@ fine_transit_grid = griddata(fine_wavelengths, transit_depth, xi=fine_um_grid, m
 
 pixel_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, fine_wl=fine_um_grid, fine_transit=fine_transit_grid)
 '''end turn data into spectrum'''
+
+# test the model generation function
+parameters = fine_wavelengths, water_cross_sections, h2_cross_sections, m_planet, rad_star, R
+variables = rad_planet, T, water_ratio
+test_wavelengths, test_transit_depth = transit_spectra_model(variables, parameters)
 
 # generate photon noise from a signal value
 signal = 1.22e9

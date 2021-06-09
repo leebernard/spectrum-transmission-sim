@@ -5,6 +5,7 @@ Functions for running the planet transit simulation
 import numpy as np
 
 from scipy.ndimage import gaussian_filter
+from scipy.interpolate import griddata
 
 # import matplotlib.pyplot as plt
 from toolkit import spectrum_slicer
@@ -156,7 +157,7 @@ def gen_measured_transit(R, fine_wl, fine_transit):
     return pixel_wavelengths, pixel_transit_depth
 
 
-def transit_sim(x, fixed):
+def transit_spectra_model(x, fixed):
     # fixed global variables
     p0 = 1
     mass_h2 = 2
@@ -165,8 +166,42 @@ def transit_sim(x, fixed):
     # unpack model variables
     rad_planet, T, water_ratio = x
     # unpack known priors
-    fine_wavelengths, water_cross_sections, h2_cross_sections, m_planet, rad_star, R, noise = fixed
+    fine_wavelengths, water_cross_sections, h2_cross_sections, m_planet, rad_star, R = fixed
 
+    # he/h2 ratio is disabled, since I don't have the cross-sections
+    # h2he_ratio = .17
+    # mass_h2he = (1 - h2he_ratio) * 2 + h2he_ratio * 4
+    # mass = (1 - water_ratio) * mass_h2he + water_ratio * mass_water
+
+    # temporary mass cause I don't have He cross sections yet
+    mass = (1 - water_ratio)*mass_h2 + water_ratio*mass_water
+
+    transit_depth = alpha_lambda(sigma_trace=water_cross_sections,
+                                 xi=water_ratio,
+                                 planet_radius=rad_planet,
+                                 p0=p0,
+                                 T=T,
+                                 mass=mass,
+                                 planet_mass=m_planet,
+                                 star_radius=rad_star,
+                                 sigma_filler=h2_cross_sections
+                                 )
+
+    '''Turn the data into a spectrum'''
+    # set the resolution of the spectrometer
+    # flip the data to ascending order
+    fine_wavelengths = np.flip(fine_wavelengths)
+    transit_depth = np.flip(transit_depth)
+
+    # interpolate the data to even spacing
+    fine_um_grid = np.linspace(fine_wavelengths[0], fine_wavelengths[-1], num=fine_wavelengths.size)
+    fine_transit_grid = griddata(fine_wavelengths, transit_depth, xi=fine_um_grid, method='linear')
+
+    pixel_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, fine_wl=fine_um_grid,
+                                                                  fine_transit=fine_transit_grid)
+    '''end turn data into spectrum'''
+
+    return pixel_wavelengths, pixel_transit_depth
 
 
 
