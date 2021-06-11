@@ -149,13 +149,13 @@ def log_likelihood(theta, x, y, yerr, fixed):
 def log_prior(theta):
     '''Basically just saying, the fixed_parameters are within these values'''
     rad_planet, T, water_ratio = theta
-    if 0.0 < rad_planet < 10 and 0.0 < T < 5000.0 and 0 < water_ratio < 1.0:
+    if 0.0 < rad_planet < 10 and 0.0 < T < 5000.0 and 0 < water_ratio < .001:
         return 0.0
     else:
         return -np.inf
 
 
-def log_probability(theta, x, y, yerr):
+def log_probability(theta, x, y, yerr, fixed):
     '''full probability function
     If fixed_parameters are withing the range defined by log_prior, return the likelihood.
     otherwise, return a flag'''
@@ -165,16 +165,16 @@ def log_probability(theta, x, y, yerr):
     else:
         # why are they summed?
         # oh, because this is log space. They would be multiplied if this was base space
-        return lp + log_likelihood(theta, x, y, yerr)
+        return lp + log_likelihood(theta, x, y, yerr, fixed)
 
 
 
 yerr = photon_noise
 
 np.random.seed(42)
-nll = lambda *args: -log_likelihood(*args)
+nll = lambda *args: -log_probability(*args)
 # create initial guess from true values, by adding a little noise
-initial = np.array(variables) + 0.1*np.random.randn(3)
+initial = np.array(variables) + variables*(0.1*np.random.randn(3))
 # find the fixed_parameters with maximized likelyhood, according to the given distribution function
 soln = minimize(nll, initial, args=(pixel_wavelengths, pixel_transit_depth, yerr, fixed_parameters))
 # unpack the solution
@@ -186,14 +186,22 @@ print("T = {0:.3f}".format(T_ml))
 print("water_ratio = {0:.3f}".format(np.exp(waterfrac_ml)))
 
 theta_fit = rad_ml, T_ml, waterfrac_ml
-fit_transit = transit_spectra_model(pixel_wavelengths, variables, fixed_parameters)
+fit_wavelengths, fit_transit = transit_spectra_model(pixel_wavelengths, theta_fit, fixed_parameters)
 
 plt.figure('fit_result')
-plt.plot(pixel_wavelengths, pixel_transit_depth)
-plt.errorbar(pixel_wavelengths, noisey_transit_depth, yerr=photon_noise, fmt='o', capsize=2.0)
-plt.plot(pixel_wavelengths, pixel_transit_depth)
+plt.subplot(111)
+plt.plot(pixel_wavelengths, pixel_transit_depth, label='Ideal')
+plt.errorbar(pixel_wavelengths, noisey_transit_depth, yerr=photon_noise, label='Photon noise', fmt='o', capsize=2.0)
+plt.plot(pixel_wavelengths, fit_transit, label='Fit result')
 plt.title('Transit depth, R= %d, water= %d ppm' % (R, water_ratio/1e-6) )
-plt.legend(('Ideal', 'Photon noise', 'Fit result'))
+plt.legend()
 plt.ylabel('($R_p$/$R_{star}$)$^2$ (%)')
-plt.subplot(211).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
+plt.subplot(111).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
+
+
+
+
+
+
+
 

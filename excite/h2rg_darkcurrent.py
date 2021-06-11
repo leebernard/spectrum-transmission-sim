@@ -70,3 +70,6 @@ plt.scatter(time[:stop_time], raw_noise[:stop_time], color='tab:orange')
 plt.plot(time[:stop_time], noise[:stop_time])
 
 
+
+
+

@@ -75,9 +75,32 @@ def log_likelihood(theta, x, y, yerr):
     return -0.5 * np.sum((y - model) ** 2 / sigma2 + np.log(sigma2))
 
 
+def log_prior(theta):
+    '''Bascially just saying, the parameters are within these values'''
+    m, b, log_f = theta
+    if -5.0 < m < 0.5 and 0.0 < b < 10.0 and -10 < log_f < 1.0:
+        return 0.0
+    else:
+        return -np.inf
+
+
+def log_probability(theta, x, y, yerr):
+    '''full probability function
+    If parameters are withing the range defined by log_prior, return the likelihood.
+    otherwise, return a flag'''
+    lp = log_prior(theta)
+    if not np.isfinite(lp):
+        return -np.inf
+    else:
+        # why are they summed?
+        # oh, because this is log space. They would be multiplied if this was base space
+        return lp + log_likelihood(theta, x, y, yerr)
+
+
 # from scipy.optimize import minimize
 np.random.seed(42)
 nll = lambda *args: -log_likelihood(*args)
+# nll = lambda *args: -log_probability(*args)
 # create initial guess from true values, by adding a little noise
 initial = np.array([m_true, b_true, np.log(f_true)]) + 0.1*np.random.randn(3)
 # find the parameters with maximized likelyhood, according to the given distribution function
@@ -107,25 +130,7 @@ But first, I need to construct a prior function
 '''
 
 
-def log_prior(theta):
-    '''Bascially just saying, the parameters are within these values'''
-    m, b, log_f = theta
-    if -5.0 < m < 0.5 and 0.0 < b < 10.0 and -10 < log_f < 1.0:
-        return 0.0
-    else:
-        return -np.inf
 
-
-def log_probability(theta, x, y, yerr):
-    '''full probability function
-    If parameters are withing the range defined by log_prior, return the likelihood.
-    otherwise, return a flag'''
-    lp = log_prior(theta)
-    if not np.isfinite(lp):
-        return -np.inf
-    else:
-        # why are they summed?
-        return lp + log_likelihood(theta, x, y, yerr)
 
 
 # import emcee
@@ -152,7 +157,7 @@ for i in range(ndim):
 axes[-1].set_xlabel("step number")
 
 # hard to say how quickly it filled the posterior distribution from the tiny prior walkers
-# but we can look at estimate of ingerated autocorrelation time (whatever that means)
+# but we can look at estimate of integrated autocorrelation time (whatever that means)
 tau = sampler.get_autocorr_time()
 print(tau)
 # in this case, looks like about 40 steps needed to 'forget' where it started
