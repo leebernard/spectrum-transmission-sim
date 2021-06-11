@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import emcee
 
 from matplotlib.ticker import FormatStrFormatter
 from scipy.ndimage import gaussian_filter
@@ -199,6 +200,27 @@ plt.ylabel('($R_p$/$R_{star}$)$^2$ (%)')
 plt.subplot(111).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
 
 
+
+
+# generate 32 walkers, with small gaussian deviations from minimization soln
+pos = soln.x + soln.x*(1e-4 * np.random.randn(32, 3))
+nwalkers, ndim = pos.shape
+
+sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, args=(pixel_wavelengths, pixel_transit_depth, yerr, fixed_parameters))
+sampler.run_mcmc(pos, 5000, progress=True)
+
+# examine the results
+fig, axes = plt.subplots(3, figsize=(10, 7), sharex=True)
+samples = sampler.get_chain()
+labels = ["Rad_planet", "T", "water_ratio"]
+for i in range(ndim):
+    ax = axes[i]
+    ax.plot(samples[:, :, i], "k", alpha=0.3)
+    ax.set_xlim(0, len(samples))
+    ax.set_ylabel(labels[i])
+    ax.yaxis.set_label_coords(-0.1, 0.5)
+
+axes[-1].set_xlabel("step number")
 
 
 
