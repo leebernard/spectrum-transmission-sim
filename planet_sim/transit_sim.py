@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 from scipy.ndimage import gaussian_filter
 from scipy.interpolate import griddata
+from scipy.optimize import minimize
 
 from planet_sim.transit_toolbox import alpha_lambda
 from planet_sim.transit_toolbox import open_cross_section
@@ -97,9 +98,9 @@ number_pixels = int((fine_wl[-1] - fine_wl[0]) / samplerate_per_pixel)
 pixel_wavelengths = np.linspace(fine_wl[0], fine_wl[-1], num=number_pixels)
 
 # test the model generation function
-parameters = fine_wavelengths, water_cross_sections, h2_cross_sections, m_planet, rad_star, R
+fixed_parameters = fine_wavelengths, water_cross_sections, h2_cross_sections, m_planet, rad_star, R
 variables = rad_planet, T, water_ratio
-pixel_wavelengths, pixel_transit_depth = transit_spectra_model(pixel_wavelengths, variables, parameters)
+pixel_wavelengths, pixel_transit_depth = transit_spectra_model(pixel_wavelengths, variables, fixed_parameters)
 
 # generate photon noise from a signal value
 signal = 1.22e9
@@ -139,10 +140,60 @@ plt.subplot(211).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
 # define a likelyhood function
 def log_likelihood(theta, x, y, yerr, fixed):
 
-    model = transit_spectra_model(theta, fixed)
-    sigma2 = yerr**2
-    return -0.5 * np.sum((y - model) ** 2 / sigma2 + np.log(sigma2))
+    model = transit_spectra_model(x, theta, fixed)
+    sigma = yerr**2
+    return -0.5 * np.sum((y - model) ** 2 / sigma + np.log(sigma))
+
+
+# define a prior function
+def log_prior(theta):
+    '''Basically just saying, the fixed_parameters are within these values'''
+    rad_planet, T, water_ratio = theta
+    if 0.0 < rad_planet < 10 and 0.0 < T < 5000.0 and 0 < water_ratio < 1.0:
+        return 0.0
+    else:
+        return -np.inf
+
+
+def log_probability(theta, x, y, yerr):
+    '''full probability function
+    If fixed_parameters are withing the range defined by log_prior, return the likelihood.
+    otherwise, return a flag'''
+    lp = log_prior(theta)
+    if not np.isfinite(lp):
+        return -np.inf
+    else:
+        # why are they summed?
+        # oh, because this is log space. They would be multiplied if this was base space
+        return lp + log_likelihood(theta, x, y, yerr)
 
 
 
+yerr = photon_noise
+
+np.random.seed(42)
+nll = lambda *args: -log_likelihood(*args)
+# create initial guess from true values, by adding a little noise
+initial = np.array(variables) + 0.1*np.random.randn(3)
+# find the fixed_parameters with maximized likelyhood, according to the given distribution function
+soln = minimize(nll, initial, args=(pixel_wavelengths, pixel_transit_depth, yerr, fixed_parameters))
+# unpack the solution
+rad_ml, T_ml, waterfrac_ml = soln.x
+
+print("Maximum likelihood estimates:")
+print("Rad_planet = {0:.3f}".format(rad_ml))
+print("T = {0:.3f}".format(T_ml))
+print("water_ratio = {0:.3f}".format(np.exp(waterfrac_ml)))
+
+theta_fit = rad_ml, T_ml, waterfrac_ml
+fit_transit = transit_spectra_model(pixel_wavelengths, variables, fixed_parameters)
+
+plt.figure('fit_result')
+plt.plot(pixel_wavelengths, pixel_transit_depth)
+plt.errorbar(pixel_wavelengths, noisey_transit_depth, yerr=photon_noise, fmt='o', capsize=2.0)
+plt.plot(pixel_wavelengths, pixel_transit_depth)
+plt.title('Transit depth, R= %d, water= %d ppm' % (R, water_ratio/1e-6) )
+plt.legend(('Ideal', 'Photon noise', 'Fit result'))
+plt.ylabel('($R_p$/$R_{star}$)$^2$ (%)')
+plt.subplot(211).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
 
