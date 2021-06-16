@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from scipy.interpolate import interp1d
+from scipy.stats import poisson
 
 from toolkit import instrument_non_uniform_tophat
 
@@ -147,17 +148,33 @@ for temp_value in temp_curve:
 temp_data_cube = np.array(temp_data_cube)
 
 # generate dark current data cube
-dc_cube = i_dark(temp_data_cube)
+dc_rate_cube = i_dark(temp_data_cube)
 
 
-mean_dc = np.mean(dc_cube, axis=1)
-stddev_dc = np.std(dc_cube, axis=1)
-dc_sn = mean_dc/stddev_dc
+mean_dc_rate = np.mean(dc_rate_cube, axis=1)
+stddev_dc_rate = np.std(dc_rate_cube, axis=1)
+dc_sn_rate = mean_dc_rate/stddev_dc_rate
 plt.figure('dark current temp curve')
-plt.scatter(temp_curve, mean_dc, label='mean dark current')
+plt.scatter(temp_curve, mean_dc_rate, label='mean dark current rate')
 
 plt.figure('dark current sn')
-plt.scatter(temp_curve, dc_sn)
+plt.scatter(temp_curve, 1/dc_sn_rate, label='sn of dc rate')
+
+# need to compare the above noise to dc poisson noise
+integration_time = 30  # in secs
+start = 0
+stop = integration_time * observation_sample_rate
+
+# generate data with poisson noise
+# this produces single pixel data, need to expand to a pixel array
+# dc_30s_cube = poisson.rvs(np.sum(dc_rate_cube[:, start:stop], axis=1))
+
+# generate dark current for 30 secs
+dc_30s = np.sum(dc_rate_cube[:, start:stop], axis=1)
+sn_30s = dc_30s/np.sqrt(dc_30s)
+
+plt.scatter(temp_curve, 1/sn_30s, label='sn from poisson noise at 30s')
+plt.yscale('log')
 
 
 
