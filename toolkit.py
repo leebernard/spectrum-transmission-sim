@@ -25,9 +25,9 @@ def instrument_non_uniform_tophat(wlgrid, fine_wl, Fp):
     wlgrid:
         Wave length grid to interpolate to, in microns
     fine_wl:
-        wavelengthss of input spectrum
+        wavelengths of input spectrum
     Fp:
-        values corresponding to wavenumbers
+        values corresponding to fine_wl
 
     Returns
     -------

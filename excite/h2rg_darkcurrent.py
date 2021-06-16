@@ -8,9 +8,12 @@ import matplotlib.pyplot as plt
 
 from scipy.interpolate import interp1d
 
+from toolkit import instrument_non_uniform_tophat
 
 
 def diffusion_darkcurrent(T, E_bg=0.6):
+    # this is a generic dark current due to diffusion function. 
+    # This only incorporates theoretical dark current due to diffusion, not physical
     #E_bg is the bandgap energy, in eV
 
     # boltzman constant in eV/Kelvin
@@ -45,31 +48,56 @@ def i_dark(T, parameters=(.004, 507.0, 4.6), lambda_co=5.4):
     return c0 + c1*np.exp(-hc/(c2*lambda_co) * 1/(k*T))
 
 
+def generate_T_noise(time, scale, observation_duration, noise_freq, verbose=False):
+    # generate time scale that samples at chosen frequency
+    raw_time = np.linspace(0, observation_duration, num=observation_duration * noise_freq)
+
+    # generate noise at chosen freqency
+    # choose a scale, increase by 7% to compensate for interpolation smoothing
+    scale = scale * 1.07
+    raw_noise = np.random.normal(scale=scale,
+                                 size=raw_time.size)
+
+    # create interpolation function
+    T_noise_func = interp1d(raw_time, raw_noise, kind='cubic')
+    # interpolated up to desired sample rate
+    T_noise = T_noise_func(time)
+
+    if verbose:
+        # test the rms
+        print('Raw Noise std =', np.std(raw_noise))
+        print('Filtered Noise std =', np.std(T_noise))
+
+    return T_noise
+
+
 # generate gaussian noise, at 1Hz, with smooth transitions
 
 # pick length of observation run
 observation_duration = 3600  # 1 hour, in seconds
 interpolated_sample_rate = 1000  # in Hz
 time = np.linspace(0, observation_duration, num=observation_duration * interpolated_sample_rate)
+
+# noise parameters
 noise_freq = 50  # in Hz
+scale = .005
 
-# generate noise at choosen freqency
-raw_time = np.linspace(0, observation_duration, num=observation_duration * noise_freq)
-raw_noise = np.random.normal(size=observation_duration * noise_freq)
-# interpolated up to desired sample rate
-noise_func = interp1d(raw_time, raw_noise, kind='cubic')
-# generate the new sampling
-noise = noise_func(time)
+# generate sampling points
+# sampling of data, in Hz
+observation_sample_rate = 1
+sample_time = np.linspace(0, observation_duration, num=observation_duration * observation_sample_rate)
 
-# test the rms
-print('Raw Noise std =', np.std(raw_noise))
-print('Filtered Noise std =', np.std(noise))
-# test plots
-stop_time = 600
-plt.scatter(time[:stop_time], raw_noise[:stop_time], color='tab:orange')
-plt.plot(time[:stop_time], noise[:stop_time])
+T_40 = 40 + generate_T_noise(time, scale, observation_duration, noise_freq)
+T_50 = 50 + generate_T_noise(time, scale, observation_duration, noise_freq)
+T_60 = 60 + generate_T_noise(time, scale, observation_duration, noise_freq)
 
 
-
+# plot the temperature data
+time_stop = 300
+plt.figure('Temperature_plot')
+plt.scatter(time[:time_stop], T_40[:time_stop], label='T=40K')
+plt.scatter(time[:time_stop], T_50[:time_stop], label='T=50K')
+plt.scatter(time[:time_stop], T_60[:time_stop], label='T=60K')
+plt.legend()
 
 
