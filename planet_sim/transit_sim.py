@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import emcee
+import corner
 
 from matplotlib.ticker import FormatStrFormatter
 from scipy.ndimage import gaussian_filter
@@ -75,7 +76,7 @@ plt.legend(('H2O', 'H2'))
 # T = 290  # K
 # mass = 18  # amu
 #
-
+"""
 # hot jupiter time!
 # based upon KELT-11b, taken from Beatty et al 2017
 rad_planet = 1.47  # in jovian radii
@@ -84,6 +85,19 @@ rad_star = 2.94
 p0 = 1
 # temperature is made up
 T = 1500
+"""
+# based upon HD209458b
+rad_planet = 1.38  # in jovian radii
+g_planet = 9.3  # m/s
+rad_star = 1.161  # solar radii
+p0 = 1  # barr
+# temperature is made up
+T = 1500
+
+
+
+
+
 # water ratio taken from Chageat et al 2020
 water_ratio = 2600. * 1e-6  # in parts per million
 # resolution of spectrograph
@@ -99,16 +113,19 @@ number_pixels = int((fine_wl[-1] - fine_wl[0]) / samplerate_per_pixel)
 pixel_wavelengths = np.linspace(fine_wl[0], fine_wl[-1], num=number_pixels)
 
 # test the model generation function
-fixed_parameters = fine_wavelengths, water_cross_sections, h2_cross_sections, m_planet, rad_star, R
+# this produces the 'true' transit spectrum
+fixed_parameters = fine_wavelengths, water_cross_sections, h2_cross_sections, g_planet, rad_star, R
 variables = rad_planet, T, water_ratio
 pixel_wavelengths, pixel_transit_depth = transit_spectra_model(pixel_wavelengths, variables, fixed_parameters)
 
 # generate photon noise from a signal value
-signal = 1.22e9
-photon_noise = 1/np.sqrt(signal)  # calculate noise as fraction of signal
-# noise = np.random.normal(scale=photon_noise, size=pixel_transit_depth.size)
-noise = (np.random.poisson(lam=signal, size=pixel_transit_depth.size) - signal)/signal
-# add noise to the transit depth
+# signal = 1.22e9
+# noise = (np.random.poisson(lam=signal, size=pixel_transit_depth.size) - signal)/signal
+
+photon_noise = 75 * 1e-6  # set noise to 75ppm
+noise = np.random.normal(scale=photon_noise, size=pixel_transit_depth.size)
+
+# add noise to the transit spectrum
 noisey_transit_depth = pixel_transit_depth + noise
 
 # mean spectral resolution
@@ -141,16 +158,16 @@ plt.subplot(211).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
 # define a likelyhood function
 def log_likelihood(theta, x, y, yerr, fixed):
 
-    model = transit_spectra_model(x, theta, fixed)
+    _, model = transit_spectra_model(x, theta, fixed)
     sigma = yerr**2
-    return -0.5 * np.sum((y - model) ** 2 / sigma + np.log(sigma))
+    return -0.5 * np.sum((y - model)**2 / sigma + np.log(sigma))
 
 
 # define a prior function
 def log_prior(theta):
     '''Basically just saying, the fixed_parameters are within these values'''
     rad_planet, T, water_ratio = theta
-    if 0.0 < rad_planet < 10 and 0.0 < T < 5000.0 and 0 < water_ratio < .001:
+    if 0.0 < rad_planet < 10 and 0.0 < T < 5000.0 and 0 < water_ratio < 1.0:
         return 0.0
     else:
         return -np.inf
@@ -223,6 +240,24 @@ for i in range(ndim):
 axes[-1].set_xlabel("step number")
 
 
+# hard to say how quickly it filled the posterior distribution from the tiny prior walkers
+# but we can look at estimate of integrated autocorrelation time (whatever that means)
+tau = sampler.get_autocorr_time()
+print(tau)
+
+
+# examine it with the initial burn-in period discarded
+# also, what does thinning the autocorrelation time do?
+flat_samples = sampler.get_chain(discard=100, thin=15, flat=True)
+print(flat_samples.shape)
+
+
+# generate a corner plot
+# import corner
+
+fig = corner.corner(flat_samples, labels=labels, truths=[rad_planet, T, water_ratio])
+fig.suptitle('Corner plot for free parameter estimates', fontsize=14)
+# fig.savefig('/test/my_first_cornerplot.png')
 
 
 

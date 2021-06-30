@@ -64,7 +64,7 @@ def scale_h(mass, T, g):
     return k*T/(mass*amu_kg * g)
 
 
-def z_lambda(sigma_trace, xi, p0, planet_radius, mass, T, planet_mass, sigma_filler=False):
+def z_lambda(sigma_trace, xi, p0, planet_radius, mass, T, g, sigma_filler=False):
     '''
 
     Parameters
@@ -79,8 +79,10 @@ def z_lambda(sigma_trace, xi, p0, planet_radius, mass, T, planet_mass, sigma_fil
         mass of trace atomic species
     T: float
         Effective temperature of planet
-    planet_mass: float
-        mass of the planet in jovian masses
+    g: float
+        gravity of the planet, in m/s
+    sigma_filler: float
+        cross section of the filler gas
 
     Returns
     -------
@@ -93,7 +95,7 @@ def z_lambda(sigma_trace, xi, p0, planet_radius, mass, T, planet_mass, sigma_fil
     # convert from bars to pa
     pressure = p0 * 100000
 
-    g = gravity(planet_mass, planet_radius)
+    # g = gravity(planet_mass, planet_radius)
     h = scale_h(mass, T, g)
 
     if sigma_filler is not None:
@@ -104,15 +106,15 @@ def z_lambda(sigma_trace, xi, p0, planet_radius, mass, T, planet_mass, sigma_fil
         xi = 1
         sigma = sigma_trace
 
-    # set equiv scale height to 1
-    tau_eq = 1
+    # set equiv scale height to 0.56 (Line and Parmenteir 2016
+    tau_eq = 0.56
 
     # calculate beta
     beta = pressure / tau_eq * np.sqrt(2*np.pi*r_p)
     return h * np.log(sigma * 1/np.sqrt(k*mass*amu_kg*T*g) * beta)
 
 
-def alpha_lambda(sigma_trace, xi, planet_radius, p0, T, mass, planet_mass, star_radius, sigma_filler=False):
+def alpha_lambda(sigma_trace, xi, planet_radius, p0, T, mass, g, star_radius, sigma_filler=False):
     '''
 
     Parameters
@@ -133,7 +135,14 @@ def alpha_lambda(sigma_trace, xi, planet_radius, p0, T, mass, planet_mass, star_
     r_planet = r_jovian * planet_radius
     r_star = r_sun * star_radius
 
-    z = z_lambda(sigma_trace, xi, p0, planet_radius, mass, T, planet_mass, sigma_filler)
+    z = z_lambda(sigma_trace=sigma_trace,
+                 xi=xi,
+                 p0=p0,
+                 planet_radius=planet_radius,
+                 mass=mass,
+                 T=T,
+                 g=g,
+                 sigma_filler=sigma_filler)
 
     return (r_planet / r_star)**2 + (2 * r_planet * z)/(r_star**2)
 
@@ -155,13 +164,13 @@ def gen_measured_transit(R, pixel_wavelengths, fine_wl, fine_transit):
 def transit_spectra_model(pixel_wavelengths, theta, fixed):
     # fixed global variables
     p0 = 1
-    mass_h2 = 2
+    mass_h2 = 2.3  # mean molecular weight of H2 He mix
     mass_water = 18
 
     # unpack model variables
     rad_planet, T, water_ratio = theta
     # unpack known priors
-    fine_wavelengths, water_cross_sections, h2_cross_sections, m_planet, rad_star, R = fixed
+    fine_wavelengths, water_cross_sections, h2_cross_sections, g_planet, rad_star, R = fixed
 
     # he/h2 ratio is disabled, since I don't have the cross-sections
     # h2he_ratio = .17
@@ -177,7 +186,7 @@ def transit_spectra_model(pixel_wavelengths, theta, fixed):
                                  p0=p0,
                                  T=T,
                                  mass=mass,
-                                 planet_mass=m_planet,
+                                 g=g_planet,
                                  star_radius=rad_star,
                                  sigma_filler=h2_cross_sections
                                  )
