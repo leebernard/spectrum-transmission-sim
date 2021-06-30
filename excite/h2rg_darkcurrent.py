@@ -81,8 +81,8 @@ fine_time = np.linspace(0, observation_duration, num=observation_duration * inte
 
 # noise parameters
 noise_freq = 50  # in Hz
-scale = .005
-
+# scale = .005
+scale = .050
 # generate sampling points
 # sampling of data, in Hz
 observation_sample_rate = 1
@@ -131,7 +131,7 @@ fine_time = np.linspace(0, observation_duration, num=observation_duration * inte
 
 # noise parameters
 noise_freq = 50  # in Hz
-scale = .005
+scale = scale
 
 # generate sampling points
 # sampling of data, in Hz
@@ -157,8 +157,6 @@ dc_sn_rate = mean_dc_rate/stddev_dc_rate
 plt.figure('dark current temp curve')
 plt.scatter(temp_curve, mean_dc_rate, label='mean dark current rate')
 
-plt.figure('dark current sn')
-plt.scatter(temp_curve, 1/dc_sn_rate, label='sn of dc rate')
 
 # need to compare the above noise to dc poisson noise
 integration_time = 30  # in secs
@@ -173,7 +171,12 @@ stop = integration_time * observation_sample_rate
 dc_30s = np.sum(dc_rate_cube[:, start:stop], axis=1)
 sn_30s = dc_30s/np.sqrt(dc_30s)
 
-plt.scatter(temp_curve, 1/sn_30s, label='sn from poisson noise at 30s')
+plt.figure('dark current sn')
+plt.scatter(temp_curve, 1/dc_sn_rate, label='noise due to 50Hz 50mK jitter')
+plt.scatter(temp_curve, 1/sn_30s, label='poisson noise at 30s')
+plt.legend()
+plt.xlabel('Temperature (K)')
+plt.ylabel('Noise fraction of signal')
 plt.yscale('log')
 
 
