@@ -96,12 +96,15 @@ T = 1500
 
 
 
-
-
 # water ratio taken from Chageat et al 2020
-water_ratio = 2600. * 1e-6  # in parts per million
+# water_ratio = 2600. * 1e-6  # in parts per million
+
+# use log ratio instead
+# log_f_h2o = np.log10(water_ratio)
+log_f_h2o = -3  # 1000ppm
+
 # resolution of spectrograph
-R = 70
+R = 30
 
 # generate wavelength sampling of spectrum
 # flip the data to ascending order
@@ -115,7 +118,7 @@ pixel_wavelengths = np.linspace(fine_wl[0], fine_wl[-1], num=number_pixels)
 # test the model generation function
 # this produces the 'true' transit spectrum
 fixed_parameters = fine_wavelengths, water_cross_sections, h2_cross_sections, g_planet, rad_star, R
-variables = rad_planet, T, water_ratio
+variables = rad_planet, T, log_f_h2o
 pixel_wavelengths, pixel_transit_depth = transit_spectra_model(pixel_wavelengths, variables, fixed_parameters)
 
 # generate photon noise from a signal value
@@ -133,17 +136,18 @@ noisey_transit_depth = pixel_transit_depth + noise
 
 plt.figure('transit depth R%.2f' %R, figsize=(8, 8))
 plt.subplot(212)
-plt.plot(fine_wavelengths, np.flip(water_cross_sections))
-plt.plot(fine_wavelengths, np.flip(h2_cross_sections))
-plt.title('Cross section of H2O')
+plt.plot(fine_wavelengths, np.flip(water_cross_sections), label='H2O')
+plt.plot(fine_wavelengths, np.flip(h2_cross_sections), label='H2')
+plt.title('Absorption Cross section')
+plt.legend()
 plt.xlabel('Wavelength (μm)')
 plt.ylabel('Cross section (cm^2/molecule)')
 plt.yscale('log')
 
 plt.subplot(211)
-plt.plot(pixel_wavelengths, pixel_transit_depth)
-plt.errorbar(pixel_wavelengths, noisey_transit_depth, yerr=photon_noise, fmt='o', capsize=2.0)
-plt.title('Transit depth, R= %d, water= %d ppm' % (R, water_ratio/1e-6) )
+plt.plot(pixel_wavelengths, pixel_transit_depth, label='Ideal')
+plt.errorbar(pixel_wavelengths, noisey_transit_depth, yerr=photon_noise, label='Photon noise', fmt='o', capsize=2.0)
+plt.title('Transit depth, R= %d, water= %d ppm' % (R, 10**log_f_h2o/1e-6) )
 plt.legend(('Ideal', 'Photon noise'))
 plt.ylabel('($R_p$/$R_{star}$)$^2$ (%)')
 plt.subplot(211).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
@@ -166,8 +170,8 @@ def log_likelihood(theta, x, y, yerr, fixed):
 # define a prior function
 def log_prior(theta):
     '''Basically just saying, the fixed_parameters are within these values'''
-    rad_planet, T, water_ratio = theta
-    if 0.0 < rad_planet < 10 and 0.0 < T < 5000.0 and 0 < water_ratio < 1.0:
+    rad_planet, T, log_f_h2o = theta
+    if 0.0 < rad_planet < 10 and 300 < T < 3000.0 and -12 < log_f_h2o < -1.0:
         return 0.0
     else:
         return -np.inf
@@ -198,10 +202,10 @@ soln = minimize(nll, initial, args=(pixel_wavelengths, pixel_transit_depth, yerr
 # unpack the solution
 rad_ml, T_ml, waterfrac_ml = soln.x
 
-print("Maximum likelihood estimates:")
-print("Rad_planet = {0:.3f}".format(rad_ml))
-print("T = {0:.3f}".format(T_ml))
-print("water_ratio = {0:.3f}".format(np.exp(waterfrac_ml)))
+print("Maximum likelihood estimates: (true)")
+print("Rad_planet = {0:.3f} ({1:.3f})".format(rad_ml, rad_planet))
+print("T = {0:.3f} ({1:.3f})".format(T_ml, T))
+print("log_water_ratio = {0:.3f} ({1:.3f})".format(waterfrac_ml, log_f_h2o))
 
 theta_fit = rad_ml, T_ml, waterfrac_ml
 fit_wavelengths, fit_transit = transit_spectra_model(pixel_wavelengths, theta_fit, fixed_parameters)
@@ -211,20 +215,26 @@ plt.subplot(111)
 plt.plot(pixel_wavelengths, pixel_transit_depth, label='Ideal')
 plt.errorbar(pixel_wavelengths, noisey_transit_depth, yerr=photon_noise, label='Photon noise', fmt='o', capsize=2.0)
 plt.plot(pixel_wavelengths, fit_transit, label='Fit result')
-plt.title('Transit depth, R= %d, water= %d ppm' % (R, water_ratio/1e-6) )
+plt.title('Transit depth, R= %d, water= %d ppm' % (R, 10**log_f_h2o/1e-6))
 plt.legend()
 plt.ylabel('($R_p$/$R_{star}$)$^2$ (%)')
 plt.subplot(111).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
 
 
+from multiprocessing import Pool
 
 
 # generate 32 walkers, with small gaussian deviations from minimization soln
 pos = soln.x + soln.x*(1e-4 * np.random.randn(32, 3))
 nwalkers, ndim = pos.shape
 
-sampler = emcee.EnsembleSampler(nwalkers, ndim, log_probability, args=(pixel_wavelengths, pixel_transit_depth, yerr, fixed_parameters))
-sampler.run_mcmc(pos, 5000, progress=True)
+with Pool() as pool:
+    sampler = emcee.EnsembleSampler(nwalkers,
+                                    ndim,
+                                    log_probability,
+                                    args=(pixel_wavelengths, pixel_transit_depth, yerr, fixed_parameters),
+                                    pool=pool)
+    sampler.run_mcmc(pos, 5000, progress=True)
 
 # examine the results
 fig, axes = plt.subplots(3, figsize=(10, 7), sharex=True)
@@ -255,7 +265,7 @@ print(flat_samples.shape)
 # generate a corner plot
 # import corner
 
-fig = corner.corner(flat_samples, labels=labels, truths=[rad_planet, T, water_ratio])
+fig = corner.corner(flat_samples, labels=labels, truths=[rad_planet, T, log_f_h2o])
 fig.suptitle('Corner plot for free parameter estimates', fontsize=14)
 # fig.savefig('/test/my_first_cornerplot.png')
 

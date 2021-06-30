@@ -100,13 +100,13 @@ def z_lambda(sigma_trace, xi, p0, planet_radius, mass, T, g, sigma_filler=False)
 
     if sigma_filler is not None:
         # calculate average cross section
-        sigma = (1 - xi)*sigma_filler + xi*sigma_trace
+        sigma = (1 - np.sum(xi))*sigma_filler + np.sum(xi*sigma_trace, axis=0)
     else:
         # set volume mixing ratio to 1
         xi = 1
         sigma = sigma_trace
 
-    # set equiv scale height to 0.56 (Line and Parmenteir 2016
+    # set equiv scale height to 0.56 (Line and Parmenteir 2016)
     tau_eq = 0.56
 
     # calculate beta
@@ -168,7 +168,17 @@ def transit_spectra_model(pixel_wavelengths, theta, fixed):
     mass_water = 18
 
     # unpack model variables
-    rad_planet, T, water_ratio = theta
+    rad_planet, T, log_f_h2o = theta
+
+    # unpack log ratios
+    water_ratio = 10**log_f_h2o
+
+    # package the ratios into a summable list
+    trace_ratios = np.array([
+        [water_ratio]
+    ])
+
+    # print('trace ratios', trace_ratios)
     # unpack known priors
     fine_wavelengths, water_cross_sections, h2_cross_sections, g_planet, rad_star, R = fixed
 
@@ -181,7 +191,7 @@ def transit_spectra_model(pixel_wavelengths, theta, fixed):
     mass = (1 - water_ratio)*mass_h2 + water_ratio*mass_water
 
     transit_depth = alpha_lambda(sigma_trace=water_cross_sections,
-                                 xi=water_ratio,
+                                 xi=trace_ratios,
                                  planet_radius=rad_planet,
                                  p0=p0,
                                  T=T,

@@ -4,6 +4,7 @@ space for commonly needed custom functions
 
 import numpy as np
 
+from numba import jit
 
 def spectrum_slicer(start_angstrom, end_angstrom, angstrom_data, spectrum_data):
     start_index = (np.abs(angstrom_data - start_angstrom)).argmin()
