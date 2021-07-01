@@ -174,21 +174,35 @@ def transit_spectra_model(pixel_wavelengths, theta, fixed):
     p0 = 1
     mass_h2 = 2.3  # mean molecular weight of H2 He mix
     mass_water = 18
+    mass_co = 12+16
+    mass_hcn = 1+12+14
 
     # unpack model variables
-    rad_planet, T, log_f_h2o = theta
+    rad_planet, T, log_f_h2o, log_fco, log_fhcn = theta
 
     # unpack log ratios
     water_ratio = 10**log_f_h2o
+    co_ratio = 10**log_fco
+    hcn_ratio = 10**log_fhcn
 
     # package the ratios into a summable list
     trace_ratios = np.array([
-        [water_ratio]
+        [water_ratio],
+        [co_ratio],
+        [hcn_ratio]
     ])
 
     # print('trace ratios', trace_ratios)
     # unpack known priors
-    fine_wavelengths, water_cross_sections, h2_cross_sections, g_planet, rad_star, R = fixed
+    fine_wavelengths, h2o_cross_sections, co_cross_sections, hcn_cross_sections, h2_cross_sections, g_planet, rad_star, R = fixed
+
+    # package the cross sections into an array
+    sigma_trace = np.array(
+        [h2o_cross_sections,
+         co_cross_sections,
+         hcn_cross_sections]
+    )
+
 
     # he/h2 ratio is disabled, since I don't have the cross-sections
     # h2he_ratio = .17
@@ -196,9 +210,10 @@ def transit_spectra_model(pixel_wavelengths, theta, fixed):
     # mass = (1 - water_ratio) * mass_h2he + water_ratio * mass_water
 
     # temporary mass cause I don't have He cross sections yet
-    mass = (1 - water_ratio)*mass_h2 + water_ratio*mass_water
+    sum_ratios = water_ratio + co_ratio + hcn_ratio
+    mass = (1 - sum_ratios)*mass_h2 + water_ratio*mass_water + co_ratio*mass_co + hcn_ratio*mass_hcn
 
-    transit_depth = alpha_lambda(sigma_trace=water_cross_sections,
+    transit_depth = alpha_lambda(sigma_trace=sigma_trace,
                                  xi=trace_ratios,
                                  planet_radius=rad_planet,
                                  p0=p0,
