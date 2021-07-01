@@ -3,7 +3,7 @@ Functions for running the planet transit simulation
 """
 
 import numpy as np
-
+import warnings
 from scipy.ndimage import gaussian_filter
 from scipy.interpolate import griddata
 
@@ -19,15 +19,23 @@ r_jovian = 7.1492e7  # meters
 r_sun = 6.957e8  # meters
 
 
-def open_cross_section(filename, wn_range=None):
+def open_cross_section(filename, wn_range=None, verbose=False):
     with open(filename) as file:
         raw_data = file.readlines()
         wave_numbers = []
         cross_sections = []
+
+        if verbose:
+            print('raw')
+
         for x in raw_data:
-            wave_string, cross_string = x.split()
-            wave_numbers.append(float(wave_string))
-            cross_sections.append(float(cross_string))
+            if x == '\n':
+                warnings.warn('Cross section read in terminated early due to empty line!', UserWarning)
+                break
+            else:
+                wave_string, cross_string = x.split()
+                wave_numbers.append(float(wave_string))
+                cross_sections.append(float(cross_string))
         wave_numbers = np.array(wave_numbers)
         cross_sections = np.array(cross_sections)
 
