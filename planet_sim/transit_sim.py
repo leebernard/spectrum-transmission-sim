@@ -39,7 +39,7 @@ h2_data_file = './line_lists/H2H2_CIA_30mbar_1500K.txt'
 h2_wno, h2_cross_sections = open_cross_section(h2_data_file, wn_range=(wn_start, wn_end))
 
 # interpolate the two different wavenumbers to the same wavenumber
-fine_wave_numbers = np.arange(wn_start, wn_end, .1)
+fine_wave_numbers = np.arange(wn_start, wn_end, 2.0)
 water_cross_sections = 10**np.interp(fine_wave_numbers, water_wno, np.log10(water_cross_sections))
 h2_cross_sections = 10**np.interp(fine_wave_numbers, h2_wno, np.log10(h2_cross_sections))
 
@@ -76,6 +76,7 @@ plt.legend(('H2O', 'H2'))
 # T = 290  # K
 # mass = 18  # amu
 #
+
 """
 # hot jupiter time!
 # based upon KELT-11b, taken from Beatty et al 2017
@@ -225,7 +226,7 @@ from multiprocessing import Pool
 
 
 # generate 32 walkers, with small gaussian deviations from minimization soln
-pos = soln.x + soln.x*(1e-4 * np.random.randn(32, 3))
+pos = soln.x + soln.x*(1e-3 * np.random.randn(32, 3))
 nwalkers, ndim = pos.shape
 
 with Pool() as pool:
@@ -234,7 +235,7 @@ with Pool() as pool:
                                     log_probability,
                                     args=(pixel_wavelengths, pixel_transit_depth, yerr, fixed_parameters),
                                     pool=pool)
-    sampler.run_mcmc(pos, 5000, progress=True)
+    sampler.run_mcmc(pos, 10000, progress=True)
 
 # examine the results
 fig, axes = plt.subplots(3, figsize=(10, 7), sharex=True)
@@ -266,7 +267,7 @@ print(flat_samples.shape)
 # import corner
 
 fig = corner.corner(flat_samples, labels=labels, truths=[rad_planet, T, log_f_h2o])
-fig.suptitle('Corner plot for free parameter estimates', fontsize=14)
+fig.suptitle('Blue lines are true values', fontsize=14)
 # fig.savefig('/test/my_first_cornerplot.png')
 
 

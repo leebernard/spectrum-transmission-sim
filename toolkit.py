@@ -6,6 +6,7 @@ import numpy as np
 
 from numba import jit
 
+
 def spectrum_slicer(start_angstrom, end_angstrom, angstrom_data, spectrum_data):
     start_index = (np.abs(angstrom_data - start_angstrom)).argmin()
     end_index = (np.abs(angstrom_data - end_angstrom)).argmin()
@@ -15,6 +16,7 @@ def spectrum_slicer(start_angstrom, end_angstrom, angstrom_data, spectrum_data):
     return angstrom_slice, spectrum_slice
 
 
+@jit
 def instrument_non_uniform_tophat(wlgrid, fine_wl, Fp):
     '''
     This function takes a wavelength, spectrum dataset, and bins it to a
