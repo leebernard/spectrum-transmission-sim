@@ -35,12 +35,20 @@ wn_end = 10000
 water_data_file = './line_lists/H2O_30mbar_1500K.txt'
 water_wno, water_cross_sections = open_cross_section(water_data_file, wn_range=(wn_start, wn_end))
 
+co_data_file = './line_lists/CO_30mbar_1500K'
+co_wno, co_cross_sections = open_cross_section(co_data_file, wn_range=(wn_start, wn_end))
+
+hcn_data_file = './line_lists/HCN_30mbar_1500K'
+hcn_wno, hcn_cross_sections = open_cross_section(hcn_data_file, wn_range=(wn_start, wn_end))
+
 h2_data_file = './line_lists/H2H2_CIA_30mbar_1500K.txt'
 h2_wno, h2_cross_sections = open_cross_section(h2_data_file, wn_range=(wn_start, wn_end))
 
 # interpolate the two different wavenumbers to the same wavenumber
 fine_wave_numbers = np.arange(wn_start, wn_end, 2.0)
 water_cross_sections = 10**np.interp(fine_wave_numbers, water_wno, np.log10(water_cross_sections))
+co_cross_sections = 10**np.interp(fine_wave_numbers, co_wno, np.log10(co_cross_sections))
+hcn_cross_sections = 10**np.interp(fine_wave_numbers, hcn_wno, np.log10(hcn_cross_sections))
 h2_cross_sections = 10**np.interp(fine_wave_numbers, h2_wno, np.log10(h2_cross_sections))
 
 # convert wavenumber to wavelength in microns
@@ -49,12 +57,14 @@ fine_wavelengths = 1e4/fine_wave_numbers
 
 # plot them to check
 plt.figure('compare_cross_section')
-plt.plot(fine_wavelengths, water_cross_sections)
-plt.plot(fine_wavelengths, h2_cross_sections)
+plt.plot(fine_wavelengths, water_cross_sections, label='H2O')
+plt.plot(fine_wavelengths, co_cross_sections, label='CO')
+plt.plot(fine_wavelengths, hcn_cross_sections, label='HCN')
+plt.plot(fine_wavelengths, h2_cross_sections, label='H2')
 plt.xlabel('Wavelength (μm)')
 plt.ylabel('Cross section (cm^2/molecule)')
 plt.yscale('log')
-plt.legend(('H2O', 'H2'))
+plt.legend()
 
 #
 # # using data from Gliese 876 d, pulled from Wikipedia
@@ -103,6 +113,8 @@ T = 1500
 # use log ratio instead
 # log_f_h2o = np.log10(water_ratio)
 log_f_h2o = -3  # 1000ppm
+log_fco = -3
+log_fhcn = -5  # 10ppm
 
 # resolution of spectrograph
 R = 30
@@ -118,8 +130,19 @@ pixel_wavelengths = np.linspace(fine_wl[0], fine_wl[-1], num=number_pixels)
 
 # test the model generation function
 # this produces the 'true' transit spectrum
-fixed_parameters = fine_wavelengths, water_cross_sections, h2_cross_sections, g_planet, rad_star, R
-variables = rad_planet, T, log_f_h2o
+fixed_parameters = (fine_wavelengths,
+                    water_cross_sections,
+                    co_cross_sections,
+                    hcn_cross_sections,
+                    h2_cross_sections,
+                    g_planet,
+                    rad_star,
+                    R)
+variables = (rad_planet,
+             T,
+             log_f_h2o,
+             log_fco,
+             log_fhcn)
 pixel_wavelengths, pixel_transit_depth = transit_spectra_model(pixel_wavelengths, variables, fixed_parameters)
 
 # generate photon noise from a signal value
@@ -138,6 +161,8 @@ noisey_transit_depth = pixel_transit_depth + noise
 plt.figure('transit depth R%.2f' %R, figsize=(8, 8))
 plt.subplot(212)
 plt.plot(fine_wavelengths, np.flip(water_cross_sections), label='H2O')
+plt.plot(fine_wavelengths, np.flip(co_cross_sections), label='CO')
+plt.plot(fine_wavelengths, np.flip(hcn_cross_sections), label='HCN')
 plt.plot(fine_wavelengths, np.flip(h2_cross_sections), label='H2')
 plt.title('Absorption Cross section')
 plt.legend()
@@ -171,8 +196,9 @@ def log_likelihood(theta, x, y, yerr, fixed):
 # define a prior function
 def log_prior(theta):
     '''Basically just saying, the fixed_parameters are within these values'''
-    rad_planet, T, log_f_h2o = theta
-    if 0.0 < rad_planet < 10 and 300 < T < 3000.0 and -12 < log_f_h2o < -1.0:
+    rad_planet, T, log_f_h2o, log_fco, log_fhcn = theta
+    if 0.0 < rad_planet < 10 and 300 < T < 3000.0 and \
+            -12 < log_f_h2o < -1.0 and -12 < log_fco < -1.0 and -12 < log_fhcn < -1.0:
         return 0.0
     else:
         return -np.inf
@@ -197,18 +223,20 @@ yerr = photon_noise
 np.random.seed(42)
 nll = lambda *args: -log_probability(*args)
 # create initial guess from true values, by adding a little noise
-initial = np.array(variables) + variables*(0.1*np.random.randn(3))
+initial = np.array(variables) + variables*(0.1*np.random.randn(5))
 # find the fixed_parameters with maximized likelyhood, according to the given distribution function
 soln = minimize(nll, initial, args=(pixel_wavelengths, pixel_transit_depth, yerr, fixed_parameters))
 # unpack the solution
-rad_ml, T_ml, waterfrac_ml = soln.x
+rad_ml, T_ml, waterfrac_ml, cofrac_ml, hcn_frac_ml = soln.x
 
 print("Maximum likelihood estimates: (true)")
 print("Rad_planet = {0:.3f} ({1:.3f})".format(rad_ml, rad_planet))
 print("T = {0:.3f} ({1:.3f})".format(T_ml, T))
 print("log_water_ratio = {0:.3f} ({1:.3f})".format(waterfrac_ml, log_f_h2o))
+print("log_co_ratio = {0:.3f} ({1:.3f})".format(cofrac_ml, log_fco))
+print("log_hcn_ratio = {0:.3f} ({1:.3f})".format(hcn_frac_ml, log_fhcn))
 
-theta_fit = rad_ml, T_ml, waterfrac_ml
+theta_fit = soln.x
 fit_wavelengths, fit_transit = transit_spectra_model(pixel_wavelengths, theta_fit, fixed_parameters)
 
 plt.figure('fit_result')
@@ -226,7 +254,7 @@ from multiprocessing import Pool
 
 
 # generate 32 walkers, with small gaussian deviations from minimization soln
-pos = soln.x + soln.x*(1e-3 * np.random.randn(32, 3))
+pos = soln.x + soln.x*(1e-3 * np.random.randn(32, 5))
 nwalkers, ndim = pos.shape
 
 with Pool() as pool:
@@ -238,9 +266,9 @@ with Pool() as pool:
     sampler.run_mcmc(pos, 10000, progress=True)
 
 # examine the results
-fig, axes = plt.subplots(3, figsize=(10, 7), sharex=True)
+fig, axes = plt.subplots(5, figsize=(10, 7), sharex=True)
 samples = sampler.get_chain()
-labels = ["Rad_planet", "T", "water_ratio"]
+labels = ["Rad_planet", "T", "water_ratio", "co_ratio", "hcn_ratio"]
 for i in range(ndim):
     ax = axes[i]
     ax.plot(samples[:, :, i], "k", alpha=0.3)
@@ -259,14 +287,14 @@ print(tau)
 
 # examine it with the initial burn-in period discarded
 # also, what does thinning the autocorrelation time do?
-flat_samples = sampler.get_chain(discard=100, thin=15, flat=True)
+flat_samples = sampler.get_chain(discard=500, thin=15, flat=True)
 print(flat_samples.shape)
 
 
 # generate a corner plot
 # import corner
 
-fig = corner.corner(flat_samples, labels=labels, truths=[rad_planet, T, log_f_h2o])
+fig = corner.corner(flat_samples, labels=labels, truths=[rad_planet, T, log_f_h2o, log_fco, log_fhcn])
 fig.suptitle('Blue lines are true values', fontsize=14)
 # fig.savefig('/test/my_first_cornerplot.png')
 
