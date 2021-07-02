@@ -16,6 +16,49 @@ def spectrum_slicer(start_angstrom, end_angstrom, angstrom_data, spectrum_data):
     return angstrom_slice, spectrum_slice
 
 
+def improved_non_uniform_tophat(wlgrid, fine_wl, Fp):
+
+    '''
+    This function takes a wavelength, spectrum dataset, and bins it to a
+    provided wavelength grid. The wlgrid and fine_wl must have matching units, and can
+    have arbitrary spacing.
+
+    Parameters
+    ----------
+    wlgrid:
+        Wave length grid to interpolate to, in microns
+    fine_wl:
+        wavelengths of input spectrum
+    Fp:
+        values corresponding to fine_wl
+
+    Returns
+    -------
+    Fint:
+        The binned values
+    Fp:
+        The original values before binning
+    '''
+
+
+
+    # pull the size of the fine wavelength grid
+    fine_size = fine_wl.shape[0]
+    # need to figure out whether I pull right side or left side
+    # see searchsorted docstring
+
+    # find the nearest wavelengths corresponding to the wavelength grid boundaries
+    ii = np.searchsorted(fine_wl, wlgrid)
+
+    # make a cumlative sum of the fine wavelengths
+    Fpc = np.zeros(fine_size + 1, dtype='float64')
+    Fpc[1:] = Fp.cumsum()
+
+    Fint = (Fpc[ii[1:] + 1] - Fpc[ii[:-1]]) / (ii[1:] - ii[:-1] + 1)
+
+    return Fint, Fp
+
+
 @jit
 def instrument_non_uniform_tophat(wlgrid, fine_wl, Fp):
     '''
@@ -39,6 +82,7 @@ def instrument_non_uniform_tophat(wlgrid, fine_wl, Fp):
     Fp:
         The original values before binning
     '''
+
     # pull the size of the wl grid
     szmod = wlgrid.shape[0]
 
@@ -49,6 +93,7 @@ def instrument_non_uniform_tophat(wlgrid, fine_wl, Fp):
     # fill in the last place with the 2nd-to-last
     delta[szmod-1] = delta[szmod-2]
     #pdb.set_trace()
+
     for i in range(szmod-1):
         i = i+1
 
