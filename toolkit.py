@@ -7,6 +7,10 @@ import numpy as np
 from numba import jit
 
 
+def consecutive_mean(data_array):
+    return (data_array[:-1] + data_array[1:]) / 2
+
+
 def spectrum_slicer(start_angstrom, end_angstrom, angstrom_data, spectrum_data):
     start_index = (np.abs(angstrom_data - start_angstrom)).argmin()
     end_index = (np.abs(angstrom_data - end_angstrom)).argmin()
@@ -16,47 +20,74 @@ def spectrum_slicer(start_angstrom, end_angstrom, angstrom_data, spectrum_data):
     return angstrom_slice, spectrum_slice
 
 
-def improved_non_uniform_tophat(wlgrid, fine_wl, Fp):
+def improved_non_uniform_tophat(wlgrid, fine_wl, fine_data):
 
     '''
+    Bins data to a provided grid, with careful edge handling.
+
     This function takes a wavelength, spectrum dataset, and bins it to a
-    provided wavelength grid. The wlgrid and fine_wl must have matching units, and can
-    have arbitrary spacing.
+    provided wavelength grid. The wlgrid and fine_wl must have matching
+    units, and can have arbitrary spacing. The wlgrid provides the edges
+    of the bins.
+
+    This function handles bin edges carefully, to preserve flux.
+
+    NOTE: This function treats the coarse grid as bin edges, while the old
+    non_uniform_tophat treated the coarse grid as bin centers
+
+    Credit: Nat Butler, ASU
 
     Parameters
     ----------
     wlgrid:
-        Wave length grid to interpolate to, in microns
+        The bin edges of the wavelength grid
     fine_wl:
         wavelengths of input spectrum
-    Fp:
+    fine_data:
         values corresponding to fine_wl
 
     Returns
     -------
+    mean_wavlengths:
+        The mean wavelength value of each pixel bin
     Fint:
         The binned values
-    Fp:
+    fine_data:
         The original values before binning
     '''
 
 
 
-    # pull the size of the fine wavelength grid
-    fine_size = fine_wl.shape[0]
-    # need to figure out whether I pull right side or left side
-    # see searchsorted docstring
+    # calculate the mean of values within the given wavelength bins
 
     # find the nearest wavelengths corresponding to the wavelength grid boundaries
-    ii = np.searchsorted(fine_wl, wlgrid)
+    ii = fine_wl.searchsorted(wlgrid)
 
     # make a cumlative sum of the fine wavelengths
-    Fpc = np.zeros(fine_size + 1, dtype='float64')
-    Fpc[1:] = Fp.cumsum()
+    Fp_cumlative = np.zeros(len(fine_wl), dtype='float64')
+    Fp_cumlative[1:] = fine_data.cumsum()
+    sum_data = Fp_cumlative[ii[1:]] - Fp_cumlative[ii[:-1]]
+    # store how many data points were summed together
+    norm = 1. * (ii[1:] - ii[:-1])
 
-    Fint = (Fpc[ii[1:] + 1] - Fpc[ii[:-1]]) / (ii[1:] - ii[:-1] + 1)
+    # we would be done, but the wavelength grid might not line up perfectly with the fine wavelengths
+    # mop up the bin edges by shuffling some signal between bins:
+    delta = (fine_wl[ii[1:]] - wlgrid[1:]) / (fine_wl[ii[1:]] - fine_wl[ii[1:] - 1])
+    sum_data -= delta * fine_data[ii[1:] - 1]
+    sum_data[1:] += delta[:-1] * fine_data[ii[1:-1] - 1]
+    norm -= delta
+    norm[1:] += delta[:-1]
 
-    return Fint, Fp
+    # if necessary, clean up the first bin
+    if ii[0] > 0:
+        delta = (fine_wl[ii[0]] - wlgrid[0]) / (fine_wl[ii[0]] - fine_wl[ii[0] - 1])
+        sum_data[0] += delta * fine_data[ii[0] - 1]
+        norm[0] += delta
+
+    # finally, take the mean of each bin by dividing the sum by the norm
+    binned_data = sum_data / norm
+
+    return binned_data, fine_data
 
 
 @jit
