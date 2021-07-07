@@ -64,7 +64,7 @@ def improved_non_uniform_tophat(wlgrid, fine_wl, fine_data):
     ii = fine_wl.searchsorted(wlgrid)
 
     # make a cumlative sum of the fine wavelengths
-    Fp_cumlative = np.zeros(len(fine_wl), dtype='float64')
+    Fp_cumlative = np.zeros(len(fine_wl) + 1, dtype='float64')
     Fp_cumlative[1:] = fine_data.cumsum()
     sum_data = Fp_cumlative[ii[1:]] - Fp_cumlative[ii[:-1]]
     # store how many data points were summed together

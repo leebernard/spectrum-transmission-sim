@@ -10,6 +10,9 @@ from scipy.interpolate import griddata
 # import matplotlib.pyplot as plt
 from toolkit import spectrum_slicer
 from toolkit import instrument_non_uniform_tophat
+from toolkit import improved_non_uniform_tophat
+from toolkit import consecutive_mean
+
 
 # global constants
 k = 1.38e-23  # boltzmann constant k_b in J/K
@@ -155,7 +158,7 @@ def alpha_lambda(sigma_trace, xi, planet_radius, p0, T, mass, g, star_radius, si
     return (r_planet / r_star)**2 + (2 * r_planet * z)/(r_star**2)
 
 
-def gen_measured_transit(R, pixel_wavelengths, fine_wl, fine_transit):
+def gen_measured_transit(R, pixel_bins, fine_wl, fine_transit):
     # filter the spectrum slice with a gaussian
     # the average resolution of the spectrum in micrometers. This corresponds to FWHM of spectrum lines
     resolution = np.mean(fine_wl)/R
@@ -163,10 +166,14 @@ def gen_measured_transit(R, pixel_wavelengths, fine_wl, fine_transit):
     sigma = fwhm / (2.0 * np.sqrt(2.0 * np.log(2.0)))
     filtered_transit = gaussian_filter(fine_transit.data, sigma)
 
-    
-    pixel_transit_depth, _ = instrument_non_uniform_tophat(pixel_wavelengths, fine_wl, filtered_transit)
+    # sample the spectrum into bins
+    # this represents pixels
+    # check the inputs
+    # print('input sizes', pixel_bins.size, fine_wl.size, filtered_transit.size)
+    pixel_transit_depth, _ = improved_non_uniform_tophat(pixel_bins, fine_wl, filtered_transit)
 
-    return pixel_wavelengths, pixel_transit_depth
+
+    return consecutive_mean(pixel_bins), pixel_transit_depth
 
 
 def transit_spectra_model(pixel_wavelengths, theta, fixed):
@@ -234,12 +241,12 @@ def transit_spectra_model(pixel_wavelengths, theta, fixed):
     fine_um_grid = np.linspace(fine_wavelengths[0], fine_wavelengths[-1], num=fine_wavelengths.size)
     fine_transit_grid = griddata(fine_wavelengths, transit_depth, xi=fine_um_grid, method='linear')
 
-    pixel_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, pixel_wavelengths=pixel_wavelengths,
+    out_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, pixel_bins=pixel_wavelengths,
                                                                   fine_wl=fine_um_grid,
                                                                   fine_transit=fine_transit_grid)
     '''end turn data into spectrum'''
 
-    return pixel_wavelengths, pixel_transit_depth
+    return out_wavelengths, pixel_transit_depth
 
 
 

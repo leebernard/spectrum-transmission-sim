@@ -24,7 +24,7 @@ def ptform(u):
     """Transforms samples `u` drawn from the unit cube to samples to those
     from our uniform prior within [-10., 10.) for each variable."""
 
-    return 10. * (2. * u - 1.)
+    return 20. * u - 10.
 
 
 # "Static" nested sampling.

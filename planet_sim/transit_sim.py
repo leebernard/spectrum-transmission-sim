@@ -13,7 +13,8 @@ from planet_sim.transit_toolbox import open_cross_section
 from planet_sim.transit_toolbox import gen_measured_transit
 from planet_sim.transit_toolbox import transit_spectra_model
 from toolkit import instrument_non_uniform_tophat
-
+from toolkit import improved_non_uniform_tophat
+from toolkit import consecutive_mean
 
 '''
 generate absorption profile from cross section data
@@ -121,13 +122,18 @@ R = 30
 
 # generate wavelength sampling of spectrum
 # flip the data to ascending order
-fine_wl = np.flip(fine_wavelengths)
-resolution = np.mean(fine_wl)/R
+flipped_wl = np.flip(fine_wavelengths)
+resolution = np.mean(flipped_wl)/R
 # Choose the Nyquest sampling rate at the blue end
 samplerate_per_pixel = resolution/2
-number_pixels = int((fine_wl[-1] - fine_wl[0]) / samplerate_per_pixel)
-pixel_wavelengths = np.linspace(fine_wl[0], fine_wl[-1], num=number_pixels)
+number_pixels = int((flipped_wl[-1] - flipped_wl[0]) / samplerate_per_pixel)
+# make pixel bins
+pixel_bins = np.linspace(flipped_wl[0], flipped_wl[-1], num=number_pixels+1)
 
+
+# pixel_wavelengths = np.linspace(flipped_wl[0], flipped_wl[-1], num=number_pixels)
+
+# pixel_bins = pixel_wavelengths
 # test the model generation function
 # this produces the 'true' transit spectrum
 fixed_parameters = (fine_wavelengths,
@@ -143,7 +149,7 @@ variables = (rad_planet,
              log_f_h2o,
              log_fco,
              log_fhcn)
-pixel_wavelengths, pixel_transit_depth = transit_spectra_model(pixel_wavelengths, variables, fixed_parameters)
+pixel_wavelengths, pixel_transit_depth = transit_spectra_model(pixel_bins, variables, fixed_parameters)
 
 # generate photon noise from a signal value
 # signal = 1.22e9
@@ -178,8 +184,6 @@ plt.legend(('Ideal', 'Photon noise'))
 plt.ylabel('($R_p$/$R_{star}$)$^2$ (%)')
 plt.subplot(211).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
 
-'project_data/1H2-16O_6250-12500_300K_20.000000.sigma'
-'project_data/1H2-16O_6250-12500_300K_100.000000.sigma'
 
 
 '''Fit the data'''
@@ -189,6 +193,9 @@ plt.subplot(211).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
 def log_likelihood(theta, x, y, yerr, fixed):
 
     _, model = transit_spectra_model(x, theta, fixed)
+
+    # print('model.size', model.size)
+    # print('y.size', y.size)
     sigma = yerr**2
     return -0.5 * np.sum((y - model)**2 / sigma + np.log(sigma))
 
@@ -202,6 +209,20 @@ def log_prior(theta):
         return 0.0
     else:
         return -np.inf
+
+def prior_transform(u):
+    # u is random samples from the unit cube
+    x = np.array(u)  # copy u
+
+    # planet radius prior
+    x[0] = u[0]*10
+    # Temperature
+    x[1] = u[1]*(3000-300) + 300
+
+    # set the trace species to uniform priors
+    x[2:-1] = u[2:-1]*11 - 12
+
+    return x
 
 
 def log_probability(theta, x, y, yerr, fixed):
@@ -225,7 +246,7 @@ nll = lambda *args: -log_probability(*args)
 # create initial guess from true values, by adding a little noise
 initial = np.array(variables) + variables*(0.1*np.random.randn(5))
 # find the fixed_parameters with maximized likelyhood, according to the given distribution function
-soln = minimize(nll, initial, args=(pixel_wavelengths, pixel_transit_depth, yerr, fixed_parameters))
+soln = minimize(nll, initial, args=(pixel_bins, pixel_transit_depth, yerr, fixed_parameters))
 # unpack the solution
 rad_ml, T_ml, waterfrac_ml, cofrac_ml, hcn_frac_ml = soln.x
 
@@ -237,13 +258,13 @@ print("log_co_ratio = {0:.3f} ({1:.3f})".format(cofrac_ml, log_fco))
 print("log_hcn_ratio = {0:.3f} ({1:.3f})".format(hcn_frac_ml, log_fhcn))
 
 theta_fit = soln.x
-fit_wavelengths, fit_transit = transit_spectra_model(pixel_wavelengths, theta_fit, fixed_parameters)
+fit_wavelengths, fit_transit = transit_spectra_model(pixel_bins, theta_fit, fixed_parameters)
 
 plt.figure('fit_result')
 plt.subplot(111)
 plt.plot(pixel_wavelengths, pixel_transit_depth, label='Ideal')
 plt.errorbar(pixel_wavelengths, noisey_transit_depth, yerr=photon_noise, label='Photon noise', fmt='o', capsize=2.0)
-plt.plot(pixel_wavelengths, fit_transit, label='Fit result')
+plt.plot(fit_wavelengths, fit_transit, label='Fit result')
 plt.title('Transit depth, R= %d, water= %d ppm' % (R, 10**log_f_h2o/1e-6))
 plt.legend()
 plt.ylabel('($R_p$/$R_{star}$)$^2$ (%)')
@@ -261,7 +282,7 @@ with Pool() as pool:
     sampler = emcee.EnsembleSampler(nwalkers,
                                     ndim,
                                     log_probability,
-                                    args=(pixel_wavelengths, pixel_transit_depth, yerr, fixed_parameters),
+                                    args=(pixel_bins, pixel_transit_depth, yerr, fixed_parameters),
                                     pool=pool)
     sampler.run_mcmc(pos, 10000, progress=True)
 
