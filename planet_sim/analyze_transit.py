@@ -135,7 +135,7 @@ pixel_wavelengths, pixel_transit_depth = transit_spectra_model(pixel_bins, theta
 # noise = (np.random.poisson(lam=signal, size=pixel_transit_depth.size) - signal)/signal
 
 # generate noise instances
-num_noise_inst = 1
+num_noise_inst = 10
 photon_noise = 75 * 1e-6  # set noise to 75ppm
 noise_inst = []
 while len(noise_inst) < num_noise_inst:
@@ -222,16 +222,111 @@ for transit_data in noisey_transit_depth:
 
 from planet_sim.transit_toolbox import transit_spectra_h2o_only
 
-theta = (rad_planet,
-             T,
-             log_f_h2o)
-pixel_wavelengths, pixel_transit_depth = transit_spectra_h2o_only(pixel_bins, theta, fixed_parameters)
+# define a new prior, that uses only h20
+# define a likelyhood function
+def loglike_h2o_only(theta):
+    # retrieve the global variables
+    global pixel_bins
+    global transit_data
+    global photon_noise
+    global fixed_parameters
+    # only 'y' changes on the fly
+    fixed = fixed_parameters
+    x = pixel_bins
+    y = transit_data
+    yerr = photon_noise
+
+    _, model = transit_spectra_h2o_only(x, theta, fixed)
+
+    sigma = yerr**2
+    return -0.5 * np.sum((y - model)**2 / sigma + np.log(sigma))
 
 
+ndim = 3
+h2o_results = []
+for transit_data in noisey_transit_depth:
+    with Pool() as pool:
+        sampler = dynesty.NestedSampler(loglike_h2o_only, prior_trans, ndim,
+                                        nlive=500, pool=pool, queue_size=pool._processes)
+        sampler.run_nested()
+        h2o_results.append(sampler.results)
 
 
+from planet_sim.transit_toolbox import transit_spectra_no_h2o
+# define a new prior, that uses only h20
+# define a likelyhood function
+def loglike_no_h2o(theta):
+    # retrieve the global variables
+    global pixel_bins
+    global transit_data
+    global photon_noise
+    global fixed_parameters
+    # only 'y' changes on the fly
+    fixed = fixed_parameters
+    x = pixel_bins
+    y = transit_data
+    yerr = photon_noise
+
+    _, model = transit_spectra_no_h2o(x, theta, fixed)
+
+    sigma = yerr**2
+    return -0.5 * np.sum((y - model)**2 / sigma + np.log(sigma))
+
+ndim = 4
+co_hcn_results = []
+for transit_data in noisey_transit_depth:
+    with Pool() as pool:
+        sampler = dynesty.NestedSampler(loglike_no_h2o, prior_trans, ndim,
+                                        nlive=500, pool=pool, queue_size=pool._processes)
+        sampler.run_nested()
+        co_hcn_results.append(sampler.results)
 
 
+'''
+make plots
+'''
+
+figsize = (10, 10)
+
+# generate a corner plot for full model
+labels = ["Rad_planet", "T", "log H2O", "log CO", "log HCN"]
+truths = [rad_planet, T, log_f_h2o, log_fco, log_fhcn]
+for result in full_results:
+
+    fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
+                                  title_kwargs={'y': 1.04}, labels=labels,
+                                  fig=plt.subplots(len(truths), len(truths), figsize=figsize))
+    fig.suptitle('Red lines are true values', fontsize=14)
+    # fig.savefig('/test/my_first_cornerplot.png')
 
 
+# generate a corner plot for only H2O model
+labels = ["Rad_planet", "T", "log H2O"]
+truths = [rad_planet, T, log_f_h2o]
+for result in h2o_results:
 
+    fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
+                                  title_kwargs={'y': 1.04}, labels=labels,
+                                  fig=plt.subplots(len(truths), len(truths), figsize=figsize))
+    fig.suptitle('Red lines are true values', fontsize=14)
+    # fig.savefig('/test/my_first_cornerplot.pn
+
+
+labels = ["Rad_planet", "T", "log CO", "log HCN"]
+truths = [rad_planet, T, log_fco, log_fhcn]
+for result in co_hcn_results:
+
+    fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
+                                  title_kwargs={'y': 1.04}, labels=labels,
+                                  fig=plt.subplots(len(truths), len(truths), figsize=figsize))
+    fig.suptitle('Red lines are true values', fontsize=14)
+
+
+delta_logz_h2oonly = full_results[0].logz[-1] - h2o_results[0].logz[-1]
+delta_logz_noh2o = full_results[0].logz[-1] - co_hcn_results[0].logz[-1]
+
+print('delta logz for H2O only model:', delta_logz_h2oonly)
+print('delta logz for CO, HCN only model:', delta_logz_noh2o)
+
+logz_full = np.array([result.logz[-1] for result in full_results])
+logz_h2o = np.array([result.logz[-1] for result in h2o_results])
