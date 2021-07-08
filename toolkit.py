@@ -20,6 +20,7 @@ def spectrum_slicer(start_angstrom, end_angstrom, angstrom_data, spectrum_data):
     return angstrom_slice, spectrum_slice
 
 
+@jit(nopython=True)
 def improved_non_uniform_tophat(wlgrid, fine_wl, fine_data):
 
     '''
@@ -60,12 +61,14 @@ def improved_non_uniform_tophat(wlgrid, fine_wl, fine_data):
 
     # calculate the mean of values within the given wavelength bins
 
-    # find the nearest wavelengths corresponding to the wavelength grid boundaries
-    ii = fine_wl.searchsorted(wlgrid)
+    # find the nearest wavelengths corresponding to the wavelength grid boundariesj
+    ii = np.searchsorted(fine_wl, wlgrid)
+    # ii = fine_wl.searchsorted(wlgrid)
 
     # make a cumlative sum of the fine wavelengths
     Fp_cumlative = np.zeros(len(fine_wl) + 1, dtype='float64')
-    Fp_cumlative[1:] = fine_data.cumsum()
+    Fp_cumlative[1:] = np.cumsum(fine_data)
+    # Fp_cumlative[1:] = fine_data.cumsum()
     sum_data = Fp_cumlative[ii[1:]] - Fp_cumlative[ii[:-1]]
     # store how many data points were summed together
     norm = 1. * (ii[1:] - ii[:-1])

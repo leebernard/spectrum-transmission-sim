@@ -31,7 +31,7 @@ Account for temperature structure in scale height
 # define some housekeeping variables
 wn_start = 4000  # 2.5 um
 # wn_end = 10000  # this is 1 um
-wn_end = 16667  # 0.6 um
+wn_end = 14300  # 0.6993 um
 print_number = 0
 
 # open these files carefully, because they are potentially over 1Gb in size
@@ -195,7 +195,7 @@ plt.subplot(211).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
 def log_likelihood(theta):
     # retrieve the global variables
     x = pixel_bins
-    y = pixel_transit_depth
+    y = noisey_transit_depth
     yerr = photon_noise
     fixed = fixed_parameters
     _, model = transit_spectra_model(x, theta, fixed)
@@ -256,7 +256,7 @@ nll = lambda *args: -log_probability(*args)
 # create initial guess from true values, by adding a little noise
 initial = np.array(variables) + variables*(0.1*np.random.randn(5))
 # find the fixed_parameters with maximized likelyhood, according to the given distribution function
-soln = minimize(nll, initial, args=(pixel_bins, pixel_transit_depth, yerr, fixed_parameters))
+soln = minimize(nll, initial, args=(pixel_bins, noisey_transit_depth, yerr, fixed_parameters))
 # unpack the solution
 rad_ml, T_ml, waterfrac_ml, cofrac_ml, hcn_frac_ml = soln.x
 
