@@ -1,20 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
-# import emcee
-import corner
 import dynesty
 
 from matplotlib.ticker import FormatStrFormatter
 from scipy.optimize import minimize
 from dynesty import plotting as dyplot
 
-from planet_sim.transit_toolbox import alpha_lambda
 from planet_sim.transit_toolbox import open_cross_section
-from planet_sim.transit_toolbox import gen_measured_transit
 from planet_sim.transit_toolbox import transit_spectra_model
-from toolkit import instrument_non_uniform_tophat
-from toolkit import improved_non_uniform_tophat
-from toolkit import consecutive_mean
+
 
 '''
 generate absorption profile from cross section data
@@ -57,18 +51,6 @@ h2_cross_sections = 10**np.interp(fine_wave_numbers, h2_wno, np.log10(h2_cross_s
 # convert wavenumber to wavelength in microns
 fine_wavelengths = 1e4/fine_wave_numbers
 
-
-# plot them to check
-plt.figure('compare_cross_section')
-plt.plot(fine_wavelengths, water_cross_sections, label='H2O')
-plt.plot(fine_wavelengths, co_cross_sections, label='CO')
-plt.plot(fine_wavelengths, hcn_cross_sections, label='HCN')
-plt.plot(fine_wavelengths, h2_cross_sections, label='H2')
-plt.xlabel('Wavelength (μm)')
-plt.ylabel('Cross section (cm^2/molecule)')
-plt.yscale('log')
-plt.legend()
-
 #
 # # using data from Gliese 876 d, pulled from Wikipedia
 # rad_planet = 1.65  # earth radii
@@ -108,11 +90,6 @@ p0 = 1  # barr
 # temperature is made up
 T = 1500
 
-
-
-# water ratio taken from Chageat et al 2020
-# water_ratio = 2600. * 1e-6  # in parts per million
-
 # use log ratio instead
 # log_f_h2o = np.log10(water_ratio)
 log_f_h2o = -3  # 1000ppm
@@ -146,12 +123,12 @@ fixed_parameters = (fine_wavelengths,
                     g_planet,
                     rad_star,
                     R)
-variables = (rad_planet,
+theta = (rad_planet,
              T,
              log_f_h2o,
              log_fco,
              log_fhcn)
-pixel_wavelengths, pixel_transit_depth = transit_spectra_model(pixel_bins, variables, fixed_parameters)
+pixel_wavelengths, pixel_transit_depth = transit_spectra_model(pixel_bins, theta, fixed_parameters)
 
 # generate photon noise from a signal value
 # signal = 1.22e9
@@ -166,7 +143,6 @@ while len(noise_inst) < num_noise_inst:
 
 # add noise to the transit spectrum
 noisey_transit_depth = pixel_transit_depth + noise_inst
-
 
 plt.figure('transit depth R%.2f' %R, figsize=(8, 8))
 plt.subplot(212)
@@ -200,31 +176,19 @@ def log_likelihood(theta):
     global transit_data
     global photon_noise
     global fixed_parameters
-    noisey_transit_depth
     # only 'y' changes on the fly
     fixed = fixed_parameters
     x = pixel_bins
     y = transit_data
+    yerr = photon_noise
 
     _, model = transit_spectra_model(x, theta, fixed)
 
-    # print('model.size', model.size)
-    # print('y.size', y.size)
     sigma = yerr**2
     return -0.5 * np.sum((y - model)**2 / sigma + np.log(sigma))
 
 
 # define a prior function
-def log_prior(theta):
-    '''Basically just saying, the fixed_parameters are within these values'''
-    rad_planet, T, log_f_h2o, log_fco, log_fhcn = theta
-    if 0.0 < rad_planet < 10 and 300 < T < 3000.0 and \
-            -12 < log_f_h2o < -1.0 and -12 < log_fco < -1.0 and -12 < log_fhcn < -1.0:
-        return 0.0
-    else:
-        return -np.inf
-
-
 def prior_trans(u):
     # u is random samples from the unit cube
     x = np.array(u)  # copy u
@@ -244,82 +208,30 @@ def prior_trans(u):
     return x
 
 
-def log_probability(theta, x, y, yerr, fixed):
-    '''full probability function
-    If fixed_parameters are withing the range defined by log_prior, return the likelihood.
-    otherwise, return a flag'''
-    lp = log_prior(theta)
-    if not np.isfinite(lp):
-        return -np.inf
-    else:
-        # why are they summed?
-        # oh, because this is log space. They would be multiplied if this was base space
-        return lp + log_likelihood(theta)
-
-
-
-yerr = photon_noise
-
-for transit_data in noisey_transit_depth:
-    np.random.seed(42)
-    nll = lambda *args: -log_probability(*args)
-    # create initial guess from true values, by adding a little noise
-    initial = np.array(variables) + variables*(0.1*np.random.randn(5))
-    # find the fixed_parameters with maximized likelyhood, according to the given distribution function
-    soln = minimize(nll, initial, args=(pixel_bins, transit_data, yerr, fixed_parameters))
-    # unpack the solution
-    rad_ml, T_ml, waterfrac_ml, cofrac_ml, hcn_frac_ml = soln.x
-
-    print("Maximum likelihood estimates: (true)")
-    print("Rad_planet = {0:.3f} ({1:.3f})".format(rad_ml, rad_planet))
-    print("T = {0:.3f} ({1:.3f})".format(T_ml, T))
-    print("log_water_ratio = {0:.3f} ({1:.3f})".format(waterfrac_ml, log_f_h2o))
-    print("log_co_ratio = {0:.3f} ({1:.3f})".format(cofrac_ml, log_fco))
-    print("log_hcn_ratio = {0:.3f} ({1:.3f})".format(hcn_frac_ml, log_fhcn))
-
-theta_fit = soln.x
-fit_wavelengths, fit_transit = transit_spectra_model(pixel_bins, theta_fit, fixed_parameters)
-
-plt.figure('fit_result')
-plt.subplot(111)
-plt.plot(pixel_wavelengths, pixel_transit_depth, label='Ideal')
-plt.errorbar(pixel_wavelengths, noisey_transit_depth[0], yerr=photon_noise, label='Photon noise', fmt='o', capsize=2.0)
-plt.plot(fit_wavelengths, fit_transit, label='Fit result')
-plt.title('Transit depth, R= %d, water= %d ppm' % (R, 10**log_f_h2o/1e-6))
-plt.legend()
-plt.ylabel('($R_p$/$R_{star}$)$^2$ (%)')
-plt.subplot(111).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
-
-
 from multiprocessing import Pool
 
-ndim = len(variables)
-print_number = 0
-sresults = []
+ndim = len(theta)
+full_results = []
 for transit_data in noisey_transit_depth:
     with Pool() as pool:
         sampler = dynesty.NestedSampler(log_likelihood, prior_trans, ndim,
                                         nlive=500, pool=pool, queue_size=pool._processes)
         sampler.run_nested()
-        sresults.append(sampler.results)
+        full_results.append(sampler.results)
 
 
-# dyplot.runplot(sresults)
+from planet_sim.transit_toolbox import transit_spectra_h2o_only
 
-# generate a corner plot
-# import corner
-labels = ["Rad_planet", "T", "log H2O", "log CO", "log HCN"]
-truths = [rad_planet, T, log_f_h2o, log_fco, log_fhcn]
-for result in sresults:
+theta = (rad_planet,
+             T,
+             log_f_h2o)
+pixel_wavelengths, pixel_transit_depth = transit_spectra_h2o_only(pixel_bins, theta, fixed_parameters)
 
-    fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
-                                  title_kwargs={'y': 1.04}, labels=labels,
-                                  fig=plt.subplots(len(truths), len(truths), figsize=(6, 6)))
-    fig.suptitle('Red lines are true values', fontsize=14)
-    # fig.savefig('/test/my_first_cornerplot.png')
 
-# extract the cumulative evidence at the end of runtime
-logz = sresults.logz
-logzerr = sresults.logzerr
+
+
+
+
+
 
 
