@@ -29,8 +29,9 @@ Account for temperature structure in scale height
 '''
 
 # define some housekeeping variables
-wn_start = 4000
-wn_end = 10000
+wn_start = 4000  # 2.5 um
+# wn_end = 10000  # this is 1 um
+wn_end = 16667  # 0.6 um
 print_number = 0
 
 # open these files carefully, because they are potentially over 1Gb in size
@@ -167,10 +168,10 @@ noisey_transit_depth = pixel_transit_depth + noise
 
 plt.figure('transit depth R%.2f' %R, figsize=(8, 8))
 plt.subplot(212)
-plt.plot(fine_wavelengths, np.flip(water_cross_sections), label='H2O')
-plt.plot(fine_wavelengths, np.flip(co_cross_sections), label='CO')
-plt.plot(fine_wavelengths, np.flip(hcn_cross_sections), label='HCN')
-plt.plot(fine_wavelengths, np.flip(h2_cross_sections), label='H2')
+plt.plot(flipped_wl, np.flip(water_cross_sections), label='H2O')
+plt.plot(flipped_wl, np.flip(co_cross_sections), label='CO')
+plt.plot(flipped_wl, np.flip(hcn_cross_sections), label='HCN')
+plt.plot(flipped_wl, np.flip(h2_cross_sections), label='H2')
 plt.title('Absorption Cross section')
 plt.legend()
 plt.xlabel('Wavelength (μm)')
