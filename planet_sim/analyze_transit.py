@@ -286,47 +286,12 @@ for transit_data in noisey_transit_depth:
 make plots
 '''
 
-figsize = (10, 10)
-
-# generate a corner plot for full model
-labels = ["Rad_planet", "T", "log H2O", "log CO", "log HCN"]
-truths = [rad_planet, T, log_f_h2o, log_fco, log_fhcn]
-for result in full_results:
-
-    fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
-                                  title_kwargs={'y': 1.04}, labels=labels,
-                                  fig=plt.subplots(len(truths), len(truths), figsize=figsize))
-    fig.suptitle('Red lines are true values', fontsize=14)
-    # fig.savefig('/test/my_first_cornerplot.png')
-
-
-# generate a corner plot for only H2O model
-labels = ["Rad_planet", "T", "log H2O"]
-truths = [rad_planet, T, log_f_h2o]
-for result in h2o_results:
-
-    fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
-                                  title_kwargs={'y': 1.04}, labels=labels,
-                                  fig=plt.subplots(len(truths), len(truths), figsize=figsize))
-    fig.suptitle('Red lines are true values', fontsize=14)
-    # fig.savefig('/test/my_first_cornerplot.pn
-
-
-labels = ["Rad_planet", "T", "log CO", "log HCN"]
-truths = [rad_planet, T, log_fco, log_fhcn]
-for result in co_hcn_results:
-
-    fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
-                                  title_kwargs={'y': 1.04}, labels=labels,
-                                  fig=plt.subplots(len(truths), len(truths), figsize=figsize))
-    fig.suptitle('Red lines are true values', fontsize=14)
-
-
-delta_logz_h2oonly = full_results[0].logz[-1] - h2o_results[0].logz[-1]
-delta_logz_noh2o = full_results[0].logz[-1] - co_hcn_results[0].logz[-1]
-
-print('delta logz for H2O only model:', delta_logz_h2oonly)
-print('delta logz for CO, HCN only model:', delta_logz_noh2o)
-
 logz_full = np.array([result.logz[-1] for result in full_results])
 logz_h2o = np.array([result.logz[-1] for result in h2o_results])
+
+delta_logz = logz_full - logz_h2o
+
+hist_fig, hist_ax = plt.subplots()
+hist_ax.hist(delta_logz)
+
+
