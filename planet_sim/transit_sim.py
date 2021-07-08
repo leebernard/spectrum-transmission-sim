@@ -1,12 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import emcee
+# import emcee
 import corner
+import dynesty
 
 from matplotlib.ticker import FormatStrFormatter
-from scipy.ndimage import gaussian_filter
-from scipy.interpolate import griddata
 from scipy.optimize import minimize
+from dynesty import plotting as dyplot
 
 from planet_sim.transit_toolbox import alpha_lambda
 from planet_sim.transit_toolbox import open_cross_section
@@ -31,6 +31,7 @@ Account for temperature structure in scale height
 # define some housekeeping variables
 wn_start = 4000
 wn_end = 10000
+print_number = 0
 
 # open these files carefully, because they are potentially over 1Gb in size
 water_data_file = './line_lists/H2O_30mbar_1500K.txt'
@@ -190,8 +191,12 @@ plt.subplot(211).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
 
 
 # define a likelyhood function
-def log_likelihood(theta, x, y, yerr, fixed):
-
+def log_likelihood(theta):
+    # retrieve the global variables
+    x = pixel_bins
+    y = pixel_transit_depth
+    yerr = photon_noise
+    fixed = fixed_parameters
     _, model = transit_spectra_model(x, theta, fixed)
 
     # print('model.size', model.size)
@@ -210,7 +215,7 @@ def log_prior(theta):
     else:
         return -np.inf
 
-def prior_transform(u):
+def prior_trans(u):
     # u is random samples from the unit cube
     x = np.array(u)  # copy u
 
@@ -220,8 +225,12 @@ def prior_transform(u):
     x[1] = u[1]*(3000-300) + 300
 
     # set the trace species to uniform priors
-    x[2:-1] = u[2:-1]*11 - 12
+    x[2:] = u[2:]*11 - 12
 
+    # global print_number
+    # if print_number < 100:
+    #     print_number += 1
+    #     print('parameter values:', x)
     return x
 
 
@@ -235,7 +244,7 @@ def log_probability(theta, x, y, yerr, fixed):
     else:
         # why are they summed?
         # oh, because this is log space. They would be multiplied if this was base space
-        return lp + log_likelihood(theta, x, y, yerr, fixed)
+        return lp + log_likelihood(theta)
 
 
 
@@ -273,52 +282,29 @@ plt.subplot(111).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
 
 from multiprocessing import Pool
 
-
-# generate 32 walkers, with small gaussian deviations from minimization soln
-pos = soln.x + soln.x*(1e-3 * np.random.randn(32, 5))
-nwalkers, ndim = pos.shape
-
+ndim = len(variables)
+print_number = 0
 with Pool() as pool:
-    sampler = emcee.EnsembleSampler(nwalkers,
-                                    ndim,
-                                    log_probability,
-                                    args=(pixel_bins, pixel_transit_depth, yerr, fixed_parameters),
-                                    pool=pool)
-    sampler.run_mcmc(pos, 10000, progress=True)
-
-# examine the results
-fig, axes = plt.subplots(5, figsize=(10, 7), sharex=True)
-samples = sampler.get_chain()
-labels = ["Rad_planet", "T", "water_ratio", "co_ratio", "hcn_ratio"]
-for i in range(ndim):
-    ax = axes[i]
-    ax.plot(samples[:, :, i], "k", alpha=0.3)
-    ax.set_xlim(0, len(samples))
-    ax.set_ylabel(labels[i])
-    ax.yaxis.set_label_coords(-0.1, 0.5)
-
-axes[-1].set_xlabel("step number")
+    sampler = dynesty.NestedSampler(log_likelihood, prior_trans, ndim,
+                                    nlive=500, pool=pool, queue_size=pool._processes)
+    sampler.run_nested()
+    sresults = sampler.results
 
 
-# hard to say how quickly it filled the posterior distribution from the tiny prior walkers
-# but we can look at estimate of integrated autocorrelation time (whatever that means)
-tau = sampler.get_autocorr_time()
-print(tau)
-
-
-# examine it with the initial burn-in period discarded
-# also, what does thinning the autocorrelation time do?
-flat_samples = sampler.get_chain(discard=500, thin=15, flat=True)
-print(flat_samples.shape)
-
+dyplot.runplot(sresults)
 
 # generate a corner plot
 # import corner
-
-fig = corner.corner(flat_samples, labels=labels, truths=[rad_planet, T, log_f_h2o, log_fco, log_fhcn])
-fig.suptitle('Blue lines are true values', fontsize=14)
+labels = ["Rad_planet", "T", "log H2O", "log CO", "log HCN"]
+truths = [rad_planet, T, log_f_h2o, log_fco, log_fhcn]
+fig, axes = dyplot.cornerplot(sresults, truths=truths, show_titles=True,
+                              title_kwargs={'y': 1.04}, labels=labels,
+                              fig=plt.subplots(len(truths), len(truths), figsize=(10, 10)))
+fig.suptitle('Red lines are true values', fontsize=14)
 # fig.savefig('/test/my_first_cornerplot.png')
 
-
+# extract the cumulative evidence at the end of runtime
+logz = sresults.logz
+logzerr = sresults.logzerr
 
 

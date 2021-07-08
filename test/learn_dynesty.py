@@ -33,7 +33,7 @@ sampler.run_nested()
 sresults = sampler.results
 
 # "Dynamic" nested sampling.
-dsampler = dynesty.DynamicNestedSampler(loglike, ptform, ndim)
+dsampler = dynesty.DynamicNestedSampler(loglike, ptform, ndim, nlive=500)
 dsampler.run_nested()
 dresults = dsampler.results
 
@@ -82,5 +82,6 @@ cfig, caxes = dyplot.cornerplot(results_sim)
 print(sampler.citations)
 
 
+# this time, linear regression
 
 
