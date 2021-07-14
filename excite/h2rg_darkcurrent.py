@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from scipy.stats import poisson
 
-from toolkit import instrument_non_uniform_tophat
+from toolkit import improved_non_uniform_tophat
 
 
 def diffusion_darkcurrent(T, E_bg=0.6):
@@ -75,7 +75,7 @@ def generate_T_noise(time, scale, observation_duration, noise_freq, verbose=Fals
 # generate gaussian noise, at 1Hz, with smooth transitions
 
 # pick length of observation run
-observation_duration = 3600  # 1 hour, in seconds
+observation_duration = 600  # 10 minutes, in seconds
 interpolated_sample_rate = 1000  # in Hz
 fine_time = np.linspace(0, observation_duration, num=observation_duration * interpolated_sample_rate)
 
@@ -83,22 +83,26 @@ fine_time = np.linspace(0, observation_duration, num=observation_duration * inte
 noise_freq = 50  # in Hz
 # scale = .005
 scale = .050
+
+full_well = 70000
 # generate sampling points
 # sampling of data, in Hz
 observation_sample_rate = 1
-sample_time = np.linspace(0, observation_duration, num=observation_duration * observation_sample_rate)
+sample_bins = np.linspace(0, observation_duration, num=observation_duration * observation_sample_rate)
+sample_time = sample_bins[1:]
 
-T_40, _ = instrument_non_uniform_tophat(sample_time, fine_time,
-                                        Fp=40 + generate_T_noise(fine_time, scale, observation_duration, noise_freq))
 
-T_50, _ = instrument_non_uniform_tophat(sample_time, fine_time,
-                                        Fp=50 + generate_T_noise(fine_time, scale, observation_duration, noise_freq))
+T_40, _ = improved_non_uniform_tophat(sample_bins, fine_time,
+                                        fine_data=40 + generate_T_noise(fine_time, scale, observation_duration, noise_freq))
 
-T_60, _ = instrument_non_uniform_tophat(sample_time, fine_time,
-                                        Fp=60 + generate_T_noise(fine_time, scale, observation_duration, noise_freq))
+T_50, _ = improved_non_uniform_tophat(sample_bins, fine_time,
+                                        fine_data=50 + generate_T_noise(fine_time, scale, observation_duration, noise_freq))
 
-T_70, _ = instrument_non_uniform_tophat(sample_time, fine_time,
-                                        Fp=70 + generate_T_noise(fine_time, scale, observation_duration, noise_freq))
+T_60, _ = improved_non_uniform_tophat(sample_bins, fine_time,
+                                        fine_data=60 + generate_T_noise(fine_time, scale, observation_duration, noise_freq))
+
+T_70, _ = improved_non_uniform_tophat(sample_bins, fine_time,
+                                        fine_data=70 + generate_T_noise(fine_time, scale, observation_duration, noise_freq))
 
 
 
@@ -122,8 +126,8 @@ plt.xlim(right=time_stop)
 plt.legend()
 
 
-# generate a cube of data, for 40-70 degrees, every 2 degrees
-temp_curve = np.linspace(40, 70, num=15)
+# generate a cube of data, for 40-90 degrees, every 2 degrees
+temp_curve = np.linspace(40, 90, num=25)
 
 observation_duration = 1800  # 1/2 hour, in seconds
 interpolated_sample_rate = 1000  # in Hz
@@ -136,13 +140,14 @@ scale = scale
 # generate sampling points
 # sampling of data, in Hz
 observation_sample_rate = 1
-sample_time = np.linspace(0, observation_duration, num=observation_duration * observation_sample_rate)
+sample_bins = np.linspace(0, observation_duration, num=observation_duration * observation_sample_rate)
+sample_time = sample_bins[1:]
 
 # generate temperature data cube
 temp_data_cube = []
 for temp_value in temp_curve:
-    temp_data, _ = instrument_non_uniform_tophat(sample_time, fine_time,
-                                                    Fp=temp_value + generate_T_noise(fine_time, scale, observation_duration, noise_freq))
+    temp_data, _ = improved_non_uniform_tophat(sample_bins, fine_time,
+                                                    fine_data=temp_value + generate_T_noise(fine_time, scale, observation_duration, noise_freq))
     temp_data_cube.append(temp_data)
 
 temp_data_cube = np.array(temp_data_cube)
@@ -151,11 +156,10 @@ temp_data_cube = np.array(temp_data_cube)
 dc_rate_cube = i_dark(temp_data_cube)
 
 
-mean_dc_rate = np.mean(dc_rate_cube, axis=1)
+
 stddev_dc_rate = np.std(dc_rate_cube, axis=1)
-dc_sn_rate = mean_dc_rate/stddev_dc_rate
-plt.figure('dark current temp curve')
-plt.scatter(temp_curve, mean_dc_rate, label='mean dark current rate')
+# normalize by full well, and convert to ppm
+dc_noise = stddev_dc_rate/full_well * 1e6
 
 
 # need to compare the above noise to dc poisson noise
@@ -169,16 +173,18 @@ stop = integration_time * observation_sample_rate
 
 # generate dark current for 30 secs
 dc_30s = np.sum(dc_rate_cube[:, start:stop], axis=1)
-sn_30s = dc_30s/np.sqrt(dc_30s)
+# take the 'photon' noise limit as the inherent noise
+# also convert to ppm of full well
+photon_noise_30s = np.sqrt(dc_30s)/full_well * 1e6
 
 plt.figure('dark current sn')
-plt.scatter(temp_curve, 1/dc_sn_rate, label='noise due to 50Hz 50mK jitter')
-plt.scatter(temp_curve, 1/sn_30s, label='poisson noise at 30s')
+plt.scatter(temp_curve, dc_noise, label='noise due to 50Hz 50mK jitter')
+plt.scatter(temp_curve, photon_noise_30s, label='poisson noise at 30s')
 plt.legend()
 plt.xlabel('Temperature (K)')
-plt.ylabel('Noise fraction of signal')
+plt.ylabel('Noise in ppm of full well')
 plt.yscale('log')
-
+plt.ylim(bottom=1e-5)
 
 
 
