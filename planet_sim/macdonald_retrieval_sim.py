@@ -7,7 +7,7 @@ from scipy.optimize import minimize
 from dynesty import plotting as dyplot
 
 from planet_sim.transit_toolbox import open_cross_section
-from planet_sim.transit_toolbox import transit_spectra_model
+from planet_sim.transit_toolbox import transit_model_H2OCH4NH3HCN
 
 
 '''
@@ -49,8 +49,8 @@ h2_wno, h2_cross_sections_raw = open_cross_section(h2_data_file, wn_range=(wn_st
 # interpolate the two different wavenumbers to the same wavenumber
 fine_wave_numbers = np.arange(wn_start, wn_end, 3.0)
 
-na_cross_sections =
-k_cross_sections =
+# na_cross_sections =
+# k_cross_sections =
 water_cross_sections = 10**np.interp(fine_wave_numbers, water_wno, np.log10(water_cross_sections_raw))
 # co_cross_sections = 10**np.interp(fine_wave_numbers, co_wno, np.log10(co_cross_sections))
 ch4_cross_sections = 10**np.interp(fine_wave_numbers, ch4_wno, np.log10(ch4_cross_sections_raw))
@@ -73,22 +73,20 @@ p0 = 1
 T = 1500
 """
 # based upon HD209458b
-rad_planet = 1.38  # in jovian radii
-g_planet = 9.3  # m/s
-rad_star = 1.161  # solar radii
+# pulled from Wikipedia
+rad_planet = 1.35  # in jovian radii
+g_planet = 9.4  # m/s
+rad_star = 1.203  # solar radii
 p0 = 1  # barr
-# temperature is made up
-T = 1071
+# below is taken from MacDonald 2017
+T = 1071  # Kelvin
 
-# use log ratio instead
-# log_f_h2o = np.log10(water_ratio)
-# taken from MacDonald 2017
-log_fna = -5.13
-log_fk =
-log_f_h2o
-log_fch4
-log_fnh3
-log_fhcn
+# log_fna = -5.13
+# log_fk =
+log_f_h2o = -5.24
+log_fch4 = -7.84
+log_fnh3 = -6.03
+log_fhcn = -6.35
 # flip the data to ascending order
 flipped_wl = np.flip(fine_wavelengths)
 # see Hubble WFC3 slitless spectrograph in NIR
@@ -96,7 +94,7 @@ flipped_wl = np.flip(fine_wavelengths)
 
 # this data based upon Deming et al 2013
 # resolution of spectrograph
-R=70
+R = 70
 
 # open wavelength sampling of spectrum
 sampling_data = './planet_sim/data/HD209458b_demingetal_data'
@@ -117,8 +115,6 @@ pixel_bins = np.linspace(wfc3_start, wfc3_end, sampling_wl.size + 1)
 # test the model generation function
 # this produces the 'true' transit spectrum
 fixed_parameters = (fine_wavelengths,
-                    na_cross_sections,
-                    k_cross_sections,
                     water_cross_sections,
                     ch4_cross_sections,
                     nh3_cross_sections,
@@ -129,33 +125,32 @@ fixed_parameters = (fine_wavelengths,
                     R)
 theta = (rad_planet,
          T,
-         log_fna,
-         log_fk,
          log_f_h2o,
          log_fch4,
          log_fnh3,
          log_fhcn)
-pixel_wavelengths, pixel_transit_depth = transit_spectra_model(pixel_bins, theta, fixed_parameters)
+pixel_wavelengths, pixel_transit_depth = transit_model_H2OCH4NH3HCN(pixel_bins, theta, fixed_parameters)
 
 # generate photon noise from a signal value
 # signal = 1.22e9
 # noise = (np.random.poisson(lam=signal, size=pixel_transit_depth.size) - signal)/signal
 
 # generate noise instances
-num_noise_inst = 10
-photon_noise = 75 * 1e-6  # set noise to 75ppm
+err = err*1e-6
+num_noise_inst = 1
 noise_inst = []
 while len(noise_inst) < num_noise_inst:
- noise_inst.append( np.random.normal(scale=photon_noise, size=pixel_transit_depth.size) )
+    noise_inst.append(np.random.normal(scale=err))
 
 # add noise to the transit spectrum
 noisey_transit_depth = pixel_transit_depth + noise_inst
 
 plt.figure('transit depth R%.2f' %R, figsize=(8, 8))
 plt.subplot(212)
-plt.plot(flipped_wl, np.flip(water_cross_sections), label='H2O')
-plt.plot(flipped_wl, np.flip(co_cross_sections), label='CO')
-plt.plot(flipped_wl, np.flip(hcn_cross_sections), label='HCN')
+plt.plot(flipped_wl, np.flip(water_cross_sections)*10**log_f_h2o, label='H2O')
+plt.plot(flipped_wl, np.flip(ch4_cross_sections)*10**log_fch4, label='CH4')
+plt.plot(flipped_wl, np.flip(nh3_cross_sections)*10**log_fnh3, label='NH3')
+plt.plot(flipped_wl, np.flip(hcn_cross_sections)*10**log_fhcn, label='HCN')
 plt.plot(flipped_wl, np.flip(h2_cross_sections), label='H2')
 plt.title('Absorption Cross section')
 plt.legend()
@@ -165,7 +160,7 @@ plt.yscale('log')
 
 plt.subplot(211)
 plt.plot(pixel_wavelengths, pixel_transit_depth, label='Ideal')
-plt.errorbar(pixel_wavelengths, noisey_transit_depth[0], yerr=photon_noise, label='Photon noise', fmt='o', capsize=2.0)
+plt.errorbar(pixel_wavelengths, noisey_transit_depth[0], yerr=err, label='Photon noise', fmt='o', capsize=2.0)
 plt.title('Transit depth, R= %d, water= %d ppm' % (R, 10**log_f_h2o/1e-6) )
 plt.legend(('Ideal', 'Photon noise'))
 plt.ylabel('($R_p$/$R_{star}$)$^2$ (%)')
@@ -181,15 +176,15 @@ def log_likelihood(theta):
     # retrieve the global variables
     global pixel_bins
     global transit_data
-    global photon_noise
+    global err
     global fixed_parameters
     # only 'y' changes on the fly
     fixed = fixed_parameters
     x = pixel_bins
     y = transit_data
-    yerr = photon_noise
+    yerr = err
 
-    _, model = transit_spectra_model(x, theta, fixed)
+    _, model = transit_model_H2OCH4NH3HCN(x, theta, fixed)
 
     sigma = yerr**2
     return -0.5 * np.sum((y - model)**2 / sigma + np.log(sigma))
@@ -226,6 +221,16 @@ for transit_data in noisey_transit_depth:
         sampler.run_nested()
         full_results.append(sampler.results)
 
+# make a plot of results
+labels = ["Rad_planet", "T", "log H2O", "log CH4", "log NH3", "log HCN"]
+truths = [rad_planet, T, log_f_h2o, log_fch4, log_fnh3, log_fhcn]
+for result in full_results:
+
+    fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
+                                  title_kwargs={'y': 1.04}, labels=labels,
+                                  fig=plt.subplots(len(truths), len(truths), figsize=(10, 10)))
+    fig.suptitle('Red lines are true values', fontsize=14)
+    # fig.savefig('/test/my_first_cornerplot.png')
 
 from planet_sim.transit_toolbox import transit_spectra_h2o_only
 
@@ -235,13 +240,13 @@ def loglike_h2o_only(theta):
     # retrieve the global variables
     global pixel_bins
     global transit_data
-    global photon_noise
+    global err
     global fixed_parameters
     # only 'y' changes on the fly
     fixed = fixed_parameters
     x = pixel_bins
     y = transit_data
-    yerr = photon_noise
+    yerr = err
 
     _, model = transit_spectra_h2o_only(x, theta, fixed)
 
@@ -266,13 +271,13 @@ def loglike_no_h2o(theta):
     # retrieve the global variables
     global pixel_bins
     global transit_data
-    global photon_noise
+    global err
     global fixed_parameters
     # only 'y' changes on the fly
     fixed = fixed_parameters
     x = pixel_bins
     y = transit_data
-    yerr = photon_noise
+    yerr = err
 
     _, model = transit_spectra_no_h2o(x, theta, fixed)
 

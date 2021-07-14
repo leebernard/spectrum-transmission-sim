@@ -418,13 +418,14 @@ def transit_model_H2OCH4NH3HCN(pixel_wavelengths, theta, fixed):
 
     # print('trace ratios', trace_ratios)
     # unpack known priors
-    fine_wavelengths, , g_planet, rad_star, R = fixed
+    fine_wavelengths, water_cross_sections, ch4_cross_sections, nh3_cross_sections, hcn_cross_sections, h2_cross_sections, g_planet, rad_star, R = fixed
 
     # package the cross sections into an array
     sigma_trace = np.array(
-        [h2o_cross_sections,
-         co_cross_sections,
-         hcn_cross_sections]
+        [water_cross_sections,
+        ch4_cross_sections,
+        nh3_cross_sections,
+        hcn_cross_sections]
     )
 
 
