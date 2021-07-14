@@ -384,7 +384,7 @@ def transit_spectra_no_h2o(pixel_wavelengths, theta, fixed):
     return out_wavelengths, pixel_transit_depth
 
 
-def transit_model_NaKH2OCH4NH3HCN(pixel_wavelengths, theta, fixed):
+def transit_model_H2OCH4NH3HCN(pixel_wavelengths, theta, fixed):
     # fixed global variables
     p0 = 1
     mass_h2 = 2.3  # mean molecular weight of H2 He mix
@@ -396,11 +396,11 @@ def transit_model_NaKH2OCH4NH3HCN(pixel_wavelengths, theta, fixed):
     mass_hcn = 1+12+14
 
     # unpack model variables
-    rad_planet, T, log_na, log_k, log_h2o, log_ch4, log_nh3, log_hcn = theta
+    rad_planet, T, log_h2o, log_ch4, log_nh3, log_hcn = theta
 
     # unpack log ratios
-    na_ratio = 10**log_na
-    k_ratio = 10**log_k
+    # na_ratio = 10**log_na
+    # k_ratio = 10**log_k
     water_ratio = 10**log_h2o
     ch4_ratio = 10**log_ch4
     nh3_ratio = 10**log_nh3
@@ -408,8 +408,8 @@ def transit_model_NaKH2OCH4NH3HCN(pixel_wavelengths, theta, fixed):
 
     # package the ratios into a summable list
     trace_ratios = np.array([
-        [na_ratio],
-        [k_ratio],
+        # [na_ratio],
+        # [k_ratio],
         [water_ratio],
         [ch4_ratio],
         [nh3_ratio],

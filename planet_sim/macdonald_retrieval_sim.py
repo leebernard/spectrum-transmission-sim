@@ -25,52 +25,42 @@ Account for temperature structure in scale height
 # define some housekeeping variables
 wn_start = 5880  # 1.70068 um
 # wn_end = 10000  # this is 1 um
-wn_end = 9095  # 1.0995 um
-print_number = 0
+wn_end = 9302  # 1.075 um
 
 # open these files carefully, because they are potentially over 1Gb in size
 water_data_file = './line_lists/H2O_30mbar_1500K.txt'
-water_wno, water_cross_sections = open_cross_section(water_data_file, wn_range=(wn_start, wn_end))
+water_wno, water_cross_sections_raw = open_cross_section(water_data_file, wn_range=(wn_start, wn_end))
 
-co_data_file = './line_lists/CO_30mbar_1500K'
-co_wno, co_cross_sections = open_cross_section(co_data_file, wn_range=(wn_start, wn_end))
+ch4_data_file = './line_lists/CH4_30mbar_1500K'
+ch4_wno, ch4_cross_sections_raw = open_cross_section(ch4_data_file, wn_range=(wn_start, wn_end))
+
+# co_data_file = './line_lists/CO_30mbar_1500K'
+# co_wno, co_cross_sections = open_cross_section(co_data_file, wn_range=(wn_start, wn_end))
+
+nh3_data_file = './line_lists/NH3_30mbar_1500K'
+nh3_wno, nh3_cross_sections_raw = open_cross_section(nh3_data_file, wn_range=(wn_start, wn_end))
 
 hcn_data_file = './line_lists/HCN_30mbar_1500K'
-hcn_wno, hcn_cross_sections = open_cross_section(hcn_data_file, wn_range=(wn_start, wn_end))
+hcn_wno, hcn_cross_sections_raw = open_cross_section(hcn_data_file, wn_range=(wn_start, wn_end))
 
 h2_data_file = './line_lists/H2H2_CIA_30mbar_1500K.txt'
-h2_wno, h2_cross_sections = open_cross_section(h2_data_file, wn_range=(wn_start, wn_end))
+h2_wno, h2_cross_sections_raw = open_cross_section(h2_data_file, wn_range=(wn_start, wn_end))
 
 # interpolate the two different wavenumbers to the same wavenumber
 fine_wave_numbers = np.arange(wn_start, wn_end, 3.0)
-water_cross_sections = 10**np.interp(fine_wave_numbers, water_wno, np.log10(water_cross_sections))
-co_cross_sections = 10**np.interp(fine_wave_numbers, co_wno, np.log10(co_cross_sections))
-hcn_cross_sections = 10**np.interp(fine_wave_numbers, hcn_wno, np.log10(hcn_cross_sections))
-h2_cross_sections = 10**np.interp(fine_wave_numbers, h2_wno, np.log10(h2_cross_sections))
+
+na_cross_sections =
+k_cross_sections =
+water_cross_sections = 10**np.interp(fine_wave_numbers, water_wno, np.log10(water_cross_sections_raw))
+# co_cross_sections = 10**np.interp(fine_wave_numbers, co_wno, np.log10(co_cross_sections))
+ch4_cross_sections = 10**np.interp(fine_wave_numbers, ch4_wno, np.log10(ch4_cross_sections_raw))
+nh3_cross_sections = 10**np.interp(fine_wave_numbers, nh3_wno, np.log10(nh3_cross_sections_raw))
+hcn_cross_sections = 10**np.interp(fine_wave_numbers, hcn_wno, np.log10(hcn_cross_sections_raw))
+h2_cross_sections = 10**np.interp(fine_wave_numbers, h2_wno, np.log10(h2_cross_sections_raw))
 
 # convert wavenumber to wavelength in microns
 fine_wavelengths = 1e4/fine_wave_numbers
 
-#
-# # using data from Gliese 876 d, pulled from Wikipedia
-# rad_planet = 1.65  # earth radii
-# rad_star = .376  # solar radii
-# m_planet = 6.8  # in earth masses
-#
-# # data from Kepler-10c
-# rad_planet = 2.35
-# m_planet = 7.37
-#
-# # fuck it, use made up shit
-# # assuming relationship of r = m^0.55
-# rad_planet = 3.5
-# m_planet = 10
-#
-# # reference pressure: 1 barr
-# p0 = 1  # bars
-# T = 290  # K
-# mass = 18  # amu
-#
 
 """
 # hot jupiter time!
@@ -88,26 +78,37 @@ g_planet = 9.3  # m/s
 rad_star = 1.161  # solar radii
 p0 = 1  # barr
 # temperature is made up
-T = 1500
+T = 1071
 
 # use log ratio instead
 # log_f_h2o = np.log10(water_ratio)
-log_f_h2o = -3  # 1000ppm
-log_fco = -3
-log_fhcn = -5  # 10ppm
-
-# resolution of spectrograph
-R = 30
-
-# generate wavelength sampling of spectrum
+# taken from MacDonald 2017
+log_fna = -5.13
+log_fk =
+log_f_h2o
+log_fch4
+log_fnh3
+log_fhcn
 # flip the data to ascending order
 flipped_wl = np.flip(fine_wavelengths)
-resolution = np.mean(flipped_wl)/R
-# Choose the Nyquest sampling rate at the blue end
-samplerate_per_pixel = resolution/2
-number_pixels = int((flipped_wl[-1] - flipped_wl[0]) / samplerate_per_pixel)
+# see Hubble WFC3 slitless spectrograph in NIR
+# https://hst-docs.stsci.edu/wfc3ihb/chapter-8-slitless-spectroscopy-with-wfc3/8-1-grism-overview
+
+# this data based upon Deming et al 2013
+# resolution of spectrograph
+R=70
+
+# open wavelength sampling of spectrum
+sampling_data = './planet_sim/data/HD209458b_demingetal_data'
+sampling_wl, err = open_cross_section(sampling_data)
+
+pixel_delta_wl = np.diff(sampling_wl).mean()
 # make pixel bins
-pixel_bins = np.linspace(flipped_wl[0], flipped_wl[-1], num=number_pixels+1)
+# these bins are just a simple mean upsampling
+# this is close enough for the purposes of this simulation
+wfc3_start = sampling_wl[0] - pixel_delta_wl/2
+wfc3_end = sampling_wl[-1] + pixel_delta_wl/2
+pixel_bins = np.linspace(wfc3_start, wfc3_end, sampling_wl.size + 1)
 
 
 # pixel_wavelengths = np.linspace(flipped_wl[0], flipped_wl[-1], num=number_pixels)
@@ -116,18 +117,24 @@ pixel_bins = np.linspace(flipped_wl[0], flipped_wl[-1], num=number_pixels+1)
 # test the model generation function
 # this produces the 'true' transit spectrum
 fixed_parameters = (fine_wavelengths,
+                    na_cross_sections,
+                    k_cross_sections,
                     water_cross_sections,
-                    co_cross_sections,
+                    ch4_cross_sections,
+                    nh3_cross_sections,
                     hcn_cross_sections,
                     h2_cross_sections,
                     g_planet,
                     rad_star,
                     R)
 theta = (rad_planet,
-             T,
-             log_f_h2o,
-             log_fco,
-             log_fhcn)
+         T,
+         log_fna,
+         log_fk,
+         log_f_h2o,
+         log_fch4,
+         log_fnh3,
+         log_fhcn)
 pixel_wavelengths, pixel_transit_depth = transit_spectra_model(pixel_bins, theta, fixed_parameters)
 
 # generate photon noise from a signal value
