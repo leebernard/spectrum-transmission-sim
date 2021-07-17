@@ -388,8 +388,8 @@ def transit_model_H2OCH4NH3HCN(pixel_wavelengths, theta, fixed):
     # fixed global variables
     p0 = 1
     mass_h2 = 2.3  # mean molecular weight of H2 He mix
-    mass_na = 11
-    mass_k = 19
+    # mass_na = 11
+    # mass_k = 19
     mass_water = 18
     mass_ch4 = 12 + 1*4
     mass_nh3 = 7 + 1*3
@@ -408,8 +408,6 @@ def transit_model_H2OCH4NH3HCN(pixel_wavelengths, theta, fixed):
 
     # package the ratios into a summable list
     trace_ratios = np.array([
-        # [na_ratio],
-        # [k_ratio],
         [water_ratio],
         [ch4_ratio],
         [nh3_ratio],
@@ -436,7 +434,7 @@ def transit_model_H2OCH4NH3HCN(pixel_wavelengths, theta, fixed):
 
     # temporary mass cause I don't have He cross sections yet
     sum_ratios = np.sum(trace_ratios)
-    weighted_mass_f = [mass_na, mass_k, mass_water, mass_ch4, mass_nh3, mass_hcn] * trace_ratios
+    weighted_mass_f = [mass_water, mass_ch4, mass_nh3, mass_hcn] * trace_ratios
     mass = (1 - sum_ratios)*mass_h2 + np.sum(weighted_mass_f)
 
     transit_depth = alpha_lambda(sigma_trace=sigma_trace,
@@ -466,4 +464,85 @@ def transit_model_H2OCH4NH3HCN(pixel_wavelengths, theta, fixed):
     '''end turn data into spectrum'''
 
     return out_wavelengths, pixel_transit_depth
+
+
+def transit_model_H2OCH4(pixel_wavelengths, theta, fixed):
+    # fixed global variables
+    p0 = 1
+    mass_h2 = 2.3  # mean molecular weight of H2 He mix
+    # mass_na = 11
+    # mass_k = 19
+    mass_water = 18
+    mass_ch4 = 12 + 1*4
+    # mass_nh3 = 7 + 1*3
+    # mass_hcn = 1+12+14
+
+    # unpack model variables
+    rad_planet, T, log_h2o, log_ch4 = theta
+
+    # unpack log ratios
+    # na_ratio = 10**log_na
+    # k_ratio = 10**log_k
+    water_ratio = 10**log_h2o
+    ch4_ratio = 10**log_ch4
+
+    # package the ratios into a summable list
+    trace_ratios = np.array([
+        [water_ratio],
+        [ch4_ratio]
+    ])
+
+    # print('trace ratios', trace_ratios)
+    # unpack known priors
+    fine_wavelengths, water_cross_sections, ch4_cross_sections, h2_cross_sections, g_planet, rad_star, R = fixed
+
+    # package the cross sections into an array
+    sigma_trace = np.array(
+        [water_cross_sections,
+         ch4_cross_sections]
+    )
+
+
+    # he/h2 ratio is disabled, since I don't have the cross-sections
+    # h2he_ratio = .17
+    # mass_h2he = (1 - h2he_ratio) * 2 + h2he_ratio * 4
+    # mass = (1 - water_ratio) * mass_h2he + water_ratio * mass_water
+
+    # temporary mass cause I don't have He cross sections yet
+    sum_ratios = np.sum(trace_ratios)
+    weighted_mass_f = [mass_water, mass_ch4] * trace_ratios
+    mass = (1 - sum_ratios)*mass_h2 + np.sum(weighted_mass_f)
+
+    transit_depth = alpha_lambda(sigma_trace=sigma_trace,
+                                 xi=trace_ratios,
+                                 planet_radius=rad_planet,
+                                 p0=p0,
+                                 T=T,
+                                 mass=mass,
+                                 g=g_planet,
+                                 star_radius=rad_star,
+                                 sigma_filler=h2_cross_sections
+                                 )
+
+    '''Turn the data into a spectrum'''
+    # set the resolution of the spectrometer
+    # flip the data to ascending order
+    fine_wavelengths = np.flip(fine_wavelengths)
+    transit_depth = np.flip(transit_depth)
+
+    # interpolate the data to even spacing
+    fine_um_grid = np.linspace(fine_wavelengths[0], fine_wavelengths[-1], num=fine_wavelengths.size)
+    fine_transit_grid = griddata(fine_wavelengths, transit_depth, xi=fine_um_grid, method='linear')
+
+    out_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, pixel_bins=pixel_wavelengths,
+                                                                fine_wl=fine_um_grid,
+                                                                fine_transit=fine_transit_grid)
+    '''end turn data into spectrum'''
+
+    return out_wavelengths, pixel_transit_depth
+
+
+
+
+
 

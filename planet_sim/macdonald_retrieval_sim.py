@@ -137,7 +137,7 @@ pixel_wavelengths, pixel_transit_depth = transit_model_H2OCH4NH3HCN(pixel_bins, 
 
 # generate noise instances
 err = err*1e-6
-num_noise_inst = 1
+num_noise_inst = 100
 noise_inst = []
 while len(noise_inst) < num_noise_inst:
     noise_inst.append(np.random.normal(scale=err))
@@ -232,78 +232,77 @@ for result in full_results:
     fig.suptitle('Red lines are true values', fontsize=14)
     # fig.savefig('/test/my_first_cornerplot.png')
 
-from planet_sim.transit_toolbox import transit_spectra_h2o_only
 
-# define a new prior, that uses only h20
-# define a likelyhood function
-def loglike_h2o_only(theta):
+
+from planet_sim.transit_toolbox import transit_model_H2OCH4
+
+
+# define a new prior function, with only H2O and CH4
+# this is basically the same as only H20
+def loglike_h2och4(theta):
     # retrieve the global variables
     global pixel_bins
     global transit_data
     global err
     global fixed_parameters
     # only 'y' changes on the fly
-    fixed = fixed_parameters
+    fine_wavelengths, water_cross_sections, ch4_cross_sections, nh3_cross_sections, hcn_cross_sections, h2_cross_sections, g_planet, rad_star, R = fixed_parameters
+    fixed = fine_wavelengths, water_cross_sections, ch4_cross_sections, h2_cross_sections, g_planet, rad_star, R
     x = pixel_bins
     y = transit_data
     yerr = err
 
-    _, model = transit_spectra_h2o_only(x, theta, fixed)
+    _, model = transit_model_H2OCH4(x, theta, fixed)
 
-    sigma = yerr**2
-    return -0.5 * np.sum((y - model)**2 / sigma + np.log(sigma))
+    sigma = yerr ** 2
+    return -0.5 * np.sum((y - model) ** 2 / sigma + np.log(sigma))
 
-
-ndim = 3
-h2o_results = []
-for transit_data in noisey_transit_depth:
-    with Pool() as pool:
-        sampler = dynesty.NestedSampler(loglike_h2o_only, prior_trans, ndim,
-                                        nlive=500, pool=pool, queue_size=pool._processes)
-        sampler.run_nested()
-        h2o_results.append(sampler.results)
-
-
-from planet_sim.transit_toolbox import transit_spectra_no_h2o
-# define a new prior, that uses only h20
-# define a likelyhood function
-def loglike_no_h2o(theta):
-    # retrieve the global variables
-    global pixel_bins
-    global transit_data
-    global err
-    global fixed_parameters
-    # only 'y' changes on the fly
-    fixed = fixed_parameters
-    x = pixel_bins
-    y = transit_data
-    yerr = err
-
-    _, model = transit_spectra_no_h2o(x, theta, fixed)
-
-    sigma = yerr**2
-    return -0.5 * np.sum((y - model)**2 / sigma + np.log(sigma))
 
 ndim = 4
-co_hcn_results = []
+h2och4_results = []
 for transit_data in noisey_transit_depth:
     with Pool() as pool:
-        sampler = dynesty.NestedSampler(loglike_no_h2o, prior_trans, ndim,
+        sampler = dynesty.NestedSampler(loglike_h2och4, prior_trans, ndim,
                                         nlive=500, pool=pool, queue_size=pool._processes)
         sampler.run_nested()
-        co_hcn_results.append(sampler.results)
+        h2och4_results.append(sampler.results)
 
 
-'''
-make plots
-'''
+# make a plot of results
+labels = ["Rad_planet", "T", "log H2O", "log CH4"]
+truths = [rad_planet, T, log_f_h2o, log_fch4]
+for result in h2och4_results:
+
+    fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
+                                  title_kwargs={'y': 1.04}, labels=labels,
+                                  fig=plt.subplots(len(truths), len(truths), figsize=(10, 10)))
+    fig.suptitle('Red lines are true values', fontsize=14)
+    # fig.savefig('/test/my_first_cornerplot.png')
+
 
 logz_full = np.array([result.logz[-1] for result in full_results])
-logz_h2o = np.array([result.logz[-1] for result in h2o_results])
+logz_h2och4 = np.array([result.logz[-1] for result in h2och4_results])
 
-delta_logz = logz_full - logz_h2o
+delta_logz = logz_full - logz_h2och4
 
 hist_fig, hist_ax = plt.subplots()
 hist_ax.hist(delta_logz)
+plt.title('H2O-CH4-NH3-HCN vs H2O-CH4, on H2O-CH4-NH3-HCN data')
+plt.xlabel('Delta log(z)')
+
+import pickle
+import os
+
+# pack the data
+results_archive = {'noise_data': noise_inst, 'H2OCH4NH3HCN_fit': full_results, 'H2OCH4_fit': h2och4_results}
+filename = './planet_sim/data/madonald_H2OCH4NH3HCN_retrieval_results_1'
+s = [0]
+if os.path.isfile(filename):
+    s = input('File already exists. continue...?')
+
+if s[0] != 'n' and s[0] != 'N':
+    with open(filename, mode='wb') as file:
+        pickle.dump(results_archive, file)
+
 
 
