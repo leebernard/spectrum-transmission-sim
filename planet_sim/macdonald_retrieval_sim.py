@@ -8,6 +8,7 @@ from dynesty import plotting as dyplot
 
 from planet_sim.transit_toolbox import open_cross_section
 from planet_sim.transit_toolbox import transit_model_H2OCH4NH3HCN
+from planet_sim.transit_toolbox import transit_model_H2OCH4
 
 
 '''
@@ -126,10 +127,8 @@ fixed_parameters = (fine_wavelengths,
 theta = (rad_planet,
          T,
          log_f_h2o,
-         log_fch4,
-         log_fnh3,
-         log_fhcn)
-pixel_wavelengths, pixel_transit_depth = transit_model_H2OCH4NH3HCN(pixel_bins, theta, fixed_parameters)
+         log_fch4)
+pixel_wavelengths, pixel_transit_depth = transit_model_H2OCH4(pixel_bins, theta, fixed_parameters)
 
 # generate photon noise from a signal value
 # signal = 1.22e9
@@ -212,7 +211,7 @@ def prior_trans(u):
 
 from multiprocessing import Pool
 
-ndim = len(theta)
+ndim = 6
 full_results = []
 for transit_data in noisey_transit_depth:
     with Pool() as pool:
@@ -224,7 +223,7 @@ for transit_data in noisey_transit_depth:
 # make a plot of results
 labels = ["Rad_planet", "T", "log H2O", "log CH4", "log NH3", "log HCN"]
 truths = [rad_planet, T, log_f_h2o, log_fch4, log_fnh3, log_fhcn]
-for result in full_results:
+for result in full_results[:2]:
 
     fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
                                   title_kwargs={'y': 1.04}, labels=labels,
@@ -234,7 +233,7 @@ for result in full_results:
 
 
 
-from planet_sim.transit_toolbox import transit_model_H2OCH4
+# from planet_sim.transit_toolbox import transit_model_H2OCH4
 
 
 # define a new prior function, with only H2O and CH4
@@ -246,8 +245,7 @@ def loglike_h2och4(theta):
     global err
     global fixed_parameters
     # only 'y' changes on the fly
-    fine_wavelengths, water_cross_sections, ch4_cross_sections, nh3_cross_sections, hcn_cross_sections, h2_cross_sections, g_planet, rad_star, R = fixed_parameters
-    fixed = fine_wavelengths, water_cross_sections, ch4_cross_sections, h2_cross_sections, g_planet, rad_star, R
+    fixed = fixed_parameters
     x = pixel_bins
     y = transit_data
     yerr = err
@@ -287,7 +285,7 @@ delta_logz = logz_full - logz_h2och4
 
 hist_fig, hist_ax = plt.subplots()
 hist_ax.hist(delta_logz)
-plt.title('H2O-CH4-NH3-HCN vs H2O-CH4, on H2O-CH4-NH3-HCN data')
+plt.title('H2O-CH4-NH3-HCN vs H2O-CH4, on H2O-CH4 data')
 plt.xlabel('Delta log(z)')
 
 import pickle
@@ -295,7 +293,7 @@ import os
 
 # pack the data
 results_archive = {'noise_data': noise_inst, 'H2OCH4NH3HCN_fit': full_results, 'H2OCH4_fit': h2och4_results}
-filename = './planet_sim/data/madonald_H2OCH4NH3HCN_retrieval_results_1'
+filename = './planet_sim/data/madonald_H2OCH4_retrieval_results_2'
 s = [0]
 if os.path.isfile(filename):
     s = input('File already exists. continue...?')
