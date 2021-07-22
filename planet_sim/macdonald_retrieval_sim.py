@@ -1,3 +1,13 @@
+import sys
+from pathlib import Path
+print('Python', sys.version)
+
+print('appending to path:', Path(__file__).parent)
+sys.path.append(Path(__file__).parent)
+
+print('path')
+print(sys.path)
+
 import numpy as np
 import matplotlib.pyplot as plt
 import dynesty
