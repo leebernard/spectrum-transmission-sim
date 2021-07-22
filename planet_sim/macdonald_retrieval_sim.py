@@ -1,15 +1,23 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import dynesty
+import time
+
 
 from matplotlib.ticker import FormatStrFormatter
 from scipy.optimize import minimize
 from dynesty import plotting as dyplot
+from datetime import datetime
 
 from planet_sim.transit_toolbox import open_cross_section
 from planet_sim.transit_toolbox import transit_model_H2OCH4NH3HCN
 from planet_sim.transit_toolbox import transit_model_H2OCH4
 
+name = 'macdonald_H2OCH4'
+
+start_time = time.time()
+print('Starting simulation run on instance', name)
+print('Start time:', datetime.now())
 
 '''
 generate absorption profile from cross section data
@@ -291,10 +299,22 @@ plt.xlabel('Delta log(z)')
 import pickle
 import os
 
+
+
 # pack the data
-results_archive = {'noise_data': noise_inst, 'H2OCH4NH3HCN_fit': full_results, 'H2OCH4_fit': h2och4_results}
-filename = './planet_sim/data/madonald_H2OCH4_retrieval_results_2'
-s = [0]
+results_archive = {'noise_data': noise_inst, 'transit_depth':noisey_transit_depth, 'wavelength_bins': pixel_bins,  'H2OCH4NH3HCN_fit': full_results, 'H2OCH4_fit': h2och4_results}
+filename = './planet_sim/data/' + name + '_full_retrieval'
+s = ['']
+if os.path.isfile(filename):
+    s = input('File already exists. continue...?')
+
+if s[0] != 'n' and s[0] != 'N':
+    with open(filename, mode='wb') as file:
+        pickle.dump(results_archive, file)
+
+short_archive = {'noise_data': noise_inst, 'logz_full': logz_full, 'logz_h2och4': logz_h2och4}
+filename = './planet_sim/data/' + name + '_logz_results'
+s = ['']
 if os.path.isfile(filename):
     s = input('File already exists. continue...?')
 
@@ -303,4 +323,7 @@ if s[0] != 'n' and s[0] != 'N':
         pickle.dump(results_archive, file)
 
 
+print('Instance', name, 'completed.')
+print('End time:', datetime.now())
+print('Total runtime: %s seconds' % (time.time() - start_time))
 
