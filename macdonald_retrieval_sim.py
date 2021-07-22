@@ -2,8 +2,8 @@ import sys
 from pathlib import Path
 print('Python', sys.version)
 
-print('appending to path:', Path(__file__).parent)
-sys.path.append(Path(__file__).parent / 'planet_sim')
+# print('appending to path:', Path(__file__).parent)
+# sys.path.append(Path(__file__).parent / 'planet_sim')
 
 print('path')
 print(sys.path)
