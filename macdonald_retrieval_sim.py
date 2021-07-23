@@ -2,12 +2,6 @@ import sys
 from pathlib import Path
 print('Python', sys.version)
 
-# print('appending to path:', Path(__file__).parent)
-# sys.path.append(Path(__file__).parent / 'planet_sim')
-
-print('path')
-print(sys.path)
-
 import numpy as np
 import matplotlib.pyplot as plt
 import dynesty
@@ -24,6 +18,7 @@ from planet_sim.transit_toolbox import transit_model_H2OCH4NH3HCN
 from planet_sim.transit_toolbox import transit_model_H2OCH4
 
 name = 'macdonald_H2OCH4'
+plot = False
 
 start_time = time.time()
 print('Starting simulation run on instance', name)
@@ -161,27 +156,27 @@ while len(noise_inst) < num_noise_inst:
 
 # add noise to the transit spectrum
 noisey_transit_depth = pixel_transit_depth + noise_inst
+if plot:
+    plt.figure('transit depth R%.2f' %R, figsize=(8, 8))
+    plt.subplot(212)
+    plt.plot(flipped_wl, np.flip(water_cross_sections)*10**log_f_h2o, label='H2O')
+    plt.plot(flipped_wl, np.flip(ch4_cross_sections)*10**log_fch4, label='CH4')
+    plt.plot(flipped_wl, np.flip(nh3_cross_sections)*10**log_fnh3, label='NH3')
+    plt.plot(flipped_wl, np.flip(hcn_cross_sections)*10**log_fhcn, label='HCN')
+    plt.plot(flipped_wl, np.flip(h2_cross_sections), label='H2')
+    plt.title('Absorption Cross section')
+    plt.legend()
+    plt.xlabel('Wavelength (μm)')
+    plt.ylabel('Cross section (cm^2/molecule)')
+    plt.yscale('log')
 
-plt.figure('transit depth R%.2f' %R, figsize=(8, 8))
-plt.subplot(212)
-plt.plot(flipped_wl, np.flip(water_cross_sections)*10**log_f_h2o, label='H2O')
-plt.plot(flipped_wl, np.flip(ch4_cross_sections)*10**log_fch4, label='CH4')
-plt.plot(flipped_wl, np.flip(nh3_cross_sections)*10**log_fnh3, label='NH3')
-plt.plot(flipped_wl, np.flip(hcn_cross_sections)*10**log_fhcn, label='HCN')
-plt.plot(flipped_wl, np.flip(h2_cross_sections), label='H2')
-plt.title('Absorption Cross section')
-plt.legend()
-plt.xlabel('Wavelength (μm)')
-plt.ylabel('Cross section (cm^2/molecule)')
-plt.yscale('log')
-
-plt.subplot(211)
-plt.plot(pixel_wavelengths, pixel_transit_depth, label='Ideal')
-plt.errorbar(pixel_wavelengths, noisey_transit_depth[0], yerr=err, label='Photon noise', fmt='o', capsize=2.0)
-plt.title('Transit depth, R= %d, water= %d ppm' % (R, 10**log_f_h2o/1e-6) )
-plt.legend(('Ideal', 'Photon noise'))
-plt.ylabel('($R_p$/$R_{star}$)$^2$ (%)')
-plt.subplot(211).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
+    plt.subplot(211)
+    plt.plot(pixel_wavelengths, pixel_transit_depth, label='Ideal')
+    plt.errorbar(pixel_wavelengths, noisey_transit_depth[0], yerr=err, label='Photon noise', fmt='o', capsize=2.0)
+    plt.title('Transit depth, R= %d, water= %d ppm' % (R, 10**log_f_h2o/1e-6) )
+    plt.legend(('Ideal', 'Photon noise'))
+    plt.ylabel('($R_p$/$R_{star}$)$^2$ (%)')
+    plt.subplot(211).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
 
 
 
@@ -238,16 +233,17 @@ for transit_data in noisey_transit_depth:
         sampler.run_nested()
         full_results.append(sampler.results)
 
-# make a plot of results
-labels = ["Rad_planet", "T", "log H2O", "log CH4", "log NH3", "log HCN"]
-truths = [rad_planet, T, log_f_h2o, log_fch4, log_fnh3, log_fhcn]
-for result in full_results[:2]:
+if plot:
+    # make a plot of results
+    labels = ["Rad_planet", "T", "log H2O", "log CH4", "log NH3", "log HCN"]
+    truths = [rad_planet, T, log_f_h2o, log_fch4, log_fnh3, log_fhcn]
+    for result in full_results[:2]:
 
-    fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
-                                  title_kwargs={'y': 1.04}, labels=labels,
-                                  fig=plt.subplots(len(truths), len(truths), figsize=(10, 10)))
-    fig.suptitle('Red lines are true values', fontsize=14)
-    # fig.savefig('/test/my_first_cornerplot.png')
+        fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
+                                      title_kwargs={'y': 1.04}, labels=labels,
+                                      fig=plt.subplots(len(truths), len(truths), figsize=(10, 10)))
+        fig.suptitle('Red lines are true values', fontsize=14)
+        # fig.savefig('/test/my_first_cornerplot.png')
 
 
 
@@ -283,17 +279,17 @@ for transit_data in noisey_transit_depth:
         sampler.run_nested()
         h2och4_results.append(sampler.results)
 
+if plot:
+    # make a plot of results
+    labels = ["Rad_planet", "T", "log H2O", "log CH4"]
+    truths = [rad_planet, T, log_f_h2o, log_fch4]
+    for result in h2och4_results:
 
-# make a plot of results
-labels = ["Rad_planet", "T", "log H2O", "log CH4"]
-truths = [rad_planet, T, log_f_h2o, log_fch4]
-for result in h2och4_results:
-
-    fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
-                                  title_kwargs={'y': 1.04}, labels=labels,
-                                  fig=plt.subplots(len(truths), len(truths), figsize=(10, 10)))
-    fig.suptitle('Red lines are true values', fontsize=14)
-    # fig.savefig('/test/my_first_cornerplot.png')
+        fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
+                                      title_kwargs={'y': 1.04}, labels=labels,
+                                      fig=plt.subplots(len(truths), len(truths), figsize=(10, 10)))
+        fig.suptitle('Red lines are true values', fontsize=14)
+        # fig.savefig('/test/my_first_cornerplot.png')
 
 
 logz_full = np.array([result.logz[-1] for result in full_results])
@@ -301,10 +297,11 @@ logz_h2och4 = np.array([result.logz[-1] for result in h2och4_results])
 
 delta_logz = logz_full - logz_h2och4
 
-hist_fig, hist_ax = plt.subplots()
-hist_ax.hist(delta_logz)
-plt.title('H2O-CH4-NH3-HCN vs H2O-CH4, on H2O-CH4 data')
-plt.xlabel('Delta log(z)')
+if plot:
+    hist_fig, hist_ax = plt.subplots()
+    hist_ax.hist(delta_logz)
+    plt.title('H2O-CH4-NH3-HCN vs H2O-CH4, on H2O-CH4 data')
+    plt.xlabel('Delta log(z)')
 
 import pickle
 import os
