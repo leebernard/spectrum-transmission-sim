@@ -226,12 +226,15 @@ from multiprocessing import Pool
 
 ndim = 6
 full_results = []
-for transit_data in noisey_transit_depth:
-    with Pool() as pool:
-        sampler = dynesty.NestedSampler(log_likelihood, prior_trans, ndim,
-                                        nlive=500, pool=pool, queue_size=pool._processes)
-        sampler.run_nested()
-        full_results.append(sampler.results)
+
+with Pool() as pool:
+    for transit_data in noisey_transit_depth:
+
+            sampler = dynesty.NestedSampler(log_likelihood, prior_trans, ndim,
+                                            nlive=500, pool=pool, queue_size=pool._processes)
+            sampler.run_nested()
+            full_results.append(sampler.results)
+            # pool.close()
 
 if plot:
     # make a plot of results
@@ -272,12 +275,13 @@ def loglike_h2och4(theta):
 
 ndim = 4
 h2och4_results = []
-for transit_data in noisey_transit_depth:
-    with Pool() as pool:
-        sampler = dynesty.NestedSampler(loglike_h2och4, prior_trans, ndim,
-                                        nlive=500, pool=pool, queue_size=pool._processes)
-        sampler.run_nested()
-        h2och4_results.append(sampler.results)
+with Pool() as pool:
+    for transit_data in noisey_transit_depth:
+
+            sampler = dynesty.NestedSampler(loglike_h2och4, prior_trans, ndim,
+                                            nlive=500, pool=pool, queue_size=pool._processes)
+            sampler.run_nested()
+            h2och4_results.append(sampler.results)
 
 if plot:
     # make a plot of results
