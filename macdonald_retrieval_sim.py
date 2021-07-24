@@ -149,7 +149,7 @@ pixel_wavelengths, pixel_transit_depth = transit_model_H2OCH4(pixel_bins, theta,
 
 # generate noise instances
 err = err*1e-6
-num_noise_inst = 100
+num_noise_inst = 1
 noise_inst = []
 while len(noise_inst) < num_noise_inst:
     noise_inst.append(np.random.normal(scale=err))
@@ -229,12 +229,11 @@ full_results = []
 
 with Pool() as pool:
     for transit_data in noisey_transit_depth:
-
-            sampler = dynesty.NestedSampler(log_likelihood, prior_trans, ndim,
-                                            nlive=500, pool=pool, queue_size=pool._processes)
-            sampler.run_nested()
-            full_results.append(sampler.results)
-            # pool.close()
+        sampler = dynesty.NestedSampler(log_likelihood, prior_trans, ndim,
+                                        nlive=500, pool=pool, queue_size=pool._processes)
+        sampler.run_nested()
+        full_results.append(sampler.results)
+        # pool.close()
 
 if plot:
     # make a plot of results
@@ -277,11 +276,10 @@ ndim = 4
 h2och4_results = []
 with Pool() as pool:
     for transit_data in noisey_transit_depth:
-
-            sampler = dynesty.NestedSampler(loglike_h2och4, prior_trans, ndim,
-                                            nlive=500, pool=pool, queue_size=pool._processes)
-            sampler.run_nested()
-            h2och4_results.append(sampler.results)
+        sampler = dynesty.NestedSampler(loglike_h2och4, prior_trans, ndim,
+                                        nlive=500, pool=pool, queue_size=pool._processes)
+        sampler.run_nested()
+        h2och4_results.append(sampler.results)
 
 if plot:
     # make a plot of results
