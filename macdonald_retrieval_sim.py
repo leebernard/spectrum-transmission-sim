@@ -149,7 +149,7 @@ pixel_wavelengths, pixel_transit_depth = transit_model_H2OCH4(pixel_bins, theta,
 
 # generate noise instances
 err = err*1e-6
-num_noise_inst = 1
+num_noise_inst = 100
 noise_inst = []
 while len(noise_inst) < num_noise_inst:
     noise_inst.append(np.random.normal(scale=err))
