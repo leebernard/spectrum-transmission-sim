@@ -22,6 +22,41 @@ def diffusion_darkcurrent(T, E_bg=0.6):
     return np.exp(-E_bg / (k*T))
 
 
+def generate_T_noise(time, scale, observation_duration, noise_freq, verbose=False):
+    # generate time scale that samples at chosen frequency
+    raw_time = np.linspace(0, observation_duration, num=observation_duration * noise_freq)
+
+    # generate noise at chosen freqency
+    # choose a scale, increase by 7% to compensate for interpolation smoothing
+    scale = scale * 1.07
+    raw_noise = np.random.normal(scale=scale,
+                                 size=raw_time.size)
+
+    # create interpolation function
+    T_noise_func = interp1d(raw_time, raw_noise, kind='cubic')
+    # interpolated up to desired sample rate
+    T_noise = T_noise_func(time)
+
+    if verbose:
+        # test the rms
+        print('Raw Noise std =', np.std(raw_noise))
+        print('Filtered Noise std =', np.std(T_noise))
+
+    return T_noise
+
+
+def hpx_threshold(u):
+    '''
+    Takes a random number between 0-1, and maps it to a logrithmic distribution.
+
+    This follows a scheme where the number of instances below the threshold
+    doubles for every factor of 6 increase.
+    '''
+    tau = 6
+    b = .01
+    return np.log(u/b) * tau/np.log(2) + 40
+
+
 def i_dark(T, parameters=(.004, 507.0, 4.6), lambda_co=5.4):
     '''
     This is the empirically derived dark current model from Rauscher et al 2011
@@ -49,40 +84,25 @@ def i_dark(T, parameters=(.004, 507.0, 4.6), lambda_co=5.4):
     return c0 + c1*np.exp(-hc/(c2*lambda_co) * 1/(k*T))
 
 
-def generate_T_noise(time, scale, observation_duration, noise_freq, verbose=False):
-    # generate time scale that samples at chosen frequency
-    raw_time = np.linspace(0, observation_duration, num=observation_duration * noise_freq)
+def nd_i_dark(T, threshholds):
 
-    # generate noise at chosen freqency
-    # choose a scale, increase by 7% to compensate for interpolation smoothing
-    scale = scale * 1.07
-    raw_noise = np.random.normal(scale=scale,
-                                 size=raw_time.size)
+    pass
 
-    # create interpolation function
-    T_noise_func = interp1d(raw_time, raw_noise, kind='cubic')
-    # interpolated up to desired sample rate
-    T_noise = T_noise_func(time)
 
-    if verbose:
-        # test the rms
-        print('Raw Noise std =', np.std(raw_noise))
-        print('Filtered Noise std =', np.std(T_noise))
-
-    return T_noise
 
 
 # generate gaussian noise, at 1Hz, with smooth transitions
 
 # pick length of observation run
-observation_duration = 600  # 10 minutes, in seconds
+# observation_duration = 600  # 10 minutes, in seconds
+observation_duration = 60  # one minute
 interpolated_sample_rate = 1000  # in Hz
 fine_time = np.linspace(0, observation_duration, num=observation_duration * interpolated_sample_rate)
 
 # noise parameters
 noise_freq = 50  # in Hz
 # scale = .005
-scale = .050
+scale = .050  # 50mK
 
 full_well = 70000
 # generate sampling points
@@ -111,20 +131,40 @@ time_stop = 300
 plt.figure('Temperature_plot')
 plt.scatter(sample_time[:time_stop], T_40[:time_stop], label='T=40K')
 
+
+# generate hot pixel thresholds
+thresholds = hpx_threshold(np.random.uniform(size=(2048, 2048)))
+
+
+# turn temperature variation into a cube
+nd_T_40 = np.tile(T_40.astype('float32'), (*thresholds.shape, 1))
+
 # generate dark current values
-dark_40 = i_dark(T_40)
-dark_50 = i_dark(T_50)
+nd_dark_40 = i_dark(nd_T_40)
+nd_htpx_40 = i_dark(nd_T_40, parameters=(.1, 507.0, 4.6))
+
+# produce a binary distribution of hot pixel locations
+htpx_map = nd_T_40 >= np.expand_dims(thresholds, 2)
+
+
 dark_60 = i_dark(T_60)
 dark_70 = i_dark(T_70)
 
+# turn hot pixel locations into zeros, then fill them with hot pixel values
+simulated_dc_40 = nd_dark_40*np.invert(htpx_map) + nd_htpx_40*htpx_map
+
+plt.figure('pixel plane with hot px', figsize=(8, 8))
+plt.imshow(simulated_dc_40[:, :, 0])
+
 # plot the dark current noise
 plt.figure('dark current')
-plt.plot(sample_time, dark_40, label='T=40K')
+plt.plot(sample_time, nd_dark_40.mean(axis=0).mean(axis=0), label='T=40K')
+plt.plot(sample_time, simulated_dc_40.mean(axis=0).mean(axis=0), label='T=40K, with hot pixels')
 # plt.plot(sample_time, dark_50, label='T=50K')
 # plt.plot(sample_time, dark_60, label='T=60k')
-plt.xlim(right=time_stop)
+# plt.xlim(right=time_stop)
 plt.legend()
-
+plt.yscale('log')
 
 # generate a cube of data, for 40-90 degrees, every 2 degrees
 temp_curve = np.linspace(40, 90, num=25)
