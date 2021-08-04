@@ -1,5 +1,5 @@
 import sys
-from pathlib import Path
+# import os
 print('Python', sys.version)
 
 import numpy as np
@@ -17,7 +17,7 @@ from planet_sim.transit_toolbox import open_cross_section
 from planet_sim.transit_toolbox import transit_model_H2OCH4NH3HCN
 from planet_sim.transit_toolbox import transit_model_H2OCH4
 
-name = 'macdonald_H2OCH4'
+name = 'macdonald_H2OCH4NH3HCN'
 plot = False
 
 start_time = time.time()
@@ -140,14 +140,18 @@ fixed_parameters = (fine_wavelengths,
 theta = (rad_planet,
          T,
          log_f_h2o,
-         log_fch4)
-pixel_wavelengths, pixel_transit_depth = transit_model_H2OCH4(pixel_bins, theta, fixed_parameters)
+         log_fch4,
+         log_fnh3,
+         log_fhcn)
+pixel_wavelengths, pixel_transit_depth = transit_model_H2OCH4NH3HCN(pixel_bins, theta, fixed_parameters)
 
 # generate photon noise from a signal value
 # signal = 1.22e9
 # noise = (np.random.poisson(lam=signal, size=pixel_transit_depth.size) - signal)/signal
 
-# generate noise instances
+'''
+generate noise instances!!!
+'''
 err = err*1e-6
 num_noise_inst = 100
 noise_inst = []
@@ -293,6 +297,32 @@ if plot:
         # fig.savefig('/test/my_first_cornerplot.png')
 
 
+from dynesty.utils import quantile
+
+# extrat the quantile data
+full_qauntiles = []
+for results in full_results:
+    # extract samples and weights
+    samples = results['samples']
+    weights = np.exp(results['logwt'] - results['logz'][-1])
+    print('Sample shape', samples.shape)
+
+    quantiles = [quantile(x_i, q=[0.025, 0.5, 0.975], weights=weights) for x_i in samples.transpose()]
+    full_qauntiles.append(quantiles)
+
+
+h2och4_quantiles = []
+for results in h2och4_results:
+    # extract samples and weights
+    samples = results['samples']
+    weights = np.exp(results['logwt'] - results['logz'][-1])
+    print('Sample shape', samples.shape)
+
+    quantiles = [quantile(x_i, q=[0.025, 0.5, 0.975], weights=weights) for x_i in samples.transpose()]
+    h2och4_quantiles.append(quantiles)
+
+
+# Extract the evidience
 logz_full = np.array([result.logz[-1] for result in full_results])
 logz_h2och4 = np.array([result.logz[-1] for result in h2och4_results])
 
@@ -311,22 +341,28 @@ import os
 
 # pack the data
 results_archive = {'noise_data': noise_inst, 'transit_depth':noisey_transit_depth, 'wavelength_bins': pixel_bins,  'H2OCH4NH3HCN_fit': full_results, 'H2OCH4_fit': h2och4_results}
-filename = './planet_sim/data/' + name + '_full_retrieval'
-s = ['']
+filename = './planet_sim/data/' + name + '_R' + R + '_full_retrieval'
+print('Saving to', filename)
 if os.path.isfile(filename):
     s = input('File already exists. continue...?')
 
-if s[0] != 'n' and s[0] != 'N':
+if not s or (s[0] != 'n' and s[0] != 'N'):
     with open(filename, mode='wb') as file:
         pickle.dump(results_archive, file)
 
-short_archive = {'noise_data': noise_inst, 'logz_full': logz_full, 'logz_h2och4': logz_h2och4}
-filename = './planet_sim/data/' + name + '_logz_results'
-s = ['']
+
+short_archive = {'noise_data': noise_inst,
+                 'logz_full': logz_full,
+                 'logz_h2och4': logz_h2och4,
+                 'full_quantiles': full_qauntiles,
+                 'h2och4_quantiles': h2och4_quantiles
+                 }
+filename = './planet_sim/data/' + name + '_compact_retrieval'
+print('Saving to', filename)
 if os.path.isfile(filename):
     s = input('File already exists. continue...?')
 
-if s[0] != 'n' and s[0] != 'N':
+if not s or (s[0] != 'n' and s[0] != 'N'):
     with open(filename, mode='wb') as file:
         pickle.dump(results_archive, file)
 
@@ -334,4 +370,10 @@ if s[0] != 'n' and s[0] != 'N':
 print('Instance', name, 'completed.')
 print('End time:', datetime.now())
 print('Total runtime: %s seconds' % (time.time() - start_time))
+
+
+
+
+
+
 
