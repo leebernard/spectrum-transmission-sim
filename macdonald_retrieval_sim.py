@@ -341,8 +341,10 @@ import os
 
 # pack the data
 results_archive = {'noise_data': noise_inst, 'transit_depth':noisey_transit_depth, 'wavelength_bins': pixel_bins,  'H2OCH4NH3HCN_fit': full_results, 'H2OCH4_fit': h2och4_results}
-filename = './planet_sim/data/' + name + '_R' + R + '_full_retrieval'
+filename = './planet_sim/data/' + name + '_full_retrieval'
 print('Saving to', filename)
+
+s = ''
 if os.path.isfile(filename):
     s = input('File already exists. continue...?')
 
@@ -359,6 +361,7 @@ short_archive = {'noise_data': noise_inst,
                  }
 filename = './planet_sim/data/' + name + '_compact_retrieval'
 print('Saving to', filename)
+s = ''
 if os.path.isfile(filename):
     s = input('File already exists. continue...?')
 
