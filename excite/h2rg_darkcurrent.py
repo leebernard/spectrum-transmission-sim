@@ -11,109 +11,9 @@ from scipy.stats import poisson
 
 from toolkit import improved_non_uniform_tophat
 
-
-def diffusion_darkcurrent(T, E_bg=0.6):
-    # this is a generic dark current due to diffusion function. 
-    # This only incorporates theoretical dark current due to diffusion, not physical
-    #E_bg is the bandgap energy, in eV
-
-    # boltzman constant in eV/Kelvin
-    k = 8.617333e-5
-    return np.exp(-E_bg / (k*T))
-
-
-def generate_T_noise(time, scale, observation_duration, noise_freq, verbose=False):
-    # generate time scale that samples at chosen frequency
-    raw_time = np.linspace(0, observation_duration, num=observation_duration * noise_freq)
-
-    # generate noise at chosen freqency
-    # choose a scale, increase by 7% to compensate for interpolation smoothing
-    scale = scale * 1.07
-    raw_noise = np.random.normal(scale=scale,
-                                 size=raw_time.size)
-
-    # create interpolation function
-    T_noise_func = interp1d(raw_time, raw_noise, kind='cubic')
-    # interpolated up to desired sample rate
-    T_noise = T_noise_func(time)
-
-    if verbose:
-        # test the rms
-        print('Raw Noise std =', np.std(raw_noise))
-        print('Filtered Noise std =', np.std(T_noise))
-
-    return T_noise
-
-
-def generate_dc_rates(T_data, fp_size):
-    # generate hot pixel thresholds
-    thresholds = hpx_threshold(np.random.uniform(size=fp_size))
-
-    # turn temperature variation into a cube
-    nd_T_data = np.tile(T_data.astype('float32'), (*thresholds.shape, 1))
-
-    # generate dark current mean values
-    nd_dark_40 = i_dark(nd_T_data)
-    nd_htpx_40 = i_dark(nd_T_data, parameters=(.1, 507.0, 4.6))
-
-    # produce a binary distribution of hot pixel locations
-    htpx_map = nd_T_data >= np.expand_dims(thresholds, 2)
-
-    return nd_dark_40*np.invert(htpx_map) + nd_htpx_40*htpx_map
-
-
-def generate_dc_means(T_data, fp_size):
-    dc_rates = generate_dc_rates(T_data, fp_size)
-
-    # sum along the time axis
-    return np.sum(dc_rates, axis=2)
-
-
-
-
-def hpx_threshold(u):
-    '''
-    Takes a random number between 0-1, and maps it to a logrithmic distribution.
-
-    This follows a scheme where the number of instances below the threshold
-    doubles for every factor of 6 increase.
-    '''
-    tau = 6
-    b = .01
-    return np.log(u/b) * tau/np.log(2) + 40
-
-
-def i_dark(T, parameters=(.004, 507.0, 4.6), lambda_co=5.4):
-    '''
-    This is the empirically derived dark current model from Rauscher et al 2011
-
-    Parameters
-    ----------
-    T: Temperature in Kelvin
-    parameters: the paramters of the fit
-    lambda_co: the cutoff wavelength of the H2RG
-
-    Returns
-    -------
-    The mean dark current of the detector
-    '''
-    # plank constant times speed of light, in eV um
-    hc = 1.239841
-    # boltzman constant in eV/Kelvin
-    k = 8.617333e-5
-
-    # unpack parameters
-    c0 = parameters[0]
-    c1 = parameters[1]
-    c2 = parameters[2]
-
-    return c0 + c1*np.exp(-hc/(c2*lambda_co) * 1/(k*T))
-
-
-def nd_i_dark(T, threshholds):
-
-    pass
-
+from h2rg_toolbox import generate_T_noise
+from h2rg_toolbox import generate_dc_means
+from h2rg_toolbox import hpx_threshold
 
 
 
@@ -151,6 +51,8 @@ T_70, _ = improved_non_uniform_tophat(sample_bins, fine_time,
                                         fine_data=70 + generate_T_noise(fine_time, scale, observation_duration, noise_freq))
 
 
+# generate hot pixel thresholds
+thresholds = hpx_threshold(np.random.uniform(size=(1024, 512)))
 
 # plot the temperature data
 time_stop = 300
@@ -158,39 +60,17 @@ plt.figure('Temperature_plot')
 plt.scatter(sample_time[:time_stop], T_40[:time_stop], label='T=40K')
 
 
-# generate hot pixel thresholds
-thresholds = hpx_threshold(np.random.uniform(size=(1024, 512)))
+# # plot the dark current mean values
+# plt.figure('dark current')
+# plt.plot(sample_time, nd_dark_40.mean(axis=0).mean(axis=0), label='T=40K')
+# plt.plot(sample_time, dc_40_rates.mean(axis=0).mean(axis=0), label='T=40K, with hot pixels')
+# # plt.plot(sample_time, dark_50, label='T=50K')
+# # plt.plot(sample_time, dark_60, label='T=60k')
+# # plt.xlim(right=time_stop)
+# plt.legend()
+# plt.yscale('log')
 
 
-# turn temperature variation into a cube
-nd_T_40 = np.tile(T_40.astype('float32'), (*thresholds.shape, 1))
-
-# generate dark current mean values
-nd_dark_40 = i_dark(nd_T_40)
-nd_htpx_40 = i_dark(nd_T_40, parameters=(.1, 507.0, 4.6))
-
-# produce a binary distribution of hot pixel locations
-htpx_map = nd_T_40 >= np.expand_dims(thresholds, 2)
-
-
-dark_60 = i_dark(T_60)
-dark_70 = i_dark(T_70)
-
-# turn hot pixel locations into zeros, then fill them with hot pixel values
-dc_40_rates = nd_dark_40*np.invert(htpx_map) + nd_htpx_40*htpx_map
-
-
-# plot the dark current mean values
-plt.figure('dark current')
-plt.plot(sample_time, nd_dark_40.mean(axis=0).mean(axis=0), label='T=40K')
-plt.plot(sample_time, dc_40_rates.mean(axis=0).mean(axis=0), label='T=40K, with hot pixels')
-# plt.plot(sample_time, dark_50, label='T=50K')
-# plt.plot(sample_time, dark_60, label='T=60k')
-# plt.xlim(right=time_stop)
-plt.legend()
-plt.yscale('log')
-
-test_means = generate_dc_means(T_40, fp_size=(1024, 512))
 # generate actual dark current values
 # sum up the cube over the time axis
 dc_40_means = generate_dc_means(T_40, fp_size=(1024, 512))
