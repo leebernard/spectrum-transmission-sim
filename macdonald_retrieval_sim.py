@@ -322,8 +322,6 @@ for results in h2och4_results:
     # extract samples and weights
     samples = results['samples']
     weights = np.exp(results['logwt'] - results['logz'][-1])
-    print('Sample shape', samples.shape)
-
     quantiles = [quantile(x_i, q=[0.025, 0.5, 0.975], weights=weights) for x_i in samples.transpose()]
     h2och4_quantiles.append(quantiles)
 
@@ -346,8 +344,8 @@ import os
 
 
 # pack the data
-results_archive = {'noise_data': noise_inst, 'transit_depth':noisey_transit_depth, 'wavelength_bins': pixel_bins,  'H2OCH4NH3HCN_fit': full_results, 'H2OCH4_fit': h2och4_results}
-filename = './planet_sim/data/' + name + '_full_retrieval'
+full_results_archive = {'noise_data': noise_inst, 'transit_depth':noisey_transit_depth, 'wavelength_bins': pixel_bins,  'H2OCH4NH3HCN_fit': full_results, 'H2OCH4_fit': h2och4_results}
+filename = './planet_sim/data/' + name + '_full_retrieval.pkl'
 print('Saving to', filename)
 
 s = ''
@@ -356,7 +354,7 @@ if os.path.isfile(filename):
 
 if not s or (s[0] != 'n' and s[0] != 'N'):
     with open(filename, mode='wb') as file:
-        pickle.dump(results_archive, file)
+        pickle.dump(full_results_archive, file)
 
 
 short_archive = {'noise_data': noise_inst,
@@ -373,7 +371,7 @@ if os.path.isfile(filename):
 
 if not s or (s[0] != 'n' and s[0] != 'N'):
     with open(filename, mode='wb') as file:
-        pickle.dump(results_archive, file)
+        pickle.dump(short_archive, file)
 
 
 print('Instance', name, 'completed.')
