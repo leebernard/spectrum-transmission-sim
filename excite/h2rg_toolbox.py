@@ -35,10 +35,7 @@ def generate_T_noise(time, scale, observation_duration, noise_freq, verbose=Fals
     return T_noise
 
 
-def generate_dc_rates(T_data, fp_size, hpx_thresholds=None):
-    # if not provided, generate hot pixel thresholds
-    if hpx_thresholds is None:
-        hpx_thresholds = hpx_threshold(np.random.uniform(size=fp_size))
+def generate_dc_rates(T_data, hpx_thresholds):
 
     # turn temperature variation into a cube
     nd_T_data = np.tile(T_data.astype('float32'), (*hpx_thresholds.shape, 1))
@@ -53,8 +50,8 @@ def generate_dc_rates(T_data, fp_size, hpx_thresholds=None):
     return nd_dark_40*np.invert(htpx_map) + nd_htpx_40*htpx_map
 
 
-def generate_dc_means(T_data, fp_size):
-    dc_rates = generate_dc_rates(T_data, fp_size)
+def generate_dc_means(T_data, hpx_thresholds):
+    dc_rates = generate_dc_rates(T_data, hpx_thresholds)
 
     # sum along the time axis
     return np.sum(dc_rates, axis=2)

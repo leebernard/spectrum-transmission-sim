@@ -11,9 +11,9 @@ from scipy.stats import poisson
 
 from toolkit import improved_non_uniform_tophat
 
-from h2rg_toolbox import generate_T_noise
-from h2rg_toolbox import generate_dc_means
-from h2rg_toolbox import hpx_threshold
+from excite.h2rg_toolbox import generate_T_noise
+from excite.h2rg_toolbox import generate_dc_means
+from excite.h2rg_toolbox import hpx_threshold
 
 
 
@@ -37,27 +37,17 @@ observation_sample_rate = 1
 sample_bins = np.linspace(0, observation_duration, num=observation_duration * observation_sample_rate)
 sample_time = sample_bins[1:]
 
-
-T_40, _ = improved_non_uniform_tophat(sample_bins, fine_time,
-                                        fine_data=40 + generate_T_noise(fine_time, scale, observation_duration, noise_freq))
-
-T_50, _ = improved_non_uniform_tophat(sample_bins, fine_time,
-                                        fine_data=50 + generate_T_noise(fine_time, scale, observation_duration, noise_freq))
-
-T_60, _ = improved_non_uniform_tophat(sample_bins, fine_time,
-                                        fine_data=60 + generate_T_noise(fine_time, scale, observation_duration, noise_freq))
-
-T_70, _ = improved_non_uniform_tophat(sample_bins, fine_time,
-                                        fine_data=70 + generate_T_noise(fine_time, scale, observation_duration, noise_freq))
+temp_curve = np.linspace(40, 90, num=10)
+# generate temperature data cube
+temp_data_cube = []
+for temp_value in temp_curve:
+    temp_data, _ = improved_non_uniform_tophat(sample_bins, fine_time,
+                                                    fine_data=temp_value + generate_T_noise(fine_time, scale, observation_duration, noise_freq))
+    temp_data_cube.append(temp_data)
 
 
 # generate hot pixel thresholds
-thresholds = hpx_threshold(np.random.uniform(size=(1024, 512)))
-
-# plot the temperature data
-time_stop = 300
-plt.figure('Temperature_plot')
-plt.scatter(sample_time[:time_stop], T_40[:time_stop], label='T=40K')
+thresholds = hpx_threshold(np.random.uniform(size=(512, 1024)))
 
 
 # # plot the dark current mean values
@@ -73,19 +63,40 @@ plt.scatter(sample_time[:time_stop], T_40[:time_stop], label='T=40K')
 
 # generate actual dark current values
 # sum up the cube over the time axis
-dc_40_means = generate_dc_means(T_40, fp_size=(1024, 512))
+T_40 = temp_data_cube[0]
+dc_40_means = generate_dc_means(T_40, thresholds)
 simulated_dc_40 = poisson.rvs(dc_40_means)
 
 # show the dark current
-fig, ax = plt.subplots(1, 2, figsize=(12, 6))
+fig, ax = plt.subplots(1, 2, figsize=(8, 6))
 pcm = ax[0].imshow(simulated_dc_40)
 fig.colorbar(pcm, ax=ax[0], fraction=0.046, pad=0.04)
 
 bins = np.linspace(0, simulated_dc_40.max(), simulated_dc_40.max() + 1)
 ax[1].hist(simulated_dc_40.flatten(), bins=bins)
-ax[1].set_xlabel('Dark Current (e-)')
+ax[1].set_xlabel('Dark Current (e-) for T=%.1f'  %temp_curve[0])
 fig.suptitle('Exposure of %.2f minutes'  %(observation_duration/60))
 
+
+bins = np.linspace(0, 350, 351)
+fig, ax = plt.subplots(len(temp_data_cube), 2, figsize=(8, 12))
+for n, temp_data in enumerate(temp_data_cube):
+    print('Temperature %.2f'  %temp_curve[n])
+    dc_means = generate_dc_means(temp_data, thresholds)
+    simulated_dc = poisson.rvs(dc_means)
+    pcm = ax[n, 0].imshow(simulated_dc)
+    fig.colorbar(pcm, ax=ax[n, 0], fraction=0.046, pad=0.04)
+    # bins = np.linspace(0, simulated_dc.max(), simulated_dc.max() + 1)
+
+    ax[n, 1].hist(simulated_dc.flatten(), bins=bins)
+    ax[n, 1].set_xlabel('Dark Current (e-), T=%.1f' % temp_curve[n])
+    ax[n, 1].set_xlim
+# fig.suptitle('Exposure of %.2f minutes'  %(observation_duration/60))
+plt.tight_layout()
+plt.savefig('test.png')
+
+
+'''
 # generate a cube of data, for 40-90 degrees, every 2 degrees
 temp_curve = np.linspace(40, 90, num=25)
 
@@ -145,6 +156,6 @@ plt.xlabel('Temperature (K)')
 plt.ylabel('Noise in ppm of full well')
 plt.yscale('log')
 plt.ylim(bottom=1e-5)
-
+'''
 
 
