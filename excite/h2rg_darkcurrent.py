@@ -64,32 +64,34 @@ thresholds = hpx_threshold(np.random.uniform(size=(512, 1024)))
 # generate actual dark current values
 # sum up the cube over the time axis
 T_40 = temp_data_cube[0]
-dc_40_means = generate_dc_means(T_40, thresholds)
-simulated_dc_40 = poisson.rvs(dc_40_means)
+T_67 = temp_data_cube[5]
+dc_67_means = generate_dc_means(T_67, thresholds)
+simulated_dc_67 = poisson.rvs(dc_67_means)
+simulated_dc_rates = simulated_dc_67/observation_duration
 
 # show the dark current
-fig, ax = plt.subplots(1, 2, figsize=(8, 6))
-pcm = ax[0].imshow(simulated_dc_40)
+fig, ax = plt.subplots(1, 2, figsize=(12, 6))
+pcm = ax[0].imshow(simulated_dc_67)
 fig.colorbar(pcm, ax=ax[0], fraction=0.046, pad=0.04)
 
-bins = np.linspace(0, simulated_dc_40.max(), simulated_dc_40.max() + 1)
-ax[1].hist(simulated_dc_40.flatten(), bins=bins)
-ax[1].set_xlabel('Dark Current (e-) for T=%.1f'  %temp_curve[0])
+bins = np.linspace(0, simulated_dc_67.max()/observation_duration, simulated_dc_67.max())
+ax[1].hist(simulated_dc_67.flatten()/observation_duration, bins=bins)
+ax[1].set_xlabel('Dark Current (e-) for T=%.1f'  %temp_curve[5])
 fig.suptitle('Exposure of %.2f minutes'  %(observation_duration/60))
 
 
-bins = np.linspace(0, 350, 351)
+bins = np.linspace(0, 1.2, 350)
 fig, ax = plt.subplots(len(temp_data_cube), 2, figsize=(8, 12))
 for n, temp_data in enumerate(temp_data_cube):
     print('Temperature %.2f'  %temp_curve[n])
     dc_means = generate_dc_means(temp_data, thresholds)
     simulated_dc = poisson.rvs(dc_means)
-    pcm = ax[n, 0].imshow(simulated_dc)
+    pcm = ax[n, 0].imshow(simulated_dc/observation_duration)
     fig.colorbar(pcm, ax=ax[n, 0], fraction=0.046, pad=0.04)
-    # bins = np.linspace(0, simulated_dc.max(), simulated_dc.max() + 1)
+    # bins = np.linspace(0, simulated_dc.max()/observation_duration, simulated_dc.max())
 
-    ax[n, 1].hist(simulated_dc.flatten(), bins=bins)
-    ax[n, 1].set_xlabel('Dark Current (e-), T=%.1f' % temp_curve[n])
+    ax[n, 1].hist(simulated_dc.flatten()/observation_duration, bins=bins)
+    ax[n, 1].set_xlabel('Dark Current (e-/s), T=%.1f' % temp_curve[n])
     ax[n, 1].set_xlim
 # fig.suptitle('Exposure of %.2f minutes'  %(observation_duration/60))
 plt.tight_layout()

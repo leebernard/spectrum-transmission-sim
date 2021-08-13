@@ -42,7 +42,7 @@ def generate_dc_rates(T_data, hpx_thresholds):
 
     # generate dark current mean values
     nd_dark_40 = i_dark(nd_T_data)
-    nd_htpx_40 = i_dark(nd_T_data, parameters=(.1, 507.0, 4.6))
+    nd_htpx_40 = i_dark(nd_T_data, parameters=(.06, 507.0, 4.6))
 
     # produce a binary distribution of hot pixel locations
     htpx_map = nd_T_data >= np.expand_dims(hpx_thresholds, 2)
