@@ -108,7 +108,7 @@ flipped_wl = np.flip(fine_wavelengths)
 
 # this data based upon Deming et al 2013
 # resolution of spectrograph
-R = 70
+R = 140
 
 # open wavelength sampling of spectrum
 sampling_data = './planet_sim/data/HD209458b_demingetal_data'
