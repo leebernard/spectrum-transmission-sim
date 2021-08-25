@@ -18,6 +18,7 @@ from planet_sim.transit_toolbox import transit_model_H2OCH4NH3HCN
 from planet_sim.transit_toolbox import transit_model_H2OCH4
 
 name = 'macdonald_H2OCH4NH3HCN_R140'
+number_trials = 100
 plot = False
 
 start_time = time.time()
@@ -158,7 +159,7 @@ generate noise instances!!!
 err = np.interp(pixel_wavelengths, sampling_wl, sampling_err*1e-6)
 # interpolate up to the full res data
 
-num_noise_inst = 100
+num_noise_inst = number_trials
 noise_inst = []
 while len(noise_inst) < num_noise_inst:
     # noise_inst.append(np.random.normal(scale=err))
@@ -348,13 +349,19 @@ full_results_archive = {'noise_data': noise_inst, 'transit_depth':noisey_transit
 filename = './planet_sim/data/' + name + '_full_retrieval.pkl'
 print('Saving to', filename)
 
-s = ''
-if os.path.isfile(filename):
-    s = input('File already exists. continue...?')
+n=0
+new_filename = filename
+while os.path.isfile(new_filename):
+    n+=1
+    print('File already exists.')
+    index = filename.find('.pkl')
+    new_filename = filename[:index] + '_%d' %n + filename[index:]
+    print('Try again, saving to', new_filename)
 
-if not s or (s[0] != 'n' and s[0] != 'N'):
-    with open(filename, mode='wb') as file:
-        pickle.dump(full_results_archive, file)
+filename = new_filename
+with open(filename, mode='wb') as file:
+    pickle.dump(full_results_archive, file)
+    print('Saved to', file)
 
 
 short_archive = {'noise_data': noise_inst,
@@ -363,15 +370,22 @@ short_archive = {'noise_data': noise_inst,
                  'full_quantiles': full_qauntiles,
                  'h2och4_quantiles': h2och4_quantiles
                  }
-filename = './planet_sim/data/' + name + '_compact_retrieval'
+filename = './planet_sim/data/' + name + '_compact_retrieval.pkl'
 print('Saving to', filename)
-s = ''
-if os.path.isfile(filename):
-    s = input('File already exists. continue...?')
 
-if not s or (s[0] != 'n' and s[0] != 'N'):
-    with open(filename, mode='wb') as file:
-        pickle.dump(short_archive, file)
+n=0
+new_filename = filename
+while os.path.isfile(new_filename):
+    n+=1
+    print('File already exists.')
+    index = filename.find('.pkl')
+    new_filename = filename[:index] + '_%d' %n + filename[index:]
+    print('Try again, saving to', new_filename)
+
+filename = new_filename
+with open(filename, mode='wb') as file:
+    pickle.dump(short_archive, file)
+    print('Saved to', file)
 
 
 print('Instance', name, 'completed.')
