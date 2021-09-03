@@ -1,0 +1,104 @@
+import pickle
+import numpy as np
+import matplotlib.pyplot as plt
+
+filename = '/home/lee/PycharmProjects/spectrum-transmission-sim/planet_sim/sim_results/macdonald_H2OCH4NH3HCN_compact_retrieval.pkl'
+
+with open(filename, 'rb') as f:
+    macdonald_H2OCH4NH3HCN_archive = pickle.load(f)
+
+filename = '/home/lee/PycharmProjects/spectrum-transmission-sim/planet_sim/sim_results/macdonald_H2OCH4NH3HCN_R140_compact_retrieval.pkl'
+
+with open(filename, 'rb') as f:
+    macdonald_H2OCH4NH3HCN_r140_archive = pickle.load(f)
+
+
+# need to save this in compact archive
+rad_planet = 1.35  # in jovian radii
+T = 1071  # Kelvin
+log_f_h2o = -5.24
+log_fch4 = -7.84
+log_fnh3 = -6.03
+log_fhcn = -6.35
+
+
+'''
+Histograms of the logz results
+'''
+
+# analyze the standard data
+logz_full = macdonald_H2OCH4NH3HCN_archive['logz_full']
+logz_h2och4 = macdonald_H2OCH4NH3HCN_archive['logz_h2och4']
+
+delta_logz = logz_full - logz_h2och4
+
+
+# analyze the results for when R is doubled
+logz_r140_full = macdonald_H2OCH4NH3HCN_r140_archive['logz_full']
+logz_r140_h2och4 = macdonald_H2OCH4NH3HCN_r140_archive['logz_h2och4']
+
+delta_logz_r140 = logz_r140_full - logz_r140_h2och4
+
+hist_fig, hist_ax = plt.subplots(1, 2, figsize=(12, 6))
+hist_ax[0].hist(delta_logz)
+hist_fig.suptitle('Delta log(z)')
+hist_ax[0].set_xlabel('H2O-CH4-NH3-HCN vs H2O-CH4, R=70')
+hist_ax[0].axvline(0.9, label='2 σ', color='r')
+hist_ax[0].axvline(3.0, label='3 σ', color='r')
+hist_ax[0].legend()
+# hist_ax[0].axvline(11)
+
+hist_ax[1].hist(delta_logz_r140)
+hist_ax[1].set_xlabel('H2O-CH4-NH3-HCN vs H2O-CH4, R=140')
+hist_ax[1].axvline(0.9, label='2 σ', color='r')
+hist_ax[1].axvline(3.0, label='3 σ', color='r')
+hist_ax[1].legend()
+
+'''
+Plot of the retrieved parameters
+'''
+
+full_quantiles = np.array(macdonald_H2OCH4NH3HCN_archive['full_quantiles'])
+h2och4_quantiles = np.array(macdonald_H2OCH4NH3HCN_archive['h2och4_quantiles'])
+num = np.arange(0, full_quantiles.shape[0]) + 1  # shift to 1-index instead of 0-index
+
+
+# radius
+full_r = full_quantiles[:, 0, 1]
+full_r_lower = np.abs(full_quantiles[:, 0, 0] - full_r)
+full_r_upper = np.abs(full_quantiles[:, 0, 2] - full_r)
+h2och4_r = h2och4_quantiles[:, 0, 1]
+h2och4_r_lower = np.abs(h2och4_quantiles[:, 0, 0] - h2och4_r)
+h2och4_r_upper = np.abs(h2och4_quantiles[:, 0, 2] - h2och4_r)
+true_r = 1.35
+
+
+r_fig, r_ax = plt.subplots(figsize=(8,12))
+r_fig.suptitle('95% confidence error bars')
+r_ax.errorbar(full_r, num, xerr=(full_r_lower, full_r_upper), label='H2O-CH4-NH3-HCN (true model)', capsize=2.0, fmt='o')
+r_ax.errorbar(h2och4_r, num, xerr=(h2och4_r_lower, h2och4_r_upper), label='H2O-CH4 model', capsize=2.0, fmt='o')
+r_ax.axvline(true_r, color='r', label='True radius')
+r_ax.legend(loc='best')
+r_ax.set_xlabel('Planet Radius')
+
+
+# temperature
+full_T = full_quantiles[:, 1, 1]
+full_T_lower = np.abs(full_quantiles[:, 1, 0] - full_T)
+full_T_upper = np.abs(full_quantiles[:, 1, 2] - full_T)
+h2och4_T = h2och4_quantiles[:, 1, 1]
+h2och4_T_lower = np.abs(h2och4_quantiles[:, 1, 0] - h2och4_T)
+h2och4_T_upper = np.abs(h2och4_quantiles[:, 1, 2] - h2och4_T)
+true_T = 1071
+
+T_fig, T_ax = plt.subplots(figsize=(8,12))
+T_fig.suptitle('95% confidence error bars')
+T_ax.errorbar(full_T, num, xerr=(full_T_lower, full_T_upper), label='H2O-CH4-NH3-HCN (true model)', capsize=2.0, fmt='o')
+T_ax.errorbar(h2och4_T, num, xerr=(h2och4_T_lower, h2och4_T_upper), label='H2O-CH4 model', capsize=2.0, fmt='o')
+T_ax.axvline(true_T, color='r', label='True Temperature')
+T_ax.legend(loc='best')
+T_ax.set_xlabel('Planet Temperature')
+
+
+
+
