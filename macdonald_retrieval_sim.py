@@ -18,7 +18,7 @@ from planet_sim.transit_toolbox import transit_model_H2OCH4NH3HCN
 from planet_sim.transit_toolbox import transit_model_H2OCH4
 
 name = 'macdonald_H2OCH4NH3HCN_R140'
-number_trials = 100
+number_trials = 2
 plot = False
 
 start_time = time.time()
@@ -109,7 +109,7 @@ flipped_wl = np.flip(fine_wavelengths)
 
 # this data based upon Deming et al 2013
 # resolution of spectrograph
-R = 140
+R = 70
 
 # open wavelength sampling of spectrum
 sampling_data = './planet_sim/data/HD209458b_demingetal_data'
@@ -121,9 +121,7 @@ pixel_delta_wl = np.diff(sampling_wl).mean()
 # this is close enough for the purposes of this simulation
 wfc3_start = sampling_wl[0] - pixel_delta_wl/2
 wfc3_end = sampling_wl[-1] + pixel_delta_wl/2
-# pixel_bins = np.linspace(wfc3_start, wfc3_end, sampling_wl.size + 1)
-
-pixel_bins = np.linspace(wfc3_start, wfc3_end, sampling_wl.size*2 + 1)
+pixel_bins = np.linspace(wfc3_start, wfc3_end, sampling_wl.size + 1)
 
 # pixel_wavelengths = np.linspace(flipped_wl[0], flipped_wl[-1], num=number_pixels)
 
@@ -155,9 +153,7 @@ pixel_wavelengths, pixel_transit_depth = transit_model_H2OCH4NH3HCN(pixel_bins, 
 generate noise instances!!!
 '''
 # convert error from parts per million to fractional
-# err = sampling_err*1e-6
-err = np.interp(pixel_wavelengths, sampling_wl, sampling_err*1e-6)
-# interpolate up to the full res data
+err = sampling_err*1e-6
 
 num_noise_inst = number_trials
 noise_inst = []
