@@ -11,7 +11,7 @@ filename = '/home/lee/PycharmProjects/spectrum-transmission-sim/planet_sim/sim_r
 
 with open(filename, 'rb') as f:
     macdonald_H2OCH4NH3HCN_r140_archive = pickle.load(f)
-
+    # macdonald_H2OCH4NH3HCN_archive = macdonald_H2OCH4NH3HCN_r140_archive
 
 # need to save this in compact archive
 rad_planet = 1.35  # in jovian radii
@@ -98,6 +98,24 @@ T_ax.errorbar(h2och4_T, num, xerr=(h2och4_T_lower, h2och4_T_upper), label='H2O-C
 T_ax.axvline(true_T, color='r', label='True Temperature')
 T_ax.legend(loc='best')
 T_ax.set_xlabel('Planet Temperature')
+
+# analyze the H2O
+full_h2o = full_quantiles[:, 2, 1]
+full_h2o_lower = np.abs(full_quantiles[:, 2, 0] - full_h2o)
+full_h2o_upper = np.abs(full_quantiles[:, 2, 2] - full_h2o)
+h2och4_h2o = h2och4_quantiles[:, 2, 1]
+h2och4_h2o_lower = np.abs(h2och4_quantiles[:, 2, 0] - h2och4_h2o)
+h2och4_h2o_upper = np.abs(h2och4_quantiles[:, 2, 2] - h2och4_h2o)
+true_h2o = -5.24
+
+T_fig, T_ax = plt.subplots(figsize=(8,12))
+T_fig.suptitle('95% confidence error bars')
+T_ax.errorbar(full_h2o, num, xerr=(full_h2o_lower, full_h2o_upper), label='H2O-CH4-NH3-HCN (true model)', capsize=2.0, fmt='o')
+T_ax.errorbar(h2och4_h2o, num, xerr=(h2och4_h2o_lower, h2och4_h2o_upper), label='H2O-CH4 model', capsize=2.0, fmt='o')
+T_ax.axvline(true_h2o, color='r', label='True H2O fraction')
+T_ax.legend(loc='best')
+T_ax.set_xlabel('Log H2O fraction (log ppm)')
+
 
 
 
