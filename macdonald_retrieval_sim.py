@@ -18,7 +18,7 @@ from planet_sim.transit_toolbox import transit_model_H2OCH4NH3HCN
 from planet_sim.transit_toolbox import transit_model_H2OCH4
 
 name = 'macdonald_H2OCH4NH3HCN_R140'
-number_trials = 2
+number_trials = 100
 plot = False
 
 start_time = time.time()
@@ -61,7 +61,7 @@ hcn_wno, hcn_cross_sections_raw = open_cross_section(hcn_data_file, wn_range=(wn
 h2_data_file = './line_lists/H2H2_CIA_30mbar_1500K.txt'
 h2_wno, h2_cross_sections_raw = open_cross_section(h2_data_file, wn_range=(wn_start, wn_end))
 
-# interpolate the two different wavenumbers to the same wavenumber
+# interpolate the different cross section grids to the same wavenumber grid
 fine_wave_numbers = np.arange(wn_start, wn_end, 3.0)
 
 # na_cross_sections =
@@ -116,7 +116,7 @@ sampling_data = './planet_sim/data/HD209458b_demingetal_data'
 sampling_wl, sampling_err = open_cross_section(sampling_data)
 
 pixel_delta_wl = np.diff(sampling_wl).mean()
-# make pixel bins
+# generate pixel bins
 # these bins are just a simple mean upsampling
 # this is close enough for the purposes of this simulation
 wfc3_start = sampling_wl[0] - pixel_delta_wl/2
@@ -188,10 +188,10 @@ if plot:
 
 
 '''Fit the data'''
-
+plot = True
 
 # define a likelyhood function
-def log_likelihood(theta, args):
+def log_likelihood(theta, y, dummy_arg):
     # retrieve the global variables
     global pixel_bins
     global transit_data
@@ -201,7 +201,6 @@ def log_likelihood(theta, args):
     fixed = fixed_parameters
     x = pixel_bins
     yerr = err
-    y = args[0]
     _, model = transit_model_H2OCH4NH3HCN(x, theta, fixed)
 
     sigma = yerr**2
@@ -232,10 +231,11 @@ from multiprocessing import Pool
 
 ndim = 6
 full_results = []
+dummy_arg = None
 with Pool() as pool:
     for transit_data in noisey_transit_depth:
         sampler = dynesty.NestedSampler(log_likelihood, prior_trans, ndim,
-                                        nlive=500, pool=pool, queue_size=pool._processes, logl_args=[transit_data])
+                                        nlive=500, pool=pool, queue_size=pool._processes, logl_args=(transit_data, dummy_arg))
         sampler.run_nested()
         full_results.append(sampler.results)
 
@@ -258,7 +258,7 @@ if plot:
 
 # define a new prior function, with only H2O and CH4
 # this is basically the same as only H20
-def loglike_h2och4(theta, args):
+def loglike_h2och4(theta, y, dummy_arg):
     # retrieve the global variables
     global pixel_bins
     global transit_data
@@ -267,7 +267,6 @@ def loglike_h2och4(theta, args):
     # only 'y' changes on the fly
     fixed = fixed_parameters
     x = pixel_bins
-    y = args[0]
     yerr = err
 
     _, model = transit_model_H2OCH4(x, theta, fixed)
@@ -283,7 +282,7 @@ with Pool() as pool:
     for transit_data in noisey_transit_depth:
 
         sampler = dynesty.NestedSampler(loglike_h2och4, prior_trans, ndim,
-                                        nlive=500, pool=pool, queue_size=pool._processes, logl_args=[transit_data])
+                                        nlive=500, pool=pool, queue_size=pool._processes, logl_args=(transit_data, dummy_arg))
         sampler.run_nested()
         h2och4_results.append(sampler.results)
 
@@ -299,6 +298,8 @@ if plot:
         fig.suptitle('Red lines are true values', fontsize=14)
         # fig.savefig('/test/my_first_cornerplot.png')
 
+
+'''Extract relevant results from the analysis'''
 
 from dynesty.utils import quantile
 
@@ -322,6 +323,8 @@ for results in h2och4_results:
     quantiles = [quantile(x_i, q=[0.025, 0.5, 0.975], weights=weights) for x_i in samples.transpose()]
     h2och4_quantiles.append(quantiles)
 
+
+'''Analyze the results'''
 
 # Extract the evidience
 logz_full = np.array([result.logz[-1] for result in full_results])
