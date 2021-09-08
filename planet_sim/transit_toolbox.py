@@ -21,15 +21,33 @@ g_jovian = 24.79  # m/s^2
 r_jovian = 7.1492e7  # meters
 r_sun = 6.957e8  # meters
 
+# masses of species
+mass_h2 = 2.3  # mean molecular weight of H2 He mix
+# mass_na = 11
+# mass_k = 19
+mass_water = 18
+mass_ch4 = 12 + 1*4
+mass_nh3 = 14 + 1*3
+mass_hcn = 1+12+14
+mass_co = 12+16
+mass_hcn = 1+12+14
 
-def open_cross_section(filename, wn_range=None, verbose=False):
+
+def open_cross_section(filename, wn_range=None, verbose=False, skiplines=None):
     with open(filename) as file:
-        raw_data = file.readlines()
+        if skiplines:
+            if verbose: print('skiping %d lines' % skiplines)
+            raw_data = file.readlines()[skiplines:]
+        else:
+            raw_data = file.readlines()
+
         wave_numbers = []
         cross_sections = []
 
         if verbose:
             print('raw')
+
+
 
         for x in raw_data:
             if x == '\n':
@@ -178,10 +196,10 @@ def gen_measured_transit(R, pixel_bins, fine_wl, fine_transit):
 def transit_spectra_model(pixel_wavelengths, theta, fixed):
     # fixed global variables
     p0 = 1
-    mass_h2 = 2.3  # mean molecular weight of H2 He mix
-    mass_water = 18
-    mass_co = 12+16
-    mass_hcn = 1+12+14
+    global mass_h2  # mean molecular weight of H2 He mix
+    global mass_water
+    global mass_co
+    global mass_hcn
 
     # unpack model variables
     rad_planet, T, log_f_h2o, log_fco, log_fhcn = theta
@@ -251,10 +269,10 @@ def transit_spectra_model(pixel_wavelengths, theta, fixed):
 def transit_spectra_h2o_only(pixel_wavelengths, theta, fixed):
     # fixed global variables
     p0 = 1
-    mass_h2 = 2.3  # mean molecular weight of H2 He mix
-    mass_water = 18
-    mass_co = 12+16
-    mass_hcn = 1+12+14
+    global mass_h2  # mean molecular weight of H2 He mix
+    global mass_water
+    global mass_co
+    global mass_hcn
 
     # unpack model variables
     rad_planet, T, log_f_h2o = theta
@@ -316,10 +334,10 @@ def transit_spectra_h2o_only(pixel_wavelengths, theta, fixed):
 def transit_spectra_no_h2o(pixel_wavelengths, theta, fixed):
     # fixed global variables
     p0 = 1
-    mass_h2 = 2.3  # mean molecular weight of H2 He mix
-    mass_water = 18
-    mass_co = 12+16
-    mass_hcn = 1+12+14
+    global mass_h2  # mean molecular weight of H2 He mix
+    global mass_water
+    global mass_co
+    global mass_hcn
 
     # unpack model variables
     rad_planet, T, log_fco, log_fhcn = theta
@@ -387,13 +405,11 @@ def transit_spectra_no_h2o(pixel_wavelengths, theta, fixed):
 def transit_model_H2OCH4NH3HCN(pixel_wavelengths, theta, fixed):
     # fixed global variables
     p0 = 1
-    mass_h2 = 2.3  # mean molecular weight of H2 He mix
-    # mass_na = 11
-    # mass_k = 19
-    mass_water = 18
-    mass_ch4 = 12 + 1*4
-    mass_nh3 = 7 + 1*3
-    mass_hcn = 1+12+14
+    global mass_h2  # mean molecular weight of H2 He mix
+    global mass_water
+    global mass_ch4
+    global mass_nh3
+    global mass_hcn
 
     # unpack model variables
     rad_planet, T, log_h2o, log_ch4, log_nh3, log_hcn = theta
@@ -469,13 +485,11 @@ def transit_model_H2OCH4NH3HCN(pixel_wavelengths, theta, fixed):
 def transit_model_H2OCH4(pixel_wavelengths, theta, fixed):
     # fixed global variables
     p0 = 1
-    mass_h2 = 2.3  # mean molecular weight of H2 He mix
-    # mass_na = 11
-    # mass_k = 19
-    mass_water = 18
-    mass_ch4 = 12 + 1*4
-    # mass_nh3 = 7 + 1*3
-    # mass_hcn = 1+12+14
+    global mass_h2  # mean molecular weight of H2 He mix
+    global mass_water
+    global mass_ch4
+    # global mass_nh3
+    # global mass_hcn
 
     # unpack model variables
     rad_planet, T, log_h2o, log_ch4 = theta
