@@ -158,11 +158,11 @@ pixel_wavelengths, pixel_transit_depth = transit_spectra_model(pixel_bins, varia
 # noise = (np.random.poisson(lam=signal, size=pixel_transit_depth.size) - signal)/signal
 
 # generate noise instances
-num_noise_inst = 1
+num_noise_inst = 2
 photon_noise = 75 * 1e-6  # set noise to 75ppm
 noise_inst = []
 while len(noise_inst) < num_noise_inst:
- noise_inst.append( np.random.normal(scale=photon_noise, size=pixel_transit_depth.size) )
+ noise_inst.append(np.random.normal(scale=photon_noise, size=pixel_transit_depth.size) )
 
 # add noise to the transit spectrum
 noisey_transit_depth = pixel_transit_depth + noise_inst
@@ -182,7 +182,7 @@ plt.yscale('log')
 
 plt.subplot(211)
 plt.plot(pixel_wavelengths, pixel_transit_depth, label='Ideal')
-plt.errorbar(pixel_wavelengths, noisey_transit_depth[0], yerr=photon_noise, label='Photon noise', fmt='o', capsize=2.0)
+plt.errorbar(pixel_wavelengths, noisey_transit_depth[0], yerr=noise_inst[0], label='Photon noise', fmt='o', capsize=2.0)
 plt.title('Transit depth, R= %d, water= %d ppm' % (R, 10**log_f_h2o/1e-6) )
 plt.legend(('Ideal', 'Photon noise'))
 plt.ylabel('($R_p$/$R_{star}$)$^2$ (%)')
@@ -194,17 +194,18 @@ plt.subplot(211).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
 
 
 # define a likelyhood function
-def log_likelihood(theta):
+def log_likelihood(theta, y, dummy_arg):
     # retrieve the global variables
     global pixel_bins
     global transit_data
     global photon_noise
     global fixed_parameters
-    noisey_transit_depth
+    global transit_data
     # only 'y' changes on the fly
     fixed = fixed_parameters
     x = pixel_bins
-    y = transit_data
+    # y = transit_data
+    yerr = photon_noise
 
     _, model = transit_spectra_model(x, theta, fixed)
 
@@ -254,19 +255,16 @@ def log_probability(theta, x, y, yerr, fixed):
     else:
         # why are they summed?
         # oh, because this is log space. They would be multiplied if this was base space
-        return lp + log_likelihood(theta)
+        return lp + log_likelihood(theta, args=[y])
 
-
-
-yerr = photon_noise
-
+'''
 for transit_data in noisey_transit_depth:
     np.random.seed(42)
     nll = lambda *args: -log_probability(*args)
     # create initial guess from true values, by adding a little noise
     initial = np.array(variables) + variables*(0.1*np.random.randn(5))
     # find the fixed_parameters with maximized likelyhood, according to the given distribution function
-    soln = minimize(nll, initial, args=(pixel_bins, transit_data, yerr, fixed_parameters))
+    soln = minimize(nll, initial, args=(pixel_bins, transit_data, photon_noise, fixed_parameters))
     # unpack the solution
     rad_ml, T_ml, waterfrac_ml, cofrac_ml, hcn_frac_ml = soln.x
 
@@ -289,17 +287,19 @@ plt.title('Transit depth, R= %d, water= %d ppm' % (R, 10**log_f_h2o/1e-6))
 plt.legend()
 plt.ylabel('($R_p$/$R_{star}$)$^2$ (%)')
 plt.subplot(111).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
-
+'''
 
 from multiprocessing import Pool
 
 ndim = len(variables)
 print_number = 0
 sresults = []
-for transit_data in noisey_transit_depth:
-    with Pool() as pool:
+dummy_arg = None
+with Pool() as pool:
+    for transit_data in noisey_transit_depth:
+
         sampler = dynesty.NestedSampler(log_likelihood, prior_trans, ndim,
-                                        nlive=500, pool=pool, queue_size=pool._processes)
+                                        nlive=500, pool=pool, queue_size=pool._processes, logl_args=(transit_data, dummy_arg))
         sampler.run_nested()
         sresults.append(sampler.results)
 
