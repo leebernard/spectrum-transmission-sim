@@ -17,8 +17,8 @@ from planet_sim.transit_toolbox import open_cross_section
 from planet_sim.transit_toolbox import transit_model_H2OCH4NH3HCN
 from planet_sim.transit_toolbox import transit_model_H2OCH4
 
-name = 'macdonald_H2OCH4NH3HCN_test'
-number_trials = 1
+name = 'macdonald_H2OCH4NH3HCN'
+number_trials = 100
 plot = False
 
 start_time = time.time()
