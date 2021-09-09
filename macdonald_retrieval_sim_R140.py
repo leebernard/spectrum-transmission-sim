@@ -195,7 +195,7 @@ if plot:
 
 
 # define a likelyhood function
-def log_likelihood(theta, args):
+def log_likelihood(theta, y, dummy_arg):
     # retrieve the global variables
     global pixel_bins
     global transit_data
@@ -205,7 +205,7 @@ def log_likelihood(theta, args):
     fixed = fixed_parameters
     x = pixel_bins
     yerr = err
-    y = args[0]
+
     _, model = transit_model_H2OCH4NH3HCN(x, theta, fixed)
 
     sigma = yerr**2
@@ -234,12 +234,14 @@ def prior_trans(u):
 
 from multiprocessing import Pool
 
+dummy_arg = None
+
 ndim = 6
 full_results = []
 with Pool() as pool:
     for transit_data in noisey_transit_depth:
         sampler = dynesty.NestedSampler(log_likelihood, prior_trans, ndim,
-                                        nlive=500, pool=pool, queue_size=pool._processes, logl_args=[transit_data])
+                                        nlive=500, pool=pool, queue_size=pool._processes, logl_args=(transit_data, dummy_arg))
         sampler.run_nested()
         full_results.append(sampler.results)
 
@@ -262,7 +264,7 @@ if plot:
 
 # define a new prior function, with only H2O and CH4
 # this is basically the same as only H20
-def loglike_h2och4(theta, args):
+def loglike_h2och4(theta, y, dummy_arg):
     # retrieve the global variables
     global pixel_bins
     global transit_data
@@ -271,7 +273,7 @@ def loglike_h2och4(theta, args):
     # only 'y' changes on the fly
     fixed = fixed_parameters
     x = pixel_bins
-    y = args[0]
+
     yerr = err
 
     _, model = transit_model_H2OCH4(x, theta, fixed)
@@ -287,7 +289,7 @@ with Pool() as pool:
     for transit_data in noisey_transit_depth:
 
         sampler = dynesty.NestedSampler(loglike_h2och4, prior_trans, ndim,
-                                        nlive=500, pool=pool, queue_size=pool._processes, logl_args=[transit_data])
+                                        nlive=500, pool=pool, queue_size=pool._processes, logl_args=(transit_data, dummy_arg))
         sampler.run_nested()
         h2och4_results.append(sampler.results)
 
