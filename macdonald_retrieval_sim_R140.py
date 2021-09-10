@@ -341,13 +341,20 @@ if plot:
     plt.title('H2O-CH4-NH3-HCN vs H2O-CH4, on H2O-CH4 data')
     plt.xlabel('Delta log(z)')
 
+
+'''Save the resutls'''
+
 import pickle
 import os
 
 
-
 # pack the data
-full_results_archive = {'noise_data': noise_inst, 'transit_depth':noisey_transit_depth, 'wavelength_bins': pixel_bins,  'H2OCH4NH3HCN_fit': full_results, 'H2OCH4_fit': h2och4_results}
+full_results_archive = {'noise_data': noise_inst,
+                        'transit_depth':noisey_transit_depth,
+                        'wavelength_bins': pixel_bins,
+                        'free_param_values': theta,
+                        'H2OCH4NH3HCN_fit': full_results,
+                        'H2OCH4_fit': h2och4_results}
 filename = './planet_sim/data/' + name + '_full_retrieval.pkl'
 print('Saving to', filename)
 
@@ -367,6 +374,7 @@ with open(filename, mode='wb') as file:
 
 
 short_archive = {'noise_data': noise_inst,
+                 'free_param_values': theta,
                  'logz_full': logz_full,
                  'logz_h2och4': logz_h2och4,
                  'full_quantiles': full_qauntiles,
