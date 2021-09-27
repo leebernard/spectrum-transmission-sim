@@ -93,7 +93,7 @@ def scale_h(mass, T, g):
     return k*T/(mass*amu_kg * g)
 
 
-def z_lambda(sigma_trace, xi, p0, planet_radius, mass, T, g, sigma_filler=False):
+def z_lambda(sigma_trace, xi, p0, planet_radius, mass, T, g, sigma_filler=None):
     '''
 
     Parameters
@@ -143,7 +143,7 @@ def z_lambda(sigma_trace, xi, p0, planet_radius, mass, T, g, sigma_filler=False)
     return h * np.log(sigma * 1/np.sqrt(k*mass*amu_kg*T*g) * beta)
 
 
-def alpha_lambda(sigma_trace, xi, planet_radius, p0, T, mass, g, star_radius, sigma_filler=False):
+def alpha_lambda(sigma_trace, xi, planet_radius, p0, T, mass, g, star_radius, sigma_filler=None):
     '''
 
     Parameters
@@ -248,7 +248,7 @@ def transit_spectra_model(pixel_wavelengths, theta, fixed):
                                  sigma_filler=h2_cross_sections
                                  )
 
-    '''Turn the data into a spectrum'''
+    '''Sample the data into a spectrum'''
     # set the resolution of the spectrometer
     # flip the data to ascending order
     fine_wavelengths = np.flip(fine_wavelengths)
@@ -261,7 +261,65 @@ def transit_spectra_model(pixel_wavelengths, theta, fixed):
     out_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, pixel_bins=pixel_wavelengths,
                                                                 fine_wl=fine_um_grid,
                                                                 fine_transit=fine_transit_grid)
-    '''end turn data into spectrum'''
+    '''end sample data into spectrum'''
+
+    return out_wavelengths, pixel_transit_depth
+
+
+def transit_spectra_test(pixel_wavelengths, theta, fixed):
+    # fixed global variables
+    p0 = 1
+    global mass_h2  # mean molecular weight of H2 He mix
+    global mass_water
+    global mass_co
+    global mass_hcn
+
+    rad_planet, T, log_f_h2o = theta
+
+    # unpack log ratios
+    water_ratio = 10**log_f_h2o
+
+    # package the ratios into a summable list
+    trace_ratios = np.array([
+        [water_ratio]
+    ])
+
+    # unpack known priors
+    fine_wavelengths, h2o_cross_sections, g_planet, rad_star, R = fixed
+
+    # package the cross sections into an array
+    sigma_trace = np.array(
+        [h2o_cross_sections]
+    )
+
+    # fix atmosphere mass to 2.3
+    mass = 2.3
+    # generate the 'true' transit depth
+    transit_depth = alpha_lambda(sigma_trace=sigma_trace,
+                                 xi=trace_ratios,
+                                 planet_radius=rad_planet,
+                                 p0=p0,
+                                 T=T,
+                                 mass=mass,
+                                 g=g_planet,
+                                 star_radius=rad_star,
+                                 sigma_filler=None
+                                 )
+
+    '''Sample the data into a spectrum'''
+    # set the resolution of the spectrometer
+    # flip the data to ascending order
+    fine_wavelengths = np.flip(fine_wavelengths)
+    transit_depth = np.flip(transit_depth)
+
+    # interpolate the data to even spacing
+    fine_um_grid = np.linspace(fine_wavelengths[0], fine_wavelengths[-1], num=fine_wavelengths.size)
+    fine_transit_grid = griddata(fine_wavelengths, transit_depth, xi=fine_um_grid, method='linear')
+
+    out_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, pixel_bins=pixel_wavelengths,
+                                                                fine_wl=fine_um_grid,
+                                                                fine_transit=fine_transit_grid)
+    '''end sample data into spectrum'''
 
     return out_wavelengths, pixel_transit_depth
 
@@ -302,6 +360,8 @@ def transit_spectra_h2o_only(pixel_wavelengths, theta, fixed):
     # temporary mass cause I don't have He cross sections yet
     sum_ratios = water_ratio
     mass = (1 - sum_ratios)*mass_h2 + water_ratio*mass_water
+
+    # generate the 'true' transit depth
     transit_depth = alpha_lambda(sigma_trace=sigma_trace,
                                  xi=trace_ratios,
                                  planet_radius=rad_planet,
@@ -313,7 +373,7 @@ def transit_spectra_h2o_only(pixel_wavelengths, theta, fixed):
                                  sigma_filler=h2_cross_sections
                                  )
 
-    '''Turn the data into a spectrum'''
+    '''Sample the transit depth into spectrum data'''
     # set the resolution of the spectrometer
     # flip the data to ascending order
     fine_wavelengths = np.flip(fine_wavelengths)
@@ -326,7 +386,7 @@ def transit_spectra_h2o_only(pixel_wavelengths, theta, fixed):
     out_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, pixel_bins=pixel_wavelengths,
                                                                 fine_wl=fine_um_grid,
                                                                 fine_transit=fine_transit_grid)
-    '''end turn data into spectrum'''
+    '''end sample data into spectrum'''
 
     return out_wavelengths, pixel_transit_depth
 
@@ -384,7 +444,7 @@ def transit_spectra_no_h2o(pixel_wavelengths, theta, fixed):
                                  sigma_filler=h2_cross_sections
                                  )
 
-    '''Turn the data into a spectrum'''
+    '''Sample the data into a spectrum'''
     # set the resolution of the spectrometer
     # flip the data to ascending order
     fine_wavelengths = np.flip(fine_wavelengths)
@@ -397,7 +457,7 @@ def transit_spectra_no_h2o(pixel_wavelengths, theta, fixed):
     out_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, pixel_bins=pixel_wavelengths,
                                                                 fine_wl=fine_um_grid,
                                                                 fine_transit=fine_transit_grid)
-    '''end turn data into spectrum'''
+    '''end sample data into spectrum'''
 
     return out_wavelengths, pixel_transit_depth
 
@@ -464,7 +524,7 @@ def transit_model_H2OCH4NH3HCN(pixel_wavelengths, theta, fixed):
                                  sigma_filler=h2_cross_sections
                                  )
 
-    '''Turn the data into a spectrum'''
+    '''Sample the data into a spectrum'''
     # set the resolution of the spectrometer
     # flip the data to ascending order
     fine_wavelengths = np.flip(fine_wavelengths)
@@ -477,7 +537,7 @@ def transit_model_H2OCH4NH3HCN(pixel_wavelengths, theta, fixed):
     out_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, pixel_bins=pixel_wavelengths,
                                                                 fine_wl=fine_um_grid,
                                                                 fine_transit=fine_transit_grid)
-    '''end turn data into spectrum'''
+    '''end sample data into spectrum'''
 
     return out_wavelengths, pixel_transit_depth
 
@@ -538,7 +598,7 @@ def transit_model_H2OCH4(pixel_wavelengths, theta, fixed):
                                  sigma_filler=h2_cross_sections
                                  )
 
-    '''Turn the data into a spectrum'''
+    '''Sample the data into a spectrum'''
     # set the resolution of the spectrometer
     # flip the data to ascending order
     fine_wavelengths = np.flip(fine_wavelengths)
@@ -551,7 +611,7 @@ def transit_model_H2OCH4(pixel_wavelengths, theta, fixed):
     out_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, pixel_bins=pixel_wavelengths,
                                                                 fine_wl=fine_um_grid,
                                                                 fine_transit=fine_transit_grid)
-    '''end turn data into spectrum'''
+    '''end sample data into spectrum'''
 
     return out_wavelengths, pixel_transit_depth
 
