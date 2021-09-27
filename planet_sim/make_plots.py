@@ -44,14 +44,28 @@ hist_ax[0].hist(delta_logz)
 hist_fig.suptitle('Delta log(z)')
 hist_ax[0].set_xlabel('H2O-CH4-NH3-HCN vs H2O-CH4, R=70')
 hist_ax[0].axvline(0.9, label='2 σ', color='r')
-hist_ax[0].axvline(3.0, label='3 σ', color='r')
+hist_ax[0].axvline(5.0, label='3.6 σ', color='r')
+hist_ax[0].axvline(11.0, label='5 σ', color='r')
 hist_ax[0].legend()
-# hist_ax[0].axvline(11)
+
+# plot of just the R70 stuff
+# hist_fig, hist_ax = plt.subplots(1, 1, figsize=(12, 6))
+# hist_ax.hist(delta_logz)
+# hist_fig.suptitle('Delta log(z)')
+# hist_ax.set_xlabel('H2O-CH4-NH3-HCN vs H2O-CH4, R=70')
+# hist_ax.axvline(0.9, label='2 σ', color='r')
+# hist_ax.axvline(5.0, label='3.6 σ', color='r')
+# hist_ax.axvline(11.0, label='5 σ', color='r')
+# hist_ax.legend()
+
+
+hist_ax[0].axvline(11)
 
 hist_ax[1].hist(delta_logz_r140)
 hist_ax[1].set_xlabel('H2O-CH4-NH3-HCN vs H2O-CH4, R=140')
 hist_ax[1].axvline(0.9, label='2 σ', color='r')
 hist_ax[1].axvline(3.0, label='3 σ', color='r')
+hist_ax[1].axvline(11.0, label='5 σ', color='r')
 hist_ax[1].legend()
 
 '''

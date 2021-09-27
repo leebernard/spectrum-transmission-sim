@@ -17,8 +17,8 @@ from planet_sim.transit_toolbox import open_cross_section
 from planet_sim.transit_toolbox import transit_model_H2OCH4NH3HCN
 from planet_sim.transit_toolbox import transit_model_H2OCH4
 
-name = 'macdonald_H2OCH4NH3HCN'
-number_trials = 100
+name = 'macdonald_H2OCH4NH3HCN_underreported_test'
+number_trials = 3
 plot = False
 
 start_time = time.time()
@@ -158,8 +158,8 @@ err = sampling_err*1e-6
 num_noise_inst = number_trials
 noise_inst = []
 while len(noise_inst) < num_noise_inst:
-    # noise_inst.append(np.random.normal(scale=err))
-    noise_inst.append(np.random.normal(scale=err))
+    # increase noise by 25%
+    noise_inst.append(np.random.normal(scale=err*1.25))
 
 # add noise to the transit spectrum
 noisey_transit_depth = pixel_transit_depth + noise_inst
@@ -225,6 +225,7 @@ def prior_trans(u):
     #     print('parameter values:', x)
     return x
 
+plot = True
 
 from multiprocessing import Pool
 
@@ -242,7 +243,7 @@ if plot:
     # make a plot of results
     labels = ["Rad_planet", "T", "log H2O", "log CH4", "log NH3", "log HCN"]
     truths = [rad_planet, T, log_f_h2o, log_fch4, log_fnh3, log_fhcn]
-    for result in full_results[:2]:
+    for result in full_results:
 
         fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
                                       title_kwargs={'y': 1.04}, labels=labels,
@@ -336,6 +337,9 @@ if plot:
     hist_ax.hist(delta_logz)
     plt.title('H2O-CH4-NH3-HCN vs H2O-CH4, on H2O-CH4 data')
     plt.xlabel('Delta log(z)')
+
+
+'''Save the results'''
 
 import pickle
 import os
