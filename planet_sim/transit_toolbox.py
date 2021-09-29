@@ -255,6 +255,7 @@ def transit_spectra_model(pixel_wavelengths, theta, fixed):
     transit_depth = np.flip(transit_depth)
 
     # interpolate the data to even spacing
+    # this should be unnecessary
     fine_um_grid = np.linspace(fine_wavelengths[0], fine_wavelengths[-1], num=fine_wavelengths.size)
     fine_transit_grid = griddata(fine_wavelengths, transit_depth, xi=fine_um_grid, method='linear')
 
@@ -305,6 +306,8 @@ def transit_spectra_test(pixel_wavelengths, theta, fixed):
                                  star_radius=rad_star,
                                  sigma_filler=None
                                  )
+    # test print
+    print('transit_depth', transit_depth.shape)
 
     '''Sample the data into a spectrum'''
     # set the resolution of the spectrometer
@@ -312,13 +315,9 @@ def transit_spectra_test(pixel_wavelengths, theta, fixed):
     fine_wavelengths = np.flip(fine_wavelengths)
     transit_depth = np.flip(transit_depth)
 
-    # interpolate the data to even spacing
-    fine_um_grid = np.linspace(fine_wavelengths[0], fine_wavelengths[-1], num=fine_wavelengths.size)
-    fine_transit_grid = griddata(fine_wavelengths, transit_depth, xi=fine_um_grid, method='linear')
-
     out_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, pixel_bins=pixel_wavelengths,
-                                                                fine_wl=fine_um_grid,
-                                                                fine_transit=fine_transit_grid)
+                                                                fine_wl=fine_wavelengths,
+                                                                fine_transit=transit_depth)
     '''end sample data into spectrum'''
 
     return out_wavelengths, pixel_transit_depth
@@ -531,12 +530,12 @@ def transit_model_H2OCH4NH3HCN(pixel_wavelengths, theta, fixed):
     transit_depth = np.flip(transit_depth)
 
     # interpolate the data to even spacing
-    fine_um_grid = np.linspace(fine_wavelengths[0], fine_wavelengths[-1], num=fine_wavelengths.size)
-    fine_transit_grid = griddata(fine_wavelengths, transit_depth, xi=fine_um_grid, method='linear')
+    # fine_um_grid = np.linspace(fine_wavelengths[0], fine_wavelengths[-1], num=fine_wavelengths.size)
+    # fine_transit_grid = griddata(fine_wavelengths, transit_depth, xi=fine_um_grid, method='linear')
 
     out_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, pixel_bins=pixel_wavelengths,
-                                                                fine_wl=fine_um_grid,
-                                                                fine_transit=fine_transit_grid)
+                                                                fine_wl=fine_wavelengths,
+                                                                fine_transit=transit_depth)
     '''end sample data into spectrum'''
 
     return out_wavelengths, pixel_transit_depth
@@ -604,13 +603,9 @@ def transit_model_H2OCH4(pixel_wavelengths, theta, fixed):
     fine_wavelengths = np.flip(fine_wavelengths)
     transit_depth = np.flip(transit_depth)
 
-    # interpolate the data to even spacing
-    fine_um_grid = np.linspace(fine_wavelengths[0], fine_wavelengths[-1], num=fine_wavelengths.size)
-    fine_transit_grid = griddata(fine_wavelengths, transit_depth, xi=fine_um_grid, method='linear')
-
     out_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, pixel_bins=pixel_wavelengths,
-                                                                fine_wl=fine_um_grid,
-                                                                fine_transit=fine_transit_grid)
+                                                                fine_wl=fine_wavelengths,
+                                                                fine_transit=transit_depth)
     '''end sample data into spectrum'''
 
     return out_wavelengths, pixel_transit_depth
