@@ -48,22 +48,22 @@ wn_end = 9302  # 1.075 um
 water_data_file = './line_lists/H2O_30mbar_1500K.txt'
 water_wno, water_cross_sections_raw = open_cross_section(water_data_file, wn_range=(wn_start, wn_end))
 
-'''
-ch4_data_file = './line_lists/CH4_30mbar_1500K'
-ch4_wno, ch4_cross_sections_raw = open_cross_section(ch4_data_file, wn_range=(wn_start, wn_end))
-
-# co_data_file = './line_lists/CO_30mbar_1500K'
-# co_wno, co_cross_sections = open_cross_section(co_data_file, wn_range=(wn_start, wn_end))
-
-nh3_data_file = './line_lists/NH3_30mbar_1500K'
-nh3_wno, nh3_cross_sections_raw = open_cross_section(nh3_data_file, wn_range=(wn_start, wn_end))
-
-hcn_data_file = './line_lists/HCN_30mbar_1500K'
-hcn_wno, hcn_cross_sections_raw = open_cross_section(hcn_data_file, wn_range=(wn_start, wn_end))
-
+#
+# ch4_data_file = './line_lists/CH4_30mbar_1500K'
+# ch4_wno, ch4_cross_sections_raw = open_cross_section(ch4_data_file, wn_range=(wn_start, wn_end))
+#
+# # co_data_file = './line_lists/CO_30mbar_1500K'
+# # co_wno, co_cross_sections = open_cross_section(co_data_file, wn_range=(wn_start, wn_end))
+#
+# nh3_data_file = './line_lists/NH3_30mbar_1500K'
+# nh3_wno, nh3_cross_sections_raw = open_cross_section(nh3_data_file, wn_range=(wn_start, wn_end))
+#
+# hcn_data_file = './line_lists/HCN_30mbar_1500K'
+# hcn_wno, hcn_cross_sections_raw = open_cross_section(hcn_data_file, wn_range=(wn_start, wn_end))
+#
 h2_data_file = './line_lists/H2H2_CIA_30mbar_1500K.txt'
 h2_wno, h2_cross_sections_raw = open_cross_section(h2_data_file, wn_range=(wn_start, wn_end))
-'''
+
 # interpolate the different cross section grids to the same wavenumber grid
 fine_wave_numbers = np.arange(wn_start, wn_end, 3.0)
 
@@ -74,7 +74,7 @@ water_cross_sections = 10**np.interp(fine_wave_numbers, water_wno, np.log10(wate
 # ch4_cross_sections = 10**np.interp(fine_wave_numbers, ch4_wno, np.log10(ch4_cross_sections_raw))
 # nh3_cross_sections = 10**np.interp(fine_wave_numbers, nh3_wno, np.log10(nh3_cross_sections_raw))
 # hcn_cross_sections = 10**np.interp(fine_wave_numbers, hcn_wno, np.log10(hcn_cross_sections_raw))
-# h2_cross_sections = 10**np.interp(fine_wave_numbers, h2_wno, np.log10(h2_cross_sections_raw))
+h2_cross_sections = 10**np.interp(fine_wave_numbers, h2_wno, np.log10(h2_cross_sections_raw))
 
 # convert wavenumber to wavelength in microns
 fine_wavelengths = 1e4/fine_wave_numbers
@@ -159,7 +159,7 @@ num_noise_inst = number_trials
 noise_inst = []
 while len(noise_inst) < num_noise_inst:
     # increase noise by 25%
-    noise_inst.append(np.random.normal(scale=err*1.25))
+    noise_inst.append(np.random.normal(scale=err, size=pixel_transit_depth.size))
 
 # add noise to the transit spectrum
 noisey_transit_depth = pixel_transit_depth + noise_inst
@@ -229,7 +229,7 @@ def prior_trans(u):
 
 from multiprocessing import Pool
 
-ndim = 6
+ndim = len(theta)
 full_results = []
 dummy_arg = None
 with Pool() as pool:
@@ -241,7 +241,7 @@ with Pool() as pool:
 
 if plot:
     # make a plot of results
-    labels = ["Rad_planet", "T", "log H2O", "log CH4", "log NH3", "log HCN"]
+    labels = ["Rad_planet", "T", "log H2O"]
     truths = [rad_planet, T, log_f_h2o]
     for result in full_results:
 
