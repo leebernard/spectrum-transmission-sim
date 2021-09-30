@@ -132,8 +132,8 @@ def z_lambda(sigma_trace, xi, p0, planet_radius, mass, T, g, sigma_filler=None):
         sigma = (1 - np.sum(xi))*sigma_filler + np.sum(xi*sigma_trace, axis=0)
     else:
         # set volume mixing ratio to 1
-        xi = 1
-        sigma = sigma_trace
+
+        sigma = np.sum(xi*sigma_trace, axis=0)
 
     # set equiv scale height to 0.56 (Line and Parmenteir 2016)
     tau_eq = 0.56
@@ -267,7 +267,12 @@ def transit_spectra_model(pixel_wavelengths, theta, fixed):
     return out_wavelengths, pixel_transit_depth
 
 
-def transit_spectra_test(pixel_wavelengths, theta, fixed):
+def transit_spectra_test(pixel_wavelengths, theta, fixed, debug=False):
+
+    """
+    test routine using h2o atmosphere. Has the option of using CIA
+
+    """
     # fixed global variables
     p0 = 1
     global mass_h2  # mean molecular weight of H2 He mix
@@ -281,20 +286,22 @@ def transit_spectra_test(pixel_wavelengths, theta, fixed):
     water_ratio = 10**log_f_h2o
 
     # package the ratios into a summable list
-    trace_ratios = np.array([
-        [water_ratio]
-    ])
+    trace_ratios = np.atleast_2d(water_ratio)
 
     # unpack known priors
-    fine_wavelengths, h2o_cross_sections, g_planet, rad_star, R = fixed
+    fine_wavelengths, h2o_cross_sections, h2_cross_sections, g_planet, rad_star, R = fixed
 
     # package the cross sections into an array
-    sigma_trace = np.array(
-        [h2o_cross_sections]
-    )
+    sigma_trace = np.atleast_2d(h2o_cross_sections)
 
-    # fix atmosphere mass to 2.3
-    mass = 2.3
+    if h2_cross_sections is not None:
+        # if filler gas is provided, calculate the mean molecular weight
+        weighted_mass_f = mass_water * water_ratio
+        mass = (1 - water_ratio)*mass_h2 + weighted_mass_f
+    else:
+        # fix atmosphere mass to 2.3
+        mass = 2.3
+
     # generate the 'true' transit depth
     transit_depth = alpha_lambda(sigma_trace=sigma_trace,
                                  xi=trace_ratios,
@@ -304,10 +311,12 @@ def transit_spectra_test(pixel_wavelengths, theta, fixed):
                                  mass=mass,
                                  g=g_planet,
                                  star_radius=rad_star,
-                                 sigma_filler=None
+                                 sigma_filler=h2_cross_sections
                                  )
+
     # test print
-    print('transit_depth', transit_depth.shape)
+    if debug:
+        print('transit_depth', transit_depth.shape)
 
     '''Sample the data into a spectrum'''
     # set the resolution of the spectrometer
@@ -324,6 +333,19 @@ def transit_spectra_test(pixel_wavelengths, theta, fixed):
 
 
 def transit_spectra_h2o_only(pixel_wavelengths, theta, fixed):
+    """
+    Old water only atmosphere routine. Superceeded by transit_spectra_test
+
+    Parameters
+    ----------
+    pixel_wavelengths
+    theta
+    fixed
+
+    Returns
+    -------
+
+    """
     # fixed global variables
     p0 = 1
     global mass_h2  # mean molecular weight of H2 He mix
@@ -529,9 +551,9 @@ def transit_model_H2OCH4NH3HCN(pixel_wavelengths, theta, fixed):
     fine_wavelengths = np.flip(fine_wavelengths)
     transit_depth = np.flip(transit_depth)
 
-    # interpolate the data to even spacing
-    # fine_um_grid = np.linspace(fine_wavelengths[0], fine_wavelengths[-1], num=fine_wavelengths.size)
-    # fine_transit_grid = griddata(fine_wavelengths, transit_depth, xi=fine_um_grid, method='linear')
+    # test prints
+    # print('fine_wavelengths', fine_wavelengths.shape)
+    # print('transit_depth', transit_depth.shape)
 
     out_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, pixel_bins=pixel_wavelengths,
                                                                 fine_wl=fine_wavelengths,
