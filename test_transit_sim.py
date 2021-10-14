@@ -135,6 +135,7 @@ pixel_bins = np.linspace(wfc3_start, wfc3_end, sampling_wl.size + 1)
 # fixed parameters of the model
 fixed_parameters = (fine_wavelengths,
                     water_cross_sections,
+                    h2_cross_sections,
                     g_planet,
                     rad_star,
                     R)
@@ -143,7 +144,7 @@ fixed_parameters = (fine_wavelengths,
 theta = (rad_planet,
          T,
          log_f_h2o)
-pixel_wavelengths, pixel_transit_depth = transit_spectra_test(pixel_bins, theta, fixed_parameters)
+pixel_wavelengths, pixel_transit_depth = transit_spectra_test(pixel_bins, theta, fixed_parameters, debug=True)
 
 # generate photon noise from a signal value
 # signal = 1.22e9
@@ -217,6 +218,7 @@ def prior_trans(u):
     x[1] = u[1]*(3000-300) + 300
 
     # set the trace species to uniform priors
+    # -1 to -12
     x[2:] = u[2:]*11 - 12
 
     # global print_number
