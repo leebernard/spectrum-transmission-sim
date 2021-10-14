@@ -131,7 +131,6 @@ def z_lambda(sigma_trace, xi, p0, planet_radius, mass, T, g, sigma_filler=None):
         # calculate average cross section
         sigma = (1 - np.sum(xi))*sigma_filler + np.sum(xi*sigma_trace, axis=0)
     else:
-        # set volume mixing ratio to 1
 
         sigma = np.sum(xi*sigma_trace, axis=0)
 
@@ -298,9 +297,13 @@ def transit_spectra_test(pixel_wavelengths, theta, fixed, debug=False):
         # if filler gas is provided, calculate the mean molecular weight
         weighted_mass_f = mass_water * water_ratio
         mass = (1 - water_ratio)*mass_h2 + weighted_mass_f
+        if debug:
+            print('Molecular weight calculated', mass)
     else:
         # fix atmosphere mass to 2.3
         mass = 2.3
+        if debug:
+            print('Molecular weight fixed to', mass)
 
     # generate the 'true' transit depth
     transit_depth = alpha_lambda(sigma_trace=sigma_trace,
