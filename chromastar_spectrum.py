@@ -67,7 +67,7 @@ nm_grid = np.linspace(nm_slice[0], nm_slice[-1], num=number_pixels)
 gridded_spectrum = griddata(nm_slice, spectrum_counts_slice, xi=nm_grid, method='linear')
 
 # filter the spectrum slice
-resolution = .1 # the resolution of the spectrum in nanometers. This corresponds to FWHM of spectrum lines
+resolution = .04 # the resolution of the spectrum in nanometers. This corresponds to FWHM of spectrum lines
 fwhm = 1/np.mean(np.diff(nm_grid)) * resolution  # the fwhm in terms of data spacing
 sigma = fwhm / (2.0 * np.sqrt(2.0 * np.log(2.0)))
 filtered_counts = gaussian_filter(gridded_spectrum.data, sigma)
@@ -84,7 +84,7 @@ plt.legend(['Gridded ChromaStarPy output', 'Spectrograph output'])
 
 
 # interpolate the data a pixel grid
-sim_nm_per_pixel = .05
+sim_nm_per_pixel = .02
 
 number_pixels = int((nm_slice[-1] - nm_slice[0]) / sim_nm_per_pixel)
 pixel_grid = np.linspace(nm_slice[0], nm_slice[-1], num=number_pixels)
@@ -110,11 +110,14 @@ spectrum2d = np.insert(np.zeros((num_spacial_pixels, pixel_spectrum.size)),  # g
                        axis=0)                                             # axis the spectrum is inserted along
 
 # arbitary flux scaling, b/c the distance to the star and exposure time is arbitrary
-scaling = 2e-27  # this represents (R_star/R)**2 * instrument power * exposure time
+scaling = 5e-27  # this represents (R_star/R)**2 * instrument power * exposure time
 smeared_spectrum2d = gaussian_filter1d(spectrum2d * scaling, sigma=resolution/sim_nm_per_pixel*2, axis=0)
 
 
 # run it through galsim to produce a sensor image
+nobf_filename = 'spectrum_sim_chromostar_bffalse1.fits'
+yesbf_filename = 'spectrum_sim_chromostar_bftrue1.fits'
+
 rng = galsim.BaseDeviate(5678)
 
 spectrum_image = galsim.Image(smeared_spectrum2d, scale=1.0)  # scale is pixel/pixel
@@ -124,6 +127,9 @@ spectrum_interpolated.drawImage(image=spectrum_image,
                                 method='phot',
                                 # center=(15, 57),
                                 sensor=galsim.Sensor())
+
+# save the image
+spectrum_image.write(nobf_filename)
 galsim_sensor_image = spectrum_image.array.copy()
 
 plt.figure('GalSim image')
@@ -143,7 +149,10 @@ spectrum_interpolated.drawImage(image=spectrum_image,
                                                             transpose=True,
                                                             rng=rng,
                                                             diffusion_factor=1.0))
+# save the data
+spectrum_image.write(yesbf_filename)
 galsim_bf_image = spectrum_image.array.copy()
+
 
 
 difference_image = galsim_bf_image[:, 5:-5] - galsim_sensor_image[:, 5:-5]
