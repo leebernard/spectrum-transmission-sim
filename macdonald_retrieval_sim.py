@@ -17,7 +17,7 @@ from planet_sim.transit_toolbox import open_cross_section
 from planet_sim.transit_toolbox import transit_model_H2OCH4NH3HCN
 from planet_sim.transit_toolbox import transit_model_H2OCH4
 
-name = 'macdonald_H2OCH4NH3HCN_underreported_test'
+name = 'macdonald_H2OCH4NH3HCN_1'
 number_trials = 3
 plot = False
 
@@ -72,7 +72,7 @@ ch4_cross_sections = 10**np.interp(fine_wave_numbers, ch4_wno, np.log10(ch4_cros
 nh3_cross_sections = 10**np.interp(fine_wave_numbers, nh3_wno, np.log10(nh3_cross_sections_raw))
 hcn_cross_sections = 10**np.interp(fine_wave_numbers, hcn_wno, np.log10(hcn_cross_sections_raw))
 h2_cross_sections = 10**np.interp(fine_wave_numbers, h2_wno, np.log10(h2_cross_sections_raw))
-
+# h2_cross_sections = None
 # convert wavenumber to wavelength in microns
 fine_wavelengths = 1e4/fine_wave_numbers
 
@@ -143,6 +143,8 @@ theta = (rad_planet,
          log_fch4,
          log_fnh3,
          log_fhcn)
+
+# generate spectrum
 pixel_wavelengths, pixel_transit_depth = transit_model_H2OCH4NH3HCN(pixel_bins, theta, fixed_parameters)
 
 # generate photon noise from a signal value
@@ -158,8 +160,8 @@ err = sampling_err*1e-6
 num_noise_inst = number_trials
 noise_inst = []
 while len(noise_inst) < num_noise_inst:
-    # increase noise by 25%
-    noise_inst.append(np.random.normal(scale=err*1.25))
+    # increase noise by 0%
+    noise_inst.append(np.random.normal(scale=err*1))
 
 # add noise to the transit spectrum
 noisey_transit_depth = pixel_transit_depth + noise_inst

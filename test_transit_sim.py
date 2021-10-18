@@ -34,6 +34,7 @@ Gravity is assumed to be constant (thin shell approximation)
 Everything is 1D...
 
 Future expansions needed:
+Account for pressure dependency in gas absorption
 Account for temperature structure in scale height
 '''
 
