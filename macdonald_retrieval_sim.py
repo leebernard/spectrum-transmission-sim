@@ -18,7 +18,7 @@ from planet_sim.transit_toolbox import transit_model_H2OCH4NH3HCN
 from planet_sim.transit_toolbox import transit_model_H2OCH4
 
 name = 'macdonald_H2OCH4NH3HCN_1'
-number_trials = 3
+number_trials = 100
 plot = False
 
 start_time = time.time()
@@ -227,7 +227,7 @@ def prior_trans(u):
     #     print('parameter values:', x)
     return x
 
-plot = True
+# plot = True
 
 from multiprocessing import Pool
 
