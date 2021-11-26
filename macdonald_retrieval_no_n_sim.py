@@ -18,7 +18,7 @@ from planet_sim.transit_toolbox import transit_model_H2OCH4NH3HCN
 from planet_sim.transit_toolbox import transit_model_H2OCH4
 
 name = 'macdonald_H2OCH4_test'
-number_trials = 3
+number_trials = 100
 plot = False
 
 start_time = time.time()
@@ -188,6 +188,7 @@ if plot:
 
 
 '''Fit the data'''
+# plot = True
 
 # define a likelyhood function
 def log_likelihood(theta, y, dummy_arg):
@@ -225,7 +226,6 @@ def prior_trans(u):
     #     print('parameter values:', x)
     return x
 
-# plot = True
 
 from multiprocessing import Pool
 
@@ -337,6 +337,8 @@ if plot:
     hist_ax.hist(delta_logz)
     plt.title('H2O-CH4-NH3-HCN vs H2O-CH4, on H2O-CH4 data')
     plt.xlabel('Delta log(z)')
+
+    plt.show()
 
 
 '''Save the results'''
