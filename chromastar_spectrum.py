@@ -68,6 +68,7 @@ gridded_spectrum = griddata(nm_slice, spectrum_counts_slice, xi=nm_grid, method=
 
 # filter the spectrum slice
 resolution = .04 # the resolution of the spectrum in nanometers. This corresponds to FWHM of spectrum lines
+R = np.median(nm_grid)/resolution
 fwhm = 1/np.mean(np.diff(nm_grid)) * resolution  # the fwhm in terms of data spacing
 sigma = fwhm / (2.0 * np.sqrt(2.0 * np.log(2.0)))
 filtered_counts = gaussian_filter(gridded_spectrum.data, sigma)
@@ -110,7 +111,7 @@ spectrum2d = np.insert(np.zeros((num_spacial_pixels, pixel_spectrum.size)),  # g
                        axis=0)                                             # axis the spectrum is inserted along
 
 # arbitary flux scaling, b/c the distance to the star and exposure time is arbitrary
-scaling = 5e-27  # this represents (R_star/R)**2 * instrument power * exposure time
+scaling = 5e-28  # this represents (R_star/R)**2 * instrument power * exposure time
 smeared_spectrum2d = gaussian_filter1d(spectrum2d * scaling, sigma=resolution/sim_nm_per_pixel*2, axis=0)
 
 

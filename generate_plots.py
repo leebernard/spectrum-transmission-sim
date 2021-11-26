@@ -31,8 +31,8 @@ fig_size = (8, 12)
 # bftrue_name = 'spectrum_sim_gauss_transpose_itl_bftrue.fits'
 
 title_label = 'Simulated Spectrum using ChromaStarPy'
-bffalse_name = 'spectrum_sim_chromostar_bffalse.fits'
-bftrue_name = 'spectrum_sim_chromostar_bftrue.fits'
+bffalse_name = 'spectrum_sim_chromostar_bffalse1.fits'
+bftrue_name = 'spectrum_sim_chromostar_bftrue1.fits'
 
 with fits.open(bffalse_name) as hdul:
     galsim_sensor_image = hdul[0].data.copy()
@@ -123,23 +123,23 @@ ideal_err = np.sqrt(trace_ideal)
 trace_bf = np.sum(galsim_bf_image, axis=0)
 bf_err = np.sqrt(trace_bf)
 trace_residuals = trace_ideal - trace_bf
-spectrace_fig, spect_axs = plt.subplots(2, figsize=(8, 8))
+
+spectrace_fig, spect_axs = plt.subplots(2, figsize=(12, 8))
 # plt.plot(smeared_spectrum2d[row], label='original data')
-spect_axs[0].errorbar(pixel_grid[5:-5], trace_ideal[5:-5], yerr=ideal_err[5:-5], fmt='o', capsize=2.0, label='No charge diffusion')
-spect_axs[0].errorbar(pixel_grid[5:-5], trace_bf[5:-5], yerr=bf_err[5:-5], fmt='o', capsize=2.0, label='With charge diffusion')
+spect_axs[0].errorbar(pixel_grid[20:-5], trace_ideal[20:-5], yerr=ideal_err[20:-5], fmt='o', capsize=2.0, label='No charge diffusion')
+spect_axs[0].errorbar(pixel_grid[20:-5], trace_bf[20:-5], yerr=bf_err[20:-5], fmt='o', capsize=2.0, label='With charge diffusion')
 spect_axs[0].set_title('Spectrum Profile Trace')
 # spect_axs[0].set_xlabel('Wavelength (nm)')
 spect_axs[0].set_ylabel('Photons (e-)')
 spect_axs[0].legend()
 
 resid_err = np.sqrt(bf_err**2 + ideal_err**2)
-spect_axs[1].errorbar(pixel_grid[5:-5], trace_residuals[5:-5],  yerr=resid_err[5:-5], fmt='o', capsize=2.0, label='Residuals')
+spect_axs[1].errorbar(pixel_grid[20:-5], trace_residuals[20:-5],  yerr=resid_err[20:-5], fmt='o', capsize=2.0, label='Residuals')
 spect_axs[1].axhline(y=0.0, color='r', linestyle='-')
 spect_axs[1].set_title('Residuals of above spectrums')
 spect_axs[1].set_xlabel('Wavelength (nm)')
 spect_axs[1].set_ylabel('Photons (e-)')
-
-plt.legend()
+spect_axs.legend()
 
 
 '''Everything below this is spacial profile, and not scientifically interesting'''
