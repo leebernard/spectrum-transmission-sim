@@ -137,6 +137,8 @@ h2o_ax.set_xlabel('Log H2O fraction (log ppm)')
 h2o_ax.set_ylabel('Delta log(z)')
 
 
+h2och4_ch4 = h2och4_quantiles[:, 3, 1]
+print('mean methane', h2och4_ch4.mean())
 
 
 
