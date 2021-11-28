@@ -17,7 +17,7 @@ from planet_sim.transit_toolbox import open_cross_section
 from planet_sim.transit_toolbox import transit_model_H2OCH4NH3HCN
 from planet_sim.transit_toolbox import transit_model_H2OCH4
 
-name = 'macdonald_H2OCH4_0'
+name = 'macdonald_H2OCH4_1'
 number_trials = 100
 plot = False
 
@@ -89,6 +89,8 @@ T = 1500
 """
 # based upon HD209458b
 # pulled from Wikipedia
+
+'''
 rad_planet = 1.35  # in jovian radii
 g_planet = 9.4  # m/s
 rad_star = 1.203  # solar radii
@@ -102,6 +104,23 @@ log_f_h2o = -5.24
 log_fch4 = -7.84
 log_fnh3 = -6.03
 log_fhcn = -6.35
+'''
+# change the above values to compensate for lack of nitrogen
+rad_planet = 1.36  # in jovian radii
+g_planet = 9.4  # m/s
+rad_star = 1.203  # solar radii
+p0 = 1  # barr
+# below is taken from MacDonald 2017
+T = 1040  # Kelvin
+
+# log_fna = -5.13
+# log_fk =
+log_f_h2o = -6.00
+log_fch4 = -9.74
+log_fnh3 = -6.03
+log_fhcn = -6.35
+
+
 # flip the data to ascending order
 flipped_wl = np.flip(fine_wavelengths)
 # see Hubble WFC3 slitless spectrograph in NIR
