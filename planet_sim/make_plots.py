@@ -137,7 +137,23 @@ h2o_ax.set_xlabel('Log H2O fraction (log ppm)')
 h2o_ax.set_ylabel('Delta log(z)')
 
 
+full_ch4 = full_quantiles[:, 3, 1]
+full_ch4_lower = np.abs(full_quantiles[:, 3, 0] - full_h2o)
+full_ch4_upper = np.abs(full_quantiles[:, 3, 2] - full_h2o)
 h2och4_ch4 = h2och4_quantiles[:, 3, 1]
+h2och4_ch4_lower = np.abs(h2och4_quantiles[:, 3, 0] - h2och4_h2o)
+h2och4_ch4_upper = np.abs(h2och4_quantiles[:, 3, 2] - h2och4_h2o)
+true_ch4 = -7.84
+
+ch4_fig, ch4_ax = plt.subplots(figsize=(8,12))
+ch4_fig.suptitle('95% confidence error bars')
+ch4_ax.errorbar(full_ch4, delta_logz, xerr=(full_ch4_lower, full_ch4_upper), label='H2O-CH4-NH3-HCN (true model)', capsize=2.0, fmt='o')
+ch4_ax.errorbar(h2och4_h2o, delta_logz, xerr=(h2och4_ch4_lower, h2och4_ch4_upper), label='H2O-CH4 model', capsize=2.0, fmt='o')
+ch4_ax.axvline(true_h2o, color='r', label='True CH4 fraction')
+ch4_ax.legend(loc='best')
+ch4_ax.set_xlabel('Log CH4 fraction (log ppm)')
+ch4_ax.set_ylabel('Delta log(z)')
+
 print('mean methane', h2och4_ch4.mean())
 
 
