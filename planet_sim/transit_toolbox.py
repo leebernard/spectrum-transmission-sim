@@ -47,8 +47,6 @@ def open_cross_section(filename, wn_range=None, verbose=False, skiplines=None):
         if verbose:
             print('raw')
 
-
-
         for x in raw_data:
             if x == '\n':
                 warnings.warn('Cross section read in terminated early due to empty line!', UserWarning)
