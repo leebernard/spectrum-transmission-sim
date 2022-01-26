@@ -335,12 +335,13 @@ def transit_spectra_test(pixel_wavelengths, theta, fixed, debug=False):
     return out_wavelengths, pixel_transit_depth
 
 
-def transit_spectra_h2o_only(pixel_wavelengths, theta, fixed):
+def transit_spectra_h2o_only(pixel_wavelengths, theta, fixed, p0=1):
     """
     Old water only atmosphere routine. Superceeded by transit_spectra_test
 
     Parameters
     ----------
+    p0
     pixel_wavelengths
     theta
     fixed
@@ -350,7 +351,6 @@ def transit_spectra_h2o_only(pixel_wavelengths, theta, fixed):
 
     """
     # fixed global variables
-    p0 = 1
     global mass_h2  # mean molecular weight of H2 He mix
     global mass_water
     global mass_co
@@ -415,9 +415,8 @@ def transit_spectra_h2o_only(pixel_wavelengths, theta, fixed):
     return out_wavelengths, pixel_transit_depth
 
 
-def transit_spectra_no_h2o(pixel_wavelengths, theta, fixed):
+def transit_spectra_no_h2o(pixel_wavelengths, theta, fixed, p0=1):
     # fixed global variables
-    p0 = 1
     global mass_h2  # mean molecular weight of H2 He mix
     global mass_water
     global mass_co
@@ -486,9 +485,8 @@ def transit_spectra_no_h2o(pixel_wavelengths, theta, fixed):
     return out_wavelengths, pixel_transit_depth
 
 
-def transit_model_H2OCH4NH3HCN(pixel_wavelengths, theta, fixed):
+def transit_model_H2OCH4NH3HCN(pixel_wavelengths, theta, fixed, p0=1):
     # fixed global variables
-    p0 = 1
     global mass_h2  # mean molecular weight of H2 He mix
     global mass_water
     global mass_ch4
@@ -566,9 +564,8 @@ def transit_model_H2OCH4NH3HCN(pixel_wavelengths, theta, fixed):
     return out_wavelengths, pixel_transit_depth
 
 
-def transit_model_H2OCH4(pixel_wavelengths, theta, fixed):
+def transit_model_H2OCH4(pixel_wavelengths, theta, fixed, p0=1):
     # fixed global variables
-    p0 = 1
     global mass_h2  # mean molecular weight of H2 He mix
     global mass_water
     global mass_ch4
@@ -636,14 +633,13 @@ def transit_model_H2OCH4(pixel_wavelengths, theta, fixed):
     return out_wavelengths, pixel_transit_depth
 
 
-def transit_model_H20(pixel_wavelengths, theta, fixed):
-    return transit_spectra_test(pixel_wavelengths, theta, fixed)
+def transit_model_H20(pixel_wavelengths, theta, fixed, p0=1):
+    return transit_spectra_test(pixel_wavelengths, theta, fixed, p0=p0)
 
 
 
-def transit_model_CH4(pixel_wavelengths, theta, fixed):
+def transit_model_CH4(pixel_wavelengths, theta, fixed, p0=1):
     # fixed global variables
-    p0 = 1
     global mass_h2  # mean molecular weight of H2 He mix
     # global mass_water
     global mass_ch4
