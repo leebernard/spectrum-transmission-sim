@@ -636,7 +636,58 @@ def transit_model_H2OCH4(pixel_wavelengths, theta, fixed):
     return out_wavelengths, pixel_transit_depth
 
 
+def transit_model_H20(pixel_wavelengths, theta, fixed):
+    return transit_spectra_test(pixel_wavelengths, theta, fixed)
 
 
 
+def transit_model_CH4(pixel_wavelengths, theta, fixed):
+    # fixed global variables
+    p0 = 1
+    global mass_h2  # mean molecular weight of H2 He mix
+    # global mass_water
+    global mass_ch4
 
+    # unpack model variables
+    rad_planet, T, log_ch4 = theta
+
+    # unpack log ratios
+    # water_ratio = 10**log_h2o
+    ch4_ratio = 10**log_ch4
+
+    # package the ratios into a summable list
+    trace_ratios = np.atleast_2d(ch4_ratio)
+
+    # unpack known priors
+    fine_wavelengths, h2o_cross_sections, h2_cross_sections, g_planet, rad_star, R = fixed
+
+    # package the cross sections into an array
+    sigma_trace = np.atleast_2d(h2o_cross_sections)
+
+    sum_ratios = np.sum(trace_ratios)
+    weighted_mass_f = [mass_ch4] * trace_ratios
+    mass = (1 - sum_ratios)*mass_h2 + np.sum(weighted_mass_f)
+
+    transit_depth = alpha_lambda(sigma_trace=sigma_trace,
+                                 xi=trace_ratios,
+                                 planet_radius=rad_planet,
+                                 p0=p0,
+                                 T=T,
+                                 mass=mass,
+                                 g=g_planet,
+                                 star_radius=rad_star,
+                                 sigma_filler=h2_cross_sections
+                                 )
+
+    '''Sample the data into a spectrum'''
+    # set the resolution of the spectrometer
+    # flip the data to ascending order
+    fine_wavelengths = np.flip(fine_wavelengths)
+    transit_depth = np.flip(transit_depth)
+
+    out_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, pixel_bins=pixel_wavelengths,
+                                                                fine_wl=fine_wavelengths,
+                                                                fine_transit=transit_depth)
+    '''end sample data into spectrum'''
+
+    return out_wavelengths, pixel_transit_depth
