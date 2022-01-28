@@ -631,7 +631,7 @@ def transit_model_H2OCH4(pixel_wavelengths, theta, fixed, p0=1):
     return out_wavelengths, pixel_transit_depth
 
 
-def transit_model_H20(pixel_wavelengths, theta, fixed, p0=1):
+def transit_model_H2O(pixel_wavelengths, theta, fixed, p0=1):
     return transit_spectra_test(pixel_wavelengths, theta, fixed, p0=p0)
 
 
