@@ -264,14 +264,13 @@ def transit_spectra_model(pixel_wavelengths, theta, fixed):
     return out_wavelengths, pixel_transit_depth
 
 
-def transit_spectra_test(pixel_wavelengths, theta, fixed, debug=False):
+def transit_spectra_test(pixel_wavelengths, theta, fixed, p0=1, debug=False):
 
     """
     test routine using h2o atmosphere. Has the option of using CIA
 
     """
     # fixed global variables
-    p0 = 1
     global mass_h2  # mean molecular weight of H2 He mix
     global mass_water
     global mass_co
@@ -478,6 +477,77 @@ def transit_spectra_no_h2o(pixel_wavelengths, theta, fixed, p0=1):
     out_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, pixel_bins=pixel_wavelengths,
                                                                 fine_wl=fine_um_grid,
                                                                 fine_transit=fine_transit_grid)
+    '''end sample data into spectrum'''
+
+    return out_wavelengths, pixel_transit_depth
+
+
+def transit_model_NULL(pixel_wavelengths, theta, fixed, p0=1):
+    '''
+    Model of the null case, defined as filler gas only.
+
+    Parameters
+    ----------
+    pixel_wavelengths
+    theta
+    fixed
+    p0
+
+    Returns
+    -------
+
+    '''
+
+    global mass_h2
+
+    # unpack model variables
+    rad_planet, T = theta
+
+    # no species ratios, set to zero
+    trace_ratios = 0
+
+    # print('trace ratios', trace_ratios)
+    # unpack known priors
+    fine_wavelengths, h2_cross_sections, g_planet, rad_star, R = fixed
+
+    # package the cross sections into an array
+    sigma_trace = 0
+
+
+    # he/h2 ratio is disabled, since I don't have the cross-sections
+    # h2he_ratio = .17
+    # mass_h2he = (1 - h2he_ratio) * 2 + h2he_ratio * 4
+    # mass = (1 - water_ratio) * mass_h2he + water_ratio * mass_water
+
+    # temporary mass cause I don't have He cross sections yet
+    sum_ratios = np.sum(trace_ratios)
+    weighted_mass_f = [mass_water, mass_ch4, mass_nh3, mass_hcn] * trace_ratios
+    mass = (1 - sum_ratios)*mass_h2 + np.sum(weighted_mass_f)
+
+    transit_depth = alpha_lambda(sigma_trace=sigma_trace,
+                                 xi=trace_ratios,
+                                 planet_radius=rad_planet,
+                                 p0=p0,
+                                 T=T,
+                                 mass=mass,
+                                 g=g_planet,
+                                 star_radius=rad_star,
+                                 sigma_filler=h2_cross_sections
+                                 )
+
+    '''Sample the data into a spectrum'''
+    # set the resolution of the spectrometer
+    # flip the data to ascending order
+    fine_wavelengths = np.flip(fine_wavelengths)
+    transit_depth = np.flip(transit_depth)
+
+    # test prints
+    # print('fine_wavelengths', fine_wavelengths.shape)
+    # print('transit_depth', transit_depth.shape)
+
+    out_wavelengths, pixel_transit_depth = gen_measured_transit(R=R, pixel_bins=pixel_wavelengths,
+                                                                fine_wl=fine_wavelengths,
+                                                                fine_transit=transit_depth)
     '''end sample data into spectrum'''
 
     return out_wavelengths, pixel_transit_depth
