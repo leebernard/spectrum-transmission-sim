@@ -270,10 +270,10 @@ def prior_trans(u):
     # planet radius prior
     x[0] = u[0]*10
     # Temperature
-    x[1] = u[1]*(3000-300) + 300
+    x[1] = u[1]*(3000-100) + 100
 
     # set the trace species to uniform priors
-    x[2:] = u[2:]*11 - 12
+    x[2:] = u[2:]*11 - 11.1
 
     # global print_number
     # if print_number < 100:
