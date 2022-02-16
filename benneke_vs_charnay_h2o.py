@@ -33,7 +33,8 @@ from planet_sim.transit_toolbox import transit_model_NULL
 
 
 
-name = 'k2-18b_h2o_vs_ch4'
+# name = 'k2-18b_h2o_vs_ch4'
+name = 'h2o_true_test'
 number_trials = 3
 plot = True
 
@@ -67,7 +68,7 @@ water_wno, water_cross_sections_raw = open_cross_section(water_data_file, wn_ran
 ch4_data_file = './line_lists/12C-1H4_1785-10000_296K_0.100000.sigma'
 ch4_wno, ch4_cross_sections_raw = open_cross_section(ch4_data_file, wn_range=(wn_start, wn_end))
 
-h2_data_file = './line_lists/H2H2_CIA_30mbar_1500K.txt'
+h2_data_file = './line_lists/H2H2_CIA_300K_0.3bar.txt'
 h2_wno, h2_cross_sections_raw = open_cross_section(h2_data_file, wn_range=(wn_start, wn_end))
 
 # interpolate the different cross section grids to the same wavenumber grid
@@ -112,9 +113,10 @@ p0 = 0.1  # barr
 # approximation of the various literature values
 T = 265  # Kelvin
 
-# log_f_h20 taken from benneke et al
+# log_fh20 taken from benneke et al
 log_fh2o = -2.08
-log_fch4 = -2.08
+# log_fch4 taken from benneke et al limit
+log_fch4 = -2.60
 
 # flip the data to ascending order
 flipped_wl = np.flip(fine_wavelengths)
@@ -159,7 +161,7 @@ fixed_ch4 = (fine_wavelengths,
                     rad_star,
                     R)
 
-theta_ch4 = (rad_planet,
+theta_ch4 = (rad_planet*1.0,
              T,
              log_fch4)
 
@@ -245,17 +247,16 @@ if plot:
 '''Fit the data'''
 
 # define a likelyhood function
-def log_likelihood(theta, y, dummy_arg):
+def log_likelihood_h2o(theta, y, fixed_parameters):
     # retrieve the global variables
+
     global pixel_bins
     global transit_data
     global err
-    global fixed_parameters
     # only 'y' changes on the fly
-    fixed = fixed_parameters
     x = pixel_bins
     yerr = err
-    _, model = transit_model_H2O(x, theta, fixed)
+    _, model = transit_model_H2O(x, theta, fixed_parameters)
 
     sigma = yerr**2
     return -0.5 * np.sum((y - model)**2 / sigma + np.log(sigma))
@@ -284,20 +285,19 @@ def prior_trans(u):
 
 from multiprocessing import Pool
 
-ndim = 6
+ndim = len(theta_h2o)
 full_results = []
-dummy_arg = None
 with Pool() as pool:
     for transit_data in noisey_transit_depth:
-        sampler = dynesty.NestedSampler(log_likelihood, prior_trans, ndim,
-                                        nlive=500, pool=pool, queue_size=pool._processes, logl_args=(transit_data, dummy_arg))
+        sampler = dynesty.NestedSampler(log_likelihood_h2o, prior_trans, ndim,
+                                        nlive=500, pool=pool, queue_size=pool._processes, logl_args=(transit_data, fixed_h2o))
         sampler.run_nested()
         full_results.append(sampler.results)
 
 if plot:
     # make a plot of results
-    labels = ["Rad_planet", "T", "log H2O", "log CH4", "log NH3", "log HCN"]
-    truths = [rad_planet, T, log_fh2o, log_fch4]
+    labels = ["Rad_planet", "T", "log H2O"]
+    truths = [rad_planet, T, log_fh2o]
     for result in full_results:
 
         fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
@@ -313,39 +313,38 @@ if plot:
 
 # define a new prior function, with only H2O and CH4
 # this is basically the same as only H20
-def loglike_h2och4(theta, y, dummy_arg):
+def loglike_ch4(theta, y, fixed_parameters):
     # retrieve the global variables
     global pixel_bins
     global transit_data
     global err
-    global fixed_parameters
     # only 'y' changes on the fly
     fixed = fixed_parameters
     x = pixel_bins
     yerr = err
 
-    _, model = transit_model_H2OCH4(x, theta, fixed)
+    _, model = transit_model_CH4(x, theta, fixed)
 
     sigma = yerr ** 2
     return -0.5 * np.sum((y - model) ** 2 / sigma + np.log(sigma))
 
 
-ndim = 4
-h2och4_results = []
+ndim = len(theta_ch4)
+ch4_results = []
 
 with Pool() as pool:
     for transit_data in noisey_transit_depth:
 
-        sampler = dynesty.NestedSampler(loglike_h2och4, prior_trans, ndim,
-                                        nlive=500, pool=pool, queue_size=pool._processes, logl_args=(transit_data, dummy_arg))
+        sampler = dynesty.NestedSampler(loglike_ch4, prior_trans, ndim,
+                                        nlive=500, pool=pool, queue_size=pool._processes, logl_args=(transit_data, fixed_ch4))
         sampler.run_nested()
-        h2och4_results.append(sampler.results)
+        ch4_results.append(sampler.results)
 
 if plot:
     # make a plot of results
     labels = ["Rad_planet", "T", "log H2O", "log CH4"]
     truths = [rad_planet, T, log_fh2o, log_fch4]
-    for result in h2och4_results:
+    for result in ch4_results:
 
         fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
                                       title_kwargs={'y': 1.04}, labels=labels,
@@ -370,20 +369,20 @@ for results in full_results:
     full_qauntiles.append(quantiles)
 
 
-h2och4_quantiles = []
-for results in h2och4_results:
+ch4_quantiles = []
+for results in ch4_results:
     # extract samples and weights
     samples = results['samples']
     weights = np.exp(results['logwt'] - results['logz'][-1])
     quantiles = [quantile(x_i, q=[0.025, 0.5, 0.975], weights=weights) for x_i in samples.transpose()]
-    h2och4_quantiles.append(quantiles)
+    ch4_quantiles.append(quantiles)
 
 
 '''Analyze the results'''
 
 # Extract the evidience
 logz_full = np.array([result.logz[-1] for result in full_results])
-logz_h2och4 = np.array([result.logz[-1] for result in h2och4_results])
+logz_h2och4 = np.array([result.logz[-1] for result in ch4_results])
 
 delta_logz = logz_full - logz_h2och4
 
@@ -406,8 +405,8 @@ full_results_archive = {'noise_data': noise_inst,
                         'transit_depth':noisey_transit_depth,
                         'free_param_values': theta,
                         'wavelength_bins': pixel_bins,
-                        'H2OCH4NH3HCN_fit': full_results,
-                        'H2OCH4_fit': h2och4_results}
+                        'H2O_fit': full_results,
+                        'CH4_fit': ch4_results}
 filename = './planet_sim/data/' + name + '_full_retrieval.pkl'
 print('Saving to', filename)
 
