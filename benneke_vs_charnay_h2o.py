@@ -105,9 +105,9 @@ T = 1500
 # pulled from Charnay et al 2021
 rad_planet = 2.71 / 11.2  # earth radii converted to jovian radii
 g_planet = 11.5  # m/s
-charnay_rad_star = 0.411  # actually taken from Bezard et al 2020
+# charnay_rad_star = 0.411  # actually taken from Bezard et al 2020
 benneke_rad_star = 0.45  # solar radii
-# use benneke for now
+# use benneke
 rad_star = benneke_rad_star
 p0 = 0.1  # barr
 # approximation of the various literature values
@@ -188,11 +188,11 @@ fixed_null = (fine_wavelengths,
                     R)
 
 # generate spectrum
-pixel_wavelengths_h2o, pixel_transit_depth_h2o = transit_model_H2O(pixel_bins, theta_h2o, fixed_h2o)
+pixel_wavelengths_h2o, pixel_transit_depth_h2o = transit_model_H2O(pixel_bins, theta_h2o, fixed_h2o, p0=p0)
 
-pixel_wavelengths_ch4, pixel_transit_depth_ch4 = transit_model_H2O(pixel_bins, theta_ch4, fixed_ch4)
+pixel_wavelengths_ch4, pixel_transit_depth_ch4 = transit_model_CH4(pixel_bins, theta_ch4, fixed_ch4, p0=p0)
 
-pixel_wavelengths_null, pixel_transit_depth_null = transit_model_NULL(pixel_bins, theta_null, fixed_null)
+pixel_wavelengths_null, pixel_transit_depth_null = transit_model_NULL(pixel_bins, theta_null, fixed_null, p0=p0)
 
 if plot:
     # compare the spectrums, to check
@@ -256,7 +256,7 @@ def log_likelihood_h2o(theta, y, fixed_parameters):
     # only 'y' changes on the fly
     x = pixel_bins
     yerr = err
-    _, model = transit_model_H2O(x, theta, fixed_parameters)
+    _, model = transit_model_H2O(x, theta, fixed_parameters, p0=p0)
 
     sigma = yerr**2
     return -0.5 * np.sum((y - model)**2 / sigma + np.log(sigma))
@@ -323,7 +323,7 @@ def loglike_ch4(theta, y, fixed_parameters):
     x = pixel_bins
     yerr = err
 
-    _, model = transit_model_CH4(x, theta, fixed)
+    _, model = transit_model_CH4(x, theta, fixed, p0=p0)
 
     sigma = yerr ** 2
     return -0.5 * np.sum((y - model) ** 2 / sigma + np.log(sigma))
