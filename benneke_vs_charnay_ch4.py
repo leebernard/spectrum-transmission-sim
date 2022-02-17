@@ -33,7 +33,7 @@ from planet_sim.transit_toolbox import transit_model_NULL
 
 
 
-name = 'k2-18b_h2o_true_1'
+name = 'k2-18b_ch4_true_1'
 # name = 'h2o_true_test'
 number_trials = 100
 plot = False
@@ -209,7 +209,7 @@ generate noise instances!!!
 '''
 
 # pick the h2o case
-pixel_wavelengths, pixel_transit_depth = pixel_wavelengths_h2o, pixel_transit_depth_h2o
+pixel_wavelengths, pixel_transit_depth = pixel_wavelengths_ch4, pixel_transit_depth_ch4
 
 # convert error from parts per million to fractional
 err = sampling_err*1e-6
