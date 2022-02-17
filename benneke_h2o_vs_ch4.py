@@ -33,9 +33,9 @@ from planet_sim.transit_toolbox import transit_model_NULL
 
 
 
-name = 'benneke_vs_charnay_test'
+name = 'benneke_h2o_vs_ch4_1'
 # name = 'h2o_true_test'
-number_trials = 3
+number_trials = 100
 plot = False
 
 start_time = time.time()
