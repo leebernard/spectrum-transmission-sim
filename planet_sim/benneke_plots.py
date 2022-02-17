@@ -20,7 +20,7 @@ delta_logz_ch4true = ch4true_archive['logz_full'] - ch4true_archive['logz_h2och4
 
 
 # hist_fig, hist_ax = plt.subplots(1, figsize=(12, 6))
-hist_fig, hist_ax = plt.subplots(1)
+hist_fig, hist_ax = plt.subplots(1, 1, figsize=(8, 6))
 hist_ax.hist(delta_logz_h2otrue, bins=25)
 hist_fig.suptitle('Δlog(z), with water')
 hist_ax.set_xlabel('H2O vs CH4, R=70')
@@ -30,7 +30,7 @@ hist_ax.axvline(11.0, label='5 σ', color='r')
 hist_ax.legend()
 
 
-hist_fig, hist_ax = plt.subplots(1, 1, figsize=(12, 6))
+hist_fig, hist_ax = plt.subplots(1, 1, figsize=(8, 6))
 hist_ax.hist(delta_logz_ch4true)
 hist_fig.suptitle('Δlog(z), with methane')
 hist_ax.set_xlabel('H2O vs CH4, R=70')

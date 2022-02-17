@@ -225,7 +225,7 @@ while len(noise_inst) < num_noise_inst:
 noisey_transit_depth_h2o = pixel_transit_depth_h2o + noise_inst
 
 # add noise to the ch4 transit spectrum
-noisey_transit_depth_ch4 = pixel_transit_depth_h2o + noise_inst
+noisey_transit_depth_ch4 = pixel_transit_depth_ch4 + noise_inst
 if plot:
     plt.figure('transit depth R%.2f' %R, figsize=(8, 8))
     plt.subplot(212)
