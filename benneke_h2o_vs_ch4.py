@@ -488,18 +488,18 @@ with open(filename, mode='wb') as file:
 
 short_results_h2otrue = {'noise_data': noise_inst,
                  'free_param_values': theta_h2o,
-                 'logz_full': logz_h2o_h2otrue,
-                 'logz_h2och4': logz_ch4_h2otrue,
-                 'full_quantiles': h2o_qauntiles_h2otrue,
-                 'h2och4_quantiles': ch4_quantiles_h2otrue
+                 'logz_h2o': logz_h2o_h2otrue,
+                 'logz_ch4': logz_ch4_h2otrue,
+                 'h2o_quantiles': h2o_qauntiles_h2otrue,
+                 'ch4_quantiles': ch4_quantiles_h2otrue
                  }
 
 short_results_ch4true = {'noise_data': noise_inst,
                  'free_param_values': theta_ch4,
-                 'logz_full': logz_h2o_ch4true,
-                 'logz_h2och4': logz_ch4_ch4true,
-                 'full_quantiles': h2o_qauntiles_ch4true,
-                 'h2och4_quantiles': ch4_quantiles_ch4true
+                 'logz_h2o': logz_h2o_ch4true,
+                 'logz_ch4': logz_ch4_ch4true,
+                 'h2o_quantiles': h2o_qauntiles_ch4true,
+                 'ch4_quantiles': ch4_quantiles_ch4true
                  }
 
 short_archive = {'h2o_true': short_results_h2otrue,
