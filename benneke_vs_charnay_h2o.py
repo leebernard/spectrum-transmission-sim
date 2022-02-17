@@ -33,10 +33,10 @@ from planet_sim.transit_toolbox import transit_model_NULL
 
 
 
-# name = 'k2-18b_h2o_vs_ch4'
-name = 'h2o_true_test'
-number_trials = 3
-plot = True
+name = 'k2-18b_h2o_true_1'
+# name = 'h2o_true_test'
+number_trials = 100
+plot = False
 
 start_time = time.time()
 print('Starting simulation run on instance', name)
@@ -342,8 +342,8 @@ with Pool() as pool:
 
 if plot:
     # make a plot of results
-    labels = ["Rad_planet", "T", "log H2O", "log CH4"]
-    truths = [rad_planet, T, log_fh2o, log_fch4]
+    labels = ["Rad_planet", "T", "log CH4"]
+    truths = [rad_planet, T, log_fch4]
     for result in ch4_results:
 
         fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
@@ -382,9 +382,9 @@ for results in ch4_results:
 
 # Extract the evidience
 logz_full = np.array([result.logz[-1] for result in full_results])
-logz_h2och4 = np.array([result.logz[-1] for result in ch4_results])
+logz_ch4 = np.array([result.logz[-1] for result in ch4_results])
 
-delta_logz = logz_full - logz_h2och4
+delta_logz = logz_full - logz_ch4
 
 if plot:
     hist_fig, hist_ax = plt.subplots()
@@ -403,7 +403,7 @@ import os
 # pack the data
 full_results_archive = {'noise_data': noise_inst,
                         'transit_depth':noisey_transit_depth,
-                        'free_param_values': theta,
+                        'free_param_values': theta_h2o,
                         'wavelength_bins': pixel_bins,
                         'H2O_fit': full_results,
                         'CH4_fit': ch4_results}
@@ -426,11 +426,11 @@ with open(filename, mode='wb') as file:
 
 
 short_archive = {'noise_data': noise_inst,
-                 'free_param_values': theta,
+                 'free_param_values': theta_h2o,
                  'logz_full': logz_full,
-                 'logz_h2och4': logz_h2och4,
+                 'logz_h2och4': logz_ch4,
                  'full_quantiles': full_qauntiles,
-                 'h2och4_quantiles': h2och4_quantiles
+                 'h2och4_quantiles': ch4_quantiles
                  }
 filename = './planet_sim/data/' + name + '_compact_retrieval.pkl'
 print('Saving to', filename)
