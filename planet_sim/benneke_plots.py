@@ -11,12 +11,10 @@ h2otrue_archive = benneke_archive['h2o_true']
 ch4true_archive = benneke_archive['ch4_true']
 
 # analyze the standard data
-delta_logz_h2otrue = h2otrue_archive['logz_full'] - h2otrue_archive['logz_h2och4']
-# above should be
-# delta_logz_h2otrue = h2otrue_archive['logz_h2o'] - h2otrue_archive['logz_ch4']
+delta_logz_h2otrue = h2otrue_archive['logz_h2o'] - h2otrue_archive['logz_ch4']
 
 
-delta_logz_ch4true = ch4true_archive['logz_full'] - ch4true_archive['logz_h2och4']
+delta_logz_ch4true = ch4true_archive['logz_h2o'] - ch4true_archive['logz_ch4']
 
 
 # hist_fig, hist_ax = plt.subplots(1, figsize=(12, 6))
