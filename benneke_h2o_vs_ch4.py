@@ -33,9 +33,10 @@ from planet_sim.transit_toolbox import transit_model_NULL
 
 
 
-name = 'benneke_h2o_vs_ch4_1'
-# name = 'h2o_true_test'
+name = 'benneke_h2o_vs_ch4_noise125'
+# name = 'noisefactor_test'
 number_trials = 100
+noise_scale = 1.25
 plot = False
 
 start_time = time.time()
@@ -218,8 +219,8 @@ err = sampling_err*1e-6
 num_noise_inst = number_trials
 noise_inst = []
 while len(noise_inst) < num_noise_inst:
-    # increase noise by 0%
-    noise_inst.append(np.random.normal(scale=err*1))
+    # increase noise by scalefactor
+    noise_inst.append(np.random.normal(scale=err*noise_scale))
 
 # add noise to the h2o transit spectrum
 noisey_transit_depth_h2o = pixel_transit_depth_h2o + noise_inst
