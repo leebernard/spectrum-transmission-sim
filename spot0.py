@@ -1,7 +1,7 @@
 from numpy import sqrt,cos,sin,pi,arange,newaxis,hstack
 # from rotsky import rotsky
 
-def spot(x00=0., y00=0., z00=0., x11=0., phi=0, theta_1=90., theta_2=30., dtheta=0., Fn=12., efl1=4.,efl2=10.7, sep=6., N=203, recenter=False, rotate_detector=False, step=3):
+def spot(x00=0., y00=0., z00=0., x11=0., phi=0, theta_1=90., theta_2=30., dtheta=0., Fn=12., efl1=4., efl2=10.7, sep=6., N=203, recenter=False, rotate_detector=False, step=3):
     """
       sending focused light through an 2 OAP relay
         (default units are degrees and inches)
@@ -27,7 +27,7 @@ def spot(x00=0., y00=0., z00=0., x11=0., phi=0, theta_1=90., theta_2=30., dtheta
     rad2 = xx**2 + yy**2
     j = (rad2 > Rs**2)*(rad2 <= Rt**2)
     z = xx[j]; y = yy[j]; x = 2*Rt*Fn+0*y
-    xx=0;yy=0;rad2=0;j=0
+    xx=0; yy=0; rad2=0; j=0
 
     print ("""Beam Size 0: %.4f, %.4f (%.4f)""" % (z.max()-z.min(), y.max()-y.min(), 2*Rt))
 
@@ -58,9 +58,9 @@ def spot(x00=0., y00=0., z00=0., x11=0., phi=0, theta_1=90., theta_2=30., dtheta
         z0 -= z0+s0*dz[0] + efl1*cos(th1)
 
     # path step to oap surface at z = (x^2+y^2)/(4*f1), with z=z0+f1+s*dz
-    s = ( 2*f1*dz-x0*dx-y0*dy + sqrt( (2*f1*dz-x0*dx-y0*dy)**2 + (dx**2+dy**2)*(4*f1*(f1+z0)-x0**2-y0**2) ) )/(dx**2+dy**2)
+    s = ( 2*f1*dz - x0*dx - y0*dy + sqrt( (2*f1*dz-x0*dx-y0*dy)**2 + (dx**2+dy**2)*(4*f1*(f1+z0)-x0**2-y0**2) ) )/(dx**2+dy**2)
 
-    x, y ,z = x0+s*dx, y0+s*dy, z0+f1+s*dz
+    x, y, z = x0+s*dx, y0+s*dy, z0+f1+s*dz
     if (step==0): return x, y, z, dx, dy, dz
 
     print ("""Beam Size 1: %.4f, %.4f (%.4f)""" % (x.max()-x.min(), y.max()-y.min(), efl1/Fn))
@@ -68,14 +68,14 @@ def spot(x00=0., y00=0., z00=0., x11=0., phi=0, theta_1=90., theta_2=30., dtheta
     # bounce off the first mirror, normal vector n
     nx, ny, nz = -x/(2*f1), -y/(2*f1), 1.
     norm = sqrt(nx*nx+ny*ny+nz*nz)
-    nx/=norm; ny/=norm; nz/=norm
-    vdotn = dx*nx+dy*ny+dz*nz
+    nx /= norm; ny /= norm; nz /= norm
+    vdotn = dx*nx + dy*ny + dz*nz
     # reflection from vector d to r: r = d-2*(d.n)*n
     dx1, dy1, dz1 = dx-2*vdotn*nx, dy-2*vdotn*ny, dz-2*vdotn*nz
 
     # move up
     s = 0.5*sep/dz1
-    x, y, z = x+s*dx1, y+s*dy1, z+s*dz1
+    x, y, z = x + s*dx1, y + s*dy1, z + s*dz1
 
     # reflect back
     dz1 = -dz1
@@ -92,9 +92,9 @@ def spot(x00=0., y00=0., z00=0., x11=0., phi=0, theta_1=90., theta_2=30., dtheta
         #z[0] + s0*dz1[0] = 0.5*efl2*(1-cos(th2))
         s0 = ( 0.5*efl2*(1-cos(th2))-z[0] )/dz1[0]
         print ("s0:", s0)
-        y -= y[0]+s0*dy1[0]
+        y -= y[0] + s0*dy1[0]
         #x -= x[0]+s0*dx1[0] - efl2*sin(th2)
-        x -= x[0]+s0*dx1[0] + efl2*sin(th2)
+        x -= x[0] + s0*dx1[0] + efl2*sin(th2)
 
     # path length to 2nd mirror
     # s^2*(dx1^2+dy1^2) + 2*s*(x*dx1+y*dy1-2*f2*dz1) + (x^2+y^2-4*f2*z) = 0
@@ -137,3 +137,13 @@ def spot(x00=0., y00=0., z00=0., x11=0., phi=0, theta_1=90., theta_2=30., dtheta
 
     if step==3:
         return x2, y2, z2, dx2, dy2, dz2
+
+
+
+
+
+
+
+
+
+
