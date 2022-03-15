@@ -5,7 +5,7 @@ from matplotlib.ticker import MaxNLocator
 
 from spot0 import spot
 
-
+figsize = (6, 6)
 
 ps = 18.e-6  # pixel pitch (meters)
 F1 = 4*2.54*1.e-2  # focal length of 1st OAP (meters)
@@ -14,7 +14,7 @@ sep = 6*2.54*1.e-2  # this is converting inches to meters
 
 x, y, z, dx, dy, dz = spot(theta_1=90., theta_2=30., sep=sep, efl1=F1, efl2=F2)
 
-fig, ax = plt.subplots(figsize=(8, 8))
+fig, ax = plt.subplots(figsize=figsize)
 ax.plot( (y[1:] - y[0])/ps, (z[1:]-z[0])/ps, 'o')
 ax.set_xlim(1, -1)
 ax.set_ylim(1, -1)
@@ -24,7 +24,7 @@ ax.set_title('Ideally aligned spectrograph')
 '''Focus misalignment'''
 oof = 100
 focus_offset = oof*1e-6  # convert microns to meters
-fig2, ax2 = plt.subplots(figsize=(8, 8))
+fig2, ax2 = plt.subplots(figsize=figsize)
 alpha = 0.3
 ax2.set_title('Out of focus (oof) examples')
 ax2.set_xlabel('Pixels')
@@ -77,7 +77,7 @@ plt.legend()
 arcmin = 60  # 1/2 degree
 offset = arcmin/60*np.pi/180 * F1 # convert armins to effective slit offset, using SSA
 
-fig2, ax2 = plt.subplots(figsize=(8, 8))
+fig2, ax2 = plt.subplots(figsize=figsize)
 alpha = 0.3
 ax2.set_title('OAP misalignment examples')
 ax2.set_xlabel('Pixels')
@@ -130,7 +130,7 @@ ax2.legend()
 
 
 '''Combination of effects'''
-fig3, ax3 = plt.subplots(figsize=(8, 8))
+fig3, ax3 = plt.subplots(figsize=figsize)
 alpha = 0.3
 ax3.set_title('OAP misalignment examples')
 ax3.set_xlabel('Pixels')
