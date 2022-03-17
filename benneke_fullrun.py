@@ -33,10 +33,10 @@ from planet_sim.transit_toolbox import transit_model_NULL
 
 
 
-name = 'benneke_h2o_vs_ch4_noise125'
-# name = 'noisefactor_test'
+# name = 'benneke_h2o_vs_ch4_noise125'
+name = 'fullrun_test'
 number_trials = 4
-noise_scale = 1.25
+noise_scale = 1.00
 plot = False
 
 start_time = time.time()
@@ -119,6 +119,7 @@ log_fh2o = -2.08
 # log_fch4 taken from benneke et al limit
 log_fch4 = -2.60
 
+
 # flip the data to ascending order
 flipped_wl = np.flip(fine_wavelengths)
 # see Hubble WFC3 slitless spectrograph in NIR
@@ -177,7 +178,7 @@ fixed_h2och4 = (fine_wavelengths,
 theta_h2och4 = (rad_planet,
                 T,
                 log_fh2o,
-                log_fch4)
+                log_fh2o)  # keep the mixing ratio of water and methane 1:1
 
 theta_null = (rad_planet,
               T)
@@ -194,6 +195,8 @@ pixel_wavelengths_h2o, pixel_transit_depth_h2o = transit_model_H2O(pixel_bins, t
 pixel_wavelengths_ch4, pixel_transit_depth_ch4 = transit_model_CH4(pixel_bins, theta_ch4, fixed_ch4, p0=p0)
 
 pixel_wavelengths_null, pixel_transit_depth_null = transit_model_NULL(pixel_bins, theta_null, fixed_null, p0=p0)
+
+pixel_wavelengths_mix, pixel_transit_depth_mix = transit_model_H2OCH4(pixel_bins, theta_h2och4, fixed_h2och4, p0=p0)
 
 if np.array_equal(pixel_wavelengths_h2o, pixel_wavelengths_ch4):
     pixel_wavelengths = pixel_wavelengths_h2o
@@ -227,6 +230,10 @@ noisey_transit_depth_h2o = pixel_transit_depth_h2o + noise_inst
 
 # add noise to the ch4 transit spectrum
 noisey_transit_depth_ch4 = pixel_transit_depth_ch4 + noise_inst
+
+# add noise to the mixed spectrum
+noisey_transit_depth_mix = pixel_transit_depth_mix + noise_inst
+
 if plot:
     plt.figure('transit depth R%.2f' %R, figsize=(8, 8))
     plt.subplot(212)
@@ -310,6 +317,14 @@ with Pool() as pool:
         h2o_results_ch4true.append(sampler.results)
 
 
+# and again, for the mixed spectrum
+h2o_results_mixtrue = []
+with Pool() as pool:
+    for transit_data in noisey_transit_depth_mix:
+        sampler = dynesty.NestedSampler(log_likelihood_h2o, prior_trans, ndim,
+                                        nlive=500, pool=pool, queue_size=pool._processes, logl_args=(transit_data, fixed_h2o))
+        sampler.run_nested()
+        h2o_results_mixtrue.append(sampler.results)
 
 if plot:
     # make a plot of results
@@ -366,6 +381,15 @@ with Pool() as pool:
         sampler.run_nested()
         ch4_results_ch4true.append(sampler.results)
 
+# and again, for the mixed spectrum
+ch4_results_mixtrue = []
+with Pool() as pool:
+    for transit_data in noisey_transit_depth_mix:
+        sampler = dynesty.NestedSampler(loglike_ch4, prior_trans, ndim,
+                                        nlive=500, pool=pool, queue_size=pool._processes, logl_args=(transit_data, fixed_ch4))
+        sampler.run_nested()
+        ch4_results_mixtrue.append(sampler.results)
+
 if plot:
     # make a plot of results
     labels = ["Rad_planet", "T", "log CH4"]
@@ -379,7 +403,7 @@ if plot:
         # fig.savefig('/test/my_first_cornerplot.png')
 
 
-
+plot = True
 # finally, define a log likelyhood for the mixed case
 def loglike_h2och4(theta, y, fixed_parameters):
     # retrieve the global variables
@@ -397,7 +421,7 @@ def loglike_h2och4(theta, y, fixed_parameters):
     return -0.5 * np.sum((y - model) ** 2 / sigma + np.log(sigma))
 
 
-ndim = len(theta_h2o + 1)  # +1 for the extra species
+ndim = len(theta_h2o) + 1  # +1 for the extra species
 h2och4_results_h2otrue = []
 with Pool() as pool:
     for transit_data in noisey_transit_depth_h2o:
@@ -417,11 +441,22 @@ with Pool() as pool:
         sampler.run_nested()
         h2och4_results_ch4true.append(sampler.results)
 
+# and again, for the mixed model
+h2och4_results_mixtrue = []
+with Pool() as pool:
+    for transit_data in noisey_transit_depth_mix:
+
+        sampler = dynesty.NestedSampler(loglike_h2och4, prior_trans, ndim,
+                                        nlive=500, pool=pool, queue_size=pool._processes, logl_args=(transit_data, fixed_h2och4))
+        sampler.run_nested()
+        h2och4_results_mixtrue.append(sampler.results)
+
+
 if plot:
     # make a plot of results
     labels = ["Rad_planet", "T", "log H2O", "log CH4"]
     truths = [rad_planet, T, log_fh2o, log_fch4]
-    for result in ch4_results_h2otrue:
+    for result in h2och4_results_mixtrue:
 
         fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
                                       title_kwargs={'y': 1.04}, labels=labels,
@@ -513,10 +548,24 @@ delta_logz_ch4true = logz_h2o_ch4true - logz_ch4_ch4true
 delta_logz_ch4true_h2ovsmix = logz_h2och4_ch4true - logz_h2o_ch4true
 delta_logz_ch4true_ch4vsmix = logz_h2och4_ch4true - logz_ch4_ch4true
 
+# and for the mixed case
+logz_h2o_mixtrue = np.array([result.logz[-1] for result in h2o_results_mixtrue])
+logz_ch4_mixtrue = np.array([result.logz[-1] for result in ch4_results_mixtrue])
+logz_h2och4_mixtrue = np.array([result.logz[-1] for result in h2och4_results_mixtrue])
+
+delta_logz_mixtrue = logz_h2o_mixtrue - logz_ch4_mixtrue
+delta_logz_mixtrue_h2ovsmix = logz_h2och4_mixtrue - logz_h2o_mixtrue
+delta_logz_mixtrue_ch4vsmix = logz_h2och4_mixtrue - logz_ch4_mixtrue
+
 if plot:
     hist_fig, hist_ax = plt.subplots()
-    hist_ax.hist(delta_logz_h2otrue)
-    plt.title('H2O-CH4-NH3-HCN vs H2O-CH4, on H2O-CH4 data')
+    hist_ax.hist(delta_logz_mixtrue)
+    plt.title('H2O vs CH4, on mixture data')
+    plt.xlabel('Delta log(z)')
+
+    hist_fig, hist_ax = plt.subplots()
+    hist_ax.hist(delta_logz_mixtrue_h2ovsmix)
+    plt.title('H2O vs H2OCH4 mix, on mixture data')
     plt.xlabel('Delta log(z)')
 
 
@@ -528,22 +577,34 @@ import os
 
 
 # pack the data
-h2otrue_full_results =  {'noise_data': noise_inst,
+h2otrue_full_results = {'noise_data': noise_inst,
                         'transit_depth':noisey_transit_depth_h2o,
                         'free_param_values': theta_h2o,
                         'wavelength_bins': pixel_bins,
                         'H2O_fit': h2o_results_h2otrue,
-                        'CH4_fit': ch4_results_h2otrue}
+                        'CH4_fit': ch4_results_h2otrue,
+                        'H2OCH4_fit': h2och4_results_h2otrue}
 
-ch4true_full_results =  {'noise_data': noise_inst,
+ch4true_full_results = {'noise_data': noise_inst,
                         'transit_depth':noisey_transit_depth_ch4,
                         'free_param_values': theta_ch4,
                         'wavelength_bins': pixel_bins,
                         'H2O_fit': h2o_results_ch4true,
-                        'CH4_fit': ch4_results_ch4true}
+                        'CH4_fit': ch4_results_ch4true,
+                        'H2OCH4_fit': h2och4_results_ch4true}
+
+mixtrue_full_results = {'noise_data': noise_inst,
+                        'transit_depth':noisey_transit_depth_mix,
+                        'free_param_values': theta_h2och4,
+                        'wavelength_bins': pixel_bins,
+                        'H2O_fit': h2o_results_mixtrue,
+                        'CH4_fit': ch4_results_mixtrue,
+                        'H2OCH4_fit': h2och4_results_mixtrue}
 
 full_results_archive = {'h2o_true': h2otrue_full_results,
-                        'ch4_true': ch4true_full_results}
+                        'ch4_true': ch4true_full_results,
+                        'h2och4_true': mixtrue_full_results}
+
 filename = './planet_sim/data/' + name + '_full_retrieval.pkl'
 print('Saving to', filename)
 
@@ -563,23 +624,35 @@ with open(filename, mode='wb') as file:
 
 
 short_results_h2otrue = {'noise_data': noise_inst,
-                 'free_param_values': theta_h2o,
-                 'logz_h2o': logz_h2o_h2otrue,
-                 'logz_ch4': logz_ch4_h2otrue,
-                 'h2o_quantiles': h2o_qauntiles_h2otrue,
-                 'ch4_quantiles': ch4_quantiles_h2otrue
-                 }
+                         'free_param_values': theta_h2o,
+                         'logz_h2o': logz_h2o_h2otrue,
+                         'logz_ch4': logz_ch4_h2otrue,
+                         'logz_h2och4': logz_h2och4_h2otrue,
+                         'h2o_quantiles': h2o_qauntiles_h2otrue,
+                         'ch4_quantiles': ch4_quantiles_h2otrue
+                         }
 
 short_results_ch4true = {'noise_data': noise_inst,
-                 'free_param_values': theta_ch4,
-                 'logz_h2o': logz_h2o_ch4true,
-                 'logz_ch4': logz_ch4_ch4true,
-                 'h2o_quantiles': h2o_qauntiles_ch4true,
-                 'ch4_quantiles': ch4_quantiles_ch4true
-                 }
+                         'free_param_values': theta_ch4,
+                         'logz_h2o': logz_h2o_ch4true,
+                         'logz_ch4': logz_ch4_ch4true,
+                         'logz_h2och4': logz_h2och4_ch4true,
+                         'h2o_quantiles': h2o_qauntiles_ch4true,
+                         'ch4_quantiles': ch4_quantiles_ch4true
+                         }
+
+short_results_mixtrue = {'noise_data': noise_inst,
+                         'free_param_values': theta_h2och4,
+                         'logz_h2o': logz_h2o_mixtrue,
+                         'logz_ch4': logz_ch4_mixtrue,
+                         'logz_h2och4': logz_h2och4_mixtrue,
+                         'h2o_quantiles': [],
+                         'ch4_quantiles': []
+                         }
 
 short_archive = {'h2o_true': short_results_h2otrue,
-                 'ch4_true': short_results_ch4true}
+                 'ch4_true': short_results_ch4true,
+                 'h2och4_true': short_results_mixtrue}
 
 filename = './planet_sim/data/' + name + '_compact_retrieval.pkl'
 print('Saving to', filename)
