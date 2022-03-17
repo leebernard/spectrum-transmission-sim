@@ -33,9 +33,9 @@ from planet_sim.transit_toolbox import transit_model_NULL
 
 
 
-# name = 'benneke_h2o_vs_ch4_noise125'
-name = 'fullrun_test'
-number_trials = 4
+name = 'benneke_h2o_vs_ch4_mixedcase'
+# name = 'fullrun_test'
+number_trials = 100
 noise_scale = 1.00
 plot = False
 
@@ -403,7 +403,7 @@ if plot:
         # fig.savefig('/test/my_first_cornerplot.png')
 
 
-plot = True
+# plot = True
 # finally, define a log likelyhood for the mixed case
 def loglike_h2och4(theta, y, fixed_parameters):
     # retrieve the global variables
