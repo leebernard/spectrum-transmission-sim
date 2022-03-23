@@ -33,9 +33,9 @@ from planet_sim.transit_toolbox import transit_model_NULL
 
 
 
-name = 'benneke_h2o_vs_ch4_mixedcase'
+name = 'benneke_h2o_vs_ch4_mixedcase_500smpl'
 # name = 'fullrun_test'
-number_trials = 100
+number_trials = 500
 noise_scale = 1.00
 plot = False
 
@@ -464,12 +464,24 @@ if plot:
         fig.suptitle('Red lines are true values', fontsize=14)
         # fig.savefig('/test/my_first_cornerplot.png')
 
+    labels = ["Rad_planet", "T", "log CH4"]
+    truths = [rad_planet, T, log_fch4]
+    for result in ch4_results_mixtrue:
+
+        fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
+                                      title_kwargs={'y': 1.04}, labels=labels,
+                                      fig=plt.subplots(len(truths), len(truths), figsize=(10, 10)))
+        fig.suptitle('Red lines are true values', fontsize=14)
+        # fig.savefig('/test/my_first_cornerplot.png')
+
 
 '''Extract relevant results from the analysis'''
 
 from dynesty.utils import quantile
 
 # extract the quantile data
+
+# h2o model quantiles
 h2o_qauntiles_h2otrue = []
 for results in h2o_results_h2otrue:
     # extract samples and weights
@@ -490,7 +502,18 @@ for results in h2o_results_ch4true:
     quantiles = [quantile(x_i, q=[0.025, 0.5, 0.975], weights=weights) for x_i in samples.transpose()]
     h2o_qauntiles_ch4true.append(quantiles)
 
+h2o_qauntiles_mixtrue = []
+for results in h2o_results_mixtrue:
+    # extract samples and weights
+    samples = results['samples']
+    weights = np.exp(results['logwt'] - results['logz'][-1])
+    print('Sample shape', samples.shape)
 
+    quantiles = [quantile(x_i, q=[0.025, 0.5, 0.975], weights=weights) for x_i in samples.transpose()]
+    h2o_qauntiles_mixtrue.append(quantiles)
+
+
+# ch4 model quantiles
 ch4_quantiles_h2otrue = []
 for results in ch4_results_h2otrue:
     # extract samples and weights
@@ -498,7 +521,6 @@ for results in ch4_results_h2otrue:
     weights = np.exp(results['logwt'] - results['logz'][-1])
     quantiles = [quantile(x_i, q=[0.025, 0.5, 0.975], weights=weights) for x_i in samples.transpose()]
     ch4_quantiles_h2otrue.append(quantiles)
-
 
 ch4_quantiles_ch4true = []
 for results in ch4_results_ch4true:
@@ -508,7 +530,16 @@ for results in ch4_results_ch4true:
     quantiles = [quantile(x_i, q=[0.025, 0.5, 0.975], weights=weights) for x_i in samples.transpose()]
     ch4_quantiles_ch4true.append(quantiles)
 
+ch4_quantiles_mixtrue = []
+for results in ch4_results_mixtrue:
+    # extract samples and weights
+    samples = results['samples']
+    weights = np.exp(results['logwt'] - results['logz'][-1])
+    quantiles = [quantile(x_i, q=[0.025, 0.5, 0.975], weights=weights) for x_i in samples.transpose()]
+    ch4_quantiles_mixtrue.append(quantiles)
 
+
+# h2o ch4 mix model
 h2och4_quantiles_h2otrue = []
 for results in h2och4_results_h2otrue:
     # extract samples and weights
@@ -517,7 +548,6 @@ for results in h2och4_results_h2otrue:
     quantiles = [quantile(x_i, q=[0.025, 0.5, 0.975], weights=weights) for x_i in samples.transpose()]
     h2och4_quantiles_h2otrue.append(quantiles)
 
-
 h2och4_quantiles_ch4true = []
 for results in h2och4_results_ch4true:
     # extract samples and weights
@@ -525,6 +555,16 @@ for results in h2och4_results_ch4true:
     weights = np.exp(results['logwt'] - results['logz'][-1])
     quantiles = [quantile(x_i, q=[0.025, 0.5, 0.975], weights=weights) for x_i in samples.transpose()]
     h2och4_quantiles_ch4true.append(quantiles)
+
+h2och4_quantiles_mixtrue = []
+for results in h2och4_results_mixtrue:
+    # extract samples and weights
+    samples = results['samples']
+    weights = np.exp(results['logwt'] - results['logz'][-1])
+    quantiles = [quantile(x_i, q=[0.025, 0.5, 0.975], weights=weights) for x_i in samples.transpose()]
+    h2och4_quantiles_mixtrue.append(quantiles)
+
+
 
 
 '''Analyze the results'''
@@ -629,7 +669,8 @@ short_results_h2otrue = {'noise_data': noise_inst,
                          'logz_ch4': logz_ch4_h2otrue,
                          'logz_h2och4': logz_h2och4_h2otrue,
                          'h2o_quantiles': h2o_qauntiles_h2otrue,
-                         'ch4_quantiles': ch4_quantiles_h2otrue
+                         'ch4_quantiles': ch4_quantiles_h2otrue,
+                         'h2och4_quantiles': h2och4_quantiles_h2otrue
                          }
 
 short_results_ch4true = {'noise_data': noise_inst,
@@ -638,7 +679,8 @@ short_results_ch4true = {'noise_data': noise_inst,
                          'logz_ch4': logz_ch4_ch4true,
                          'logz_h2och4': logz_h2och4_ch4true,
                          'h2o_quantiles': h2o_qauntiles_ch4true,
-                         'ch4_quantiles': ch4_quantiles_ch4true
+                         'ch4_quantiles': ch4_quantiles_ch4true,
+                         'h2och4_quantiles': h2och4_quantiles_ch4true
                          }
 
 short_results_mixtrue = {'noise_data': noise_inst,
@@ -646,8 +688,9 @@ short_results_mixtrue = {'noise_data': noise_inst,
                          'logz_h2o': logz_h2o_mixtrue,
                          'logz_ch4': logz_ch4_mixtrue,
                          'logz_h2och4': logz_h2och4_mixtrue,
-                         'h2o_quantiles': [],
-                         'ch4_quantiles': []
+                         'h2o_quantiles': h2o_qauntiles_mixtrue,
+                         'ch4_quantiles': ch4_quantiles_mixtrue,
+                         'h2och4_quantiles': h2och4_quantiles_mixtrue
                          }
 
 short_archive = {'h2o_true': short_results_h2otrue,
