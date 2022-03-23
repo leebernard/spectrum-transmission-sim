@@ -3,18 +3,22 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # filename = '/home/lee/PycharmProjects/spectrum-transmission-sim/planet_sim/sim_results/benneke_h2o_vs_ch4_1_compact_retrieval.pkl'
-filename = '/home/lee/PycharmProjects/spectrum-transmission-sim/planet_sim/sim_results/benneke_h2o_vs_ch4_noise125_compact_retrieval.pkl'
+# filename = '/home/lee/PycharmProjects/spectrum-transmission-sim/planet_sim/sim_results/benneke_h2o_vs_ch4_noise125_compact_retrieval.pkl'
+filename = '/home/lee/PycharmProjects/spectrum-transmission-sim/planet_sim/sim_results/benneke_h2o_vs_ch4_mixedcase_compact_retrieval.pkl'
+
 with open(filename, 'rb') as f:
     benneke_archive = pickle.load(f)
 
 h2otrue_archive = benneke_archive['h2o_true']
 ch4true_archive = benneke_archive['ch4_true']
+mixedtrue_archive = benneke_archive['h2och4_true']
 
 # analyze the standard data
 delta_logz_h2otrue = h2otrue_archive['logz_h2o'] - h2otrue_archive['logz_ch4']
 
-
 delta_logz_ch4true = ch4true_archive['logz_h2o'] - ch4true_archive['logz_ch4']
+
+delta_logz_mixedtrue = mixedtrue_archive['logz_h2o'] - mixedtrue_archive['logz_ch4']
 
 
 # hist_fig, hist_ax = plt.subplots(1, figsize=(12, 6))
@@ -37,6 +41,14 @@ hist_ax.axvline(5.0, label='3.6 σ', color='r')
 hist_ax.axvline(11.0, label='5 σ', color='r')
 hist_ax.legend()
 
+hist_fig, hist_ax = plt.subplots(1, 1, figsize=(8, 6))
+hist_ax.hist(delta_logz_ch4true)
+hist_fig.suptitle('Δlog(z), water-methane mix is true')
+hist_ax.set_xlabel('H2O vs CH4, R=70\n(negative values favor CH4)')
+hist_ax.axvline(0.9, label='2 σ', color='r')
+hist_ax.axvline(5.0, label='3.6 σ', color='r')
+hist_ax.axvline(11.0, label='5 σ', color='r')
+hist_ax.legend()
 
 '''Make Receiver Operator Characteristic curves'''
 dynamic_range = np.linspace(delta_logz_ch4true.min(), delta_logz_h2otrue.max(), num=50)
@@ -87,3 +99,57 @@ pos_ax.axvline(0.05, linestyle='--', color='r', label='5% false positive rate')
 pos_ax.axhline(0.95, linestyle='--', color='b', label='95% true positive rate')
 pos_ax.legend()
 pos_ax.set_title('ROC curve for nitrogen detection')
+
+
+'''mixed case analysis'''
+
+# analyze the standard data
+delta_logz_h2otrue_mixedvsh2o = h2otrue_archive['logz_h2och4'] - h2otrue_archive['logz_h2o']
+delta_logz_h2otrue_mixedvsch4 = h2otrue_archive['logz_h2och4'] - h2otrue_archive['logz_ch4']
+
+delta_logz_mixedtrue_mixedvsh2o = mixedtrue_archive['logz_h2och4'] - ch4true_archive['logz_h2o']
+delta_logz_mixedtrue_mixedvsch4 = mixedtrue_archive['logz_h2och4'] - ch4true_archive['logz_ch4']
+
+
+
+# hist_fig, hist_ax = plt.subplots(1, figsize=(12, 6))
+hist_fig, hist_ax = plt.subplots(1, 1, figsize=(8, 6))
+hist_ax.hist(delta_logz_h2otrue_mixedvsh2o, bins=25)
+hist_fig.suptitle('Δlog(z), water is true')
+hist_ax.set_xlabel('H2O vs H2OCH4, R=70\n(negative values favor H2O)')
+hist_ax.axvline(0.9, label='2 σ', color='r')
+hist_ax.axvline(5.0, label='3.6 σ', color='r')
+hist_ax.axvline(11.0, label='5 σ', color='r')
+hist_ax.legend()
+
+
+hist_fig, hist_ax = plt.subplots(1, 1, figsize=(8, 6))
+hist_ax.hist(delta_logz_mixedtrue_mixedvsh2o)
+hist_fig.suptitle('Δlog(z), methane-water mix is true')
+hist_ax.set_xlabel('H2O vs H2OCH4, R=70\n(negative values favor H2O)')
+hist_ax.axvline(0.9, label='2 σ', color='r')
+hist_ax.axvline(5.0, label='3.6 σ', color='r')
+hist_ax.axvline(11.0, label='5 σ', color='r')
+hist_ax.legend()
+
+# hist_fig, hist_ax = plt.subplots(1, figsize=(12, 6))
+hist_fig, hist_ax = plt.subplots(1, 1, figsize=(8, 6))
+hist_ax.hist(delta_logz_h2otrue_mixedvsch4, bins=25)
+hist_fig.suptitle('Δlog(z), water is true')
+hist_ax.set_xlabel('CH4 vs H2OCH4, R=70')
+hist_ax.axvline(0.9, label='2 σ', color='r')
+hist_ax.axvline(5.0, label='3.6 σ', color='r')
+hist_ax.axvline(11.0, label='5 σ', color='r')
+hist_ax.legend()
+
+
+hist_fig, hist_ax = plt.subplots(1, 1, figsize=(8, 6))
+hist_ax.hist(delta_logz_mixedtrue_mixedvsch4)
+hist_fig.suptitle('Δlog(z), methane-water mix is true')
+hist_ax.set_xlabel('CH4 vs H2OCH4, R=70\n(negative values favor CH4)')
+hist_ax.axvline(0.9, label='2 σ', color='r')
+hist_ax.axvline(5.0, label='3.6 σ', color='r')
+hist_ax.axvline(11.0, label='5 σ', color='r')
+hist_ax.legend()
+
+
