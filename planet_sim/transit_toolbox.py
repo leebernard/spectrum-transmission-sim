@@ -6,6 +6,8 @@ import numpy as np
 import warnings
 from scipy.ndimage import gaussian_filter
 from scipy.interpolate import griddata
+from scipy.special import lambertw as W
+from scipy.special import erfcinv
 
 # import matplotlib.pyplot as plt
 from toolkit import spectrum_slicer
@@ -31,6 +33,14 @@ mass_nh3 = 14 + 1*3
 mass_hcn = 1+12+14
 mass_co = 12+16
 mass_hcn = 1+12+14
+
+
+def generate_sigma(ln_Z1, ln_Z2):
+    B = np.exp(ln_Z1 - ln_Z2)
+    p = np.real(np.exp(W((-1.0/(B*np.exp(1))),-1)))
+    sigma = np.sqrt(2)*erfcinv(p)
+
+    return sigma
 
 
 def open_cross_section(filename, wn_range=None, verbose=False, skiplines=None):
