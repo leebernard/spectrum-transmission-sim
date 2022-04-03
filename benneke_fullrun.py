@@ -33,7 +33,7 @@ from planet_sim.transit_toolbox import transit_model_NULL
 
 
 
-name = 'benneke_h2o_vs_ch4_mixedcase_500smpl'
+name = 'benneke_h2o_vs_ch4_mixedcase_500smplv2'
 # name = 'fullrun_test'
 number_trials = 500
 noise_scale = 1.00
@@ -178,7 +178,7 @@ fixed_h2och4 = (fine_wavelengths,
 theta_h2och4 = (rad_planet,
                 T,
                 log_fh2o,
-                log_fh2o)  # keep the mixing ratio of water and methane 1:1
+                log_fch4)  # keep the mixing ratio of water and methane 1:1
 
 theta_null = (rad_planet,
               T)
