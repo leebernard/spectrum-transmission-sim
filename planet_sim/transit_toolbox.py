@@ -35,6 +35,26 @@ mass_co = 12+16
 mass_hcn = 1+12+14
 
 
+def bayes_to_sigma(delta_logz):
+    '''
+    Converts Bayesian Evidience ratios (Bayes factor) into equivalent sigma values
+
+    Parameters
+    ----------
+    delta_logz
+        Bayes evidience ratio, in log-space
+    Returns
+    -------
+        Equivalent sigma values, calcualeted from p-values
+
+    '''
+    B = np.exp(delta_logz)
+    p = np.real(np.exp(W((-1.0/(B*np.exp(1))), -1)))
+    sigma = np.sqrt(2)*erfcinv(p)
+
+    return sigma
+
+
 def generate_sigma(ln_Z1, ln_Z2):
     B = np.exp(ln_Z1 - ln_Z2)
     p = np.real(np.exp(W((-1.0/(B*np.exp(1))),-1)))
