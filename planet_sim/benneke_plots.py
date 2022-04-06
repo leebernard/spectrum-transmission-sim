@@ -2,9 +2,14 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
+from planet_sim.transit_toolbox import generate_sigma
+
 # filename = '/home/lee/PycharmProjects/spectrum-transmission-sim/planet_sim/sim_results/benneke_h2o_vs_ch4_1_compact_retrieval.pkl'
 # filename = '/home/lee/PycharmProjects/spectrum-transmission-sim/planet_sim/sim_results/benneke_h2o_vs_ch4_noise125_compact_retrieval.pkl'
-filename = '/home/lee/PycharmProjects/spectrum-transmission-sim/planet_sim/sim_results/benneke_h2o_vs_ch4_mixedcase_compact_retrieval.pkl'
+# filename = '/home/lee/PycharmProjects/spectrum-transmission-sim/planet_sim/sim_results/benneke_h2o_vs_ch4_mixedcase_compact_retrieval.pkl'
+filename = '/home/lee/PycharmProjects/spectrum-transmission-sim/planet_sim/sim_results/benneke_h2o_vs_ch4_mixedcase_500smpl_compact_retrieval.pkl'
+# filename = '/home/lee/PycharmProjects/spectrum-transmission-sim/planet_sim/sim_results/benneke_h2o_vs_ch4_mixedcase_500smplv2_compact_retrieval.pkl'
+
 
 with open(filename, 'rb') as f:
     benneke_archive = pickle.load(f)
@@ -42,7 +47,7 @@ hist_ax.axvline(11.0, label='5 σ', color='r')
 hist_ax.legend()
 
 hist_fig, hist_ax = plt.subplots(1, 1, figsize=(8, 6))
-hist_ax.hist(delta_logz_ch4true)
+hist_ax.hist(delta_logz_mixedtrue, bins=25)
 hist_fig.suptitle('Δlog(z), water-methane mix is true')
 hist_ax.set_xlabel('H2O vs CH4, R=70\n(negative values favor CH4)')
 hist_ax.axvline(0.9, label='2 σ', color='r')
@@ -105,11 +110,16 @@ pos_ax.set_title('ROC curve for nitrogen detection')
 
 # analyze the standard data
 delta_logz_h2otrue_mixedvsh2o = h2otrue_archive['logz_h2och4'] - h2otrue_archive['logz_h2o']
+
 delta_logz_h2otrue_mixedvsch4 = h2otrue_archive['logz_h2och4'] - h2otrue_archive['logz_ch4']
 
-delta_logz_mixedtrue_mixedvsh2o = mixedtrue_archive['logz_h2och4'] - ch4true_archive['logz_h2o']
-delta_logz_mixedtrue_mixedvsch4 = mixedtrue_archive['logz_h2och4'] - ch4true_archive['logz_ch4']
+delta_logz_mixedtrue_mixedvsh2o = mixedtrue_archive['logz_h2och4'] - mixedtrue_archive['logz_h2o']
+sigma_ch4 = generate_sigma(mixedtrue_archive['logz_h2och4'], mixedtrue_archive['logz_h2o'])
+delta_logz_mixedtrue_mixedvsch4 = mixedtrue_archive['logz_h2och4'] - mixedtrue_archive['logz_ch4']
+sigma_h2o = generate_sigma(mixedtrue_archive['logz_h2och4'], mixedtrue_archive['logz_ch4'])
 
+delta_logz_ch4true_mixedvsch4 = ch4true_archive['logz_h2och4'] - ch4true_archive['logz_ch4']
+delta_logz_ch4true_mixedvsh2o = ch4true_archive['logz_h2och4'] - ch4true_archive['logz_h2o']
 
 
 # hist_fig, hist_ax = plt.subplots(1, figsize=(12, 6))
@@ -124,12 +134,21 @@ hist_ax.legend()
 
 
 hist_fig, hist_ax = plt.subplots(1, 1, figsize=(8, 6))
-hist_ax.hist(delta_logz_mixedtrue_mixedvsh2o)
+hist_ax.hist(delta_logz_mixedtrue_mixedvsh2o, bins=25)
 hist_fig.suptitle('Δlog(z), methane-water mix is true')
 hist_ax.set_xlabel('H2O vs H2OCH4, R=70\n(negative values favor H2O)')
 hist_ax.axvline(0.9, label='2 σ', color='r')
 hist_ax.axvline(5.0, label='3.6 σ', color='r')
 hist_ax.axvline(11.0, label='5 σ', color='r')
+hist_ax.legend()
+
+hist_fig, hist_ax = plt.subplots(1, 1, figsize=(8, 6))
+hist_ax.hist(sigma_ch4, bins=25)
+hist_fig.suptitle('CH4 detection, methane-water mix is true')
+hist_ax.set_xlabel('Sigma, R=70')
+hist_ax.axvline(2.0, label='2 σ', color='r')
+hist_ax.axvline(3.6, label='3.6 σ', color='r')
+hist_ax.axvline(5.0, label='5 σ', color='r')
 hist_ax.legend()
 
 # hist_fig, hist_ax = plt.subplots(1, figsize=(12, 6))
@@ -144,12 +163,43 @@ hist_ax.legend()
 
 
 hist_fig, hist_ax = plt.subplots(1, 1, figsize=(8, 6))
-hist_ax.hist(delta_logz_mixedtrue_mixedvsch4)
+hist_ax.hist(delta_logz_mixedtrue_mixedvsch4, bins=25)
 hist_fig.suptitle('Δlog(z), methane-water mix is true')
 hist_ax.set_xlabel('CH4 vs H2OCH4, R=70\n(negative values favor CH4)')
 hist_ax.axvline(0.9, label='2 σ', color='r')
 hist_ax.axvline(5.0, label='3.6 σ', color='r')
 hist_ax.axvline(11.0, label='5 σ', color='r')
 hist_ax.legend()
+
+hist_fig, hist_ax = plt.subplots(1, 1, figsize=(8, 6))
+hist_ax.hist(sigma_h2o, bins=25)
+hist_fig.suptitle('CH4 vs H2OCH4, methane-water mix is true')
+hist_ax.set_xlabel('Sigma, R=70')
+hist_ax.axvline(2.0, label='2 σ', color='r')
+hist_ax.axvline(3.6, label='3.6 σ', color='r')
+hist_ax.axvline(5.0, label='5 σ', color='r')
+hist_ax.legend()
+
+# hist_fig, hist_ax = plt.subplots(1, figsize=(12, 6))
+hist_fig, hist_ax = plt.subplots(1, 1, figsize=(8, 6))
+hist_ax.hist(delta_logz_ch4true_mixedvsh2o, bins=25)
+hist_fig.suptitle('Δlog(z), methane is true')
+hist_ax.set_xlabel('H2O vs H2OCH4, R=70\n(negative values favor H2O)')
+hist_ax.axvline(0.9, label='2 σ', color='r')
+hist_ax.axvline(5.0, label='3.6 σ', color='r')
+hist_ax.axvline(11.0, label='5 σ', color='r')
+hist_ax.legend()
+
+
+# hist_fig, hist_ax = plt.subplots(1, figsize=(12, 6))
+hist_fig, hist_ax = plt.subplots(1, 1, figsize=(8, 6))
+hist_ax.hist(delta_logz_ch4true_mixedvsch4, bins=25)
+hist_fig.suptitle('Δlog(z), methane is true')
+hist_ax.set_xlabel('CH4 vs H2OCH4, R=70\n(negative values favor CH4)')
+hist_ax.axvline(0.9, label='2 σ', color='r')
+hist_ax.axvline(5.0, label='3.6 σ', color='r')
+hist_ax.axvline(11.0, label='5 σ', color='r')
+hist_ax.legend()
+
 
 

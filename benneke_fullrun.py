@@ -35,7 +35,7 @@ from planet_sim.transit_toolbox import transit_model_NULL
 
 name = 'benneke_h2o_vs_ch4_mixedcase_500smplv2'
 # name = 'fullrun_test'
-number_trials = 500
+number_trials = 1
 noise_scale = 1.00
 plot = False
 
@@ -507,9 +507,9 @@ for results in h2o_results_mixtrue:
     # extract samples and weights
     samples = results['samples']
     weights = np.exp(results['logwt'] - results['logz'][-1])
-    print('Sample shape', samples.shape)
+    # print('Sample shape', samples.shape)
 
-    quantiles = [quantile(x_i, q=[0.025, 0.5, 0.975], weights=weights) for x_i in samples.transpose()]
+    quantiles = [quantile(x_i, q=[0.25, 0.5, 0.75], weights=weights) for x_i in samples.transpose()]
     h2o_qauntiles_mixtrue.append(quantiles)
 
 
