@@ -46,7 +46,6 @@ hist_ax.legend()
 
 '''Make Receiver Operator Characteristic curves'''
 
-# Note: Jenkins and Peacock 2011 goes over how ROC curves correspond to Bayesian Evidence
 dynamic_range = np.linspace(delta_logz_noN.min(), delta_logz_N.max(), num=50)
 
 false_negs = np.empty(dynamic_range.shape)

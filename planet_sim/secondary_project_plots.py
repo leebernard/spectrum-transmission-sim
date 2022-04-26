@@ -22,9 +22,9 @@ mixedtrue_archive = benneke_archive['h2och4_true']
 sigma_1 = 0.9  # sigma = 2
 sigma_2 = 5.0  # sigma = 3.6
 sigma_3 = 11.0  # sigma = 5
-xs = np.array([-sigma_3, -sigma_2, -sigma_1, sigma_1, sigma_2, sigma_3])
+xs = np.array([sigma_1, sigma_2, sigma_3])
 ys = np.zeros(xs.shape) + 0.001
-labels = ['5σ', '3.6σ', '2σ', '2σ', '3.6σ', '5σ']
+labels = ['2σ', '3.6σ', '5σ']
 
 
 '''Water detection'''
@@ -80,12 +80,12 @@ hist_ax.hist(delta_logz_water_ch4true, bins=25, density=True, alpha=0.6, label='
 hist_fig.suptitle('Water detection\n(Model Comparison: CH4 vs H2OCH4 atmosphere)')
 hist_ax.set_xlabel('Bayes Evidence Ratio (Δlog(z))')
 hist_ax.set_ylabel('Probability Density')
-hist_ax.axvline(0.9, label='naive σ thresholds for Water detection', color='b')
+hist_ax.axvline(0.9, label='σ thresholds for Water detection', color='b')
 hist_ax.axvline(5.0, color='b')
 hist_ax.axvline(11.0, color='b')
-hist_ax.axvline(-0.9, label='naive σ thresholds for Water rejection', color='g')
-hist_ax.axvline(-5.0, color='g')
-hist_ax.axvline(-11.0, color='g')
+# hist_ax.axvline(-0.9, label='naive σ thresholds for Water rejection', color='g')
+# hist_ax.axvline(-5.0, color='g')
+# hist_ax.axvline(-11.0, color='g')
 
 
 for x, y, label in zip(xs, ys, labels):
@@ -125,17 +125,17 @@ print(calculate_pvalue([3.6], delta_logz_methane_mixedtrue, delta_logz_methane_h
 
 # hist_fig, hist_ax = plt.subplots(1, figsize=(12, 6))
 hist_fig, hist_ax = plt.subplots(1, 1, figsize=(8, 6))
-# hist_ax.hist(delta_logz_methane_mixedtrue, bins=25, density=True, alpha=0.6, label='True Model: water-methane mix (H2O=0.8%, CH4=0.24%)')
+hist_ax.hist(delta_logz_methane_mixedtrue, bins=25, density=True, alpha=0.6, label='True Model: water-methane mix (H2O=0.8%, CH4=0.24%)')
 hist_ax.hist(delta_logz_methane_h2otrue, bins=25, density=True, alpha=0.6, label='True Model: water-only (H2O=0.8%, CH4=0.0%)')
 hist_fig.suptitle('Methane detection\n(Model Comparison: H2O vs H2OCH4 atmosphere)')
 hist_ax.set_xlabel('Bayes Evidence Ratio (Δlog(z))')
 hist_ax.set_ylabel('Probability Density')
-hist_ax.axvline(0.9, label='naive σ thresholds for Methane detection', color='b')
+hist_ax.axvline(0.9, label='σ thresholds for Methane detection', color='b')
 hist_ax.axvline(5.0, color='b')
 hist_ax.axvline(11.0, color='b')
-hist_ax.axvline(-0.9, label='naive σ thresholds for Methane  rejection', color='g')
-hist_ax.axvline(-5.0, color='g')
-hist_ax.axvline(-11.0, color='g')
+# hist_ax.axvline(-0.9, label='naive σ thresholds for Methane  rejection', color='g')
+# hist_ax.axvline(-5.0, color='g')
+# hist_ax.axvline(-11.0, color='g')
 
 for x, y, label in zip(xs, ys, labels):
     if x < 0:
@@ -150,7 +150,84 @@ hist_ax.legend()
 hist_ax.set_xlim(-2, 21)
 
 
+'''Make Receiver Operator Characteristic curves'''
 
+dynamic_range = np.linspace(delta_logz_water_ch4true.min(), delta_logz_water_mixedtrue.max(), num=500)
+
+true_pos = np.empty(dynamic_range.shape)
+for i, bayes_criteria in enumerate(dynamic_range):
+    true_pos[i] = np.sum(delta_logz_water_mixedtrue > bayes_criteria) / delta_logz_water_mixedtrue.size
+
+false_pos = np.empty(dynamic_range.shape)
+for i, bayes_criteria in enumerate(dynamic_range):
+    false_pos[i] = np.sum(delta_logz_water_ch4true > bayes_criteria) / delta_logz_water_ch4true.size
+
+# roc_fig, (pos_ax, negs_ax) = plt.subplots(1, 2, figsize=(12, 6))
+roc_fig, pos_ax = plt.subplots(1, figsize=(6,6))
+pos_ax.step(false_pos, true_pos, label='Water detection ROC curve')
+pos_ax.set_xlabel('False Positive')
+pos_ax.set_ylabel('True Positive')
+diag = np.linspace(0, 1)
+pos_ax.plot(diag, diag, color='k', label='50/50 ROC curve (Equivalent to random)')
+
+true_pos_2sigma = np.sum(delta_logz_water_mixedtrue > 0.9) / delta_logz_water_mixedtrue.size
+false_pos_2sigma = np.sum(delta_logz_water_ch4true > 0.9) / delta_logz_water_ch4true.size
+pos_ax.scatter(false_pos_2sigma, true_pos_2sigma, color='r', marker='d', label='Δlog(z) = 0.9')
+
+true_pos_36sigma = np.sum(delta_logz_water_mixedtrue > 5) / delta_logz_water_mixedtrue.size
+false_pos_36sigma = np.sum(delta_logz_water_ch4true > 5) / delta_logz_water_ch4true.size
+pos_ax.scatter(false_pos_36sigma, true_pos_36sigma, color='purple', marker='d', label='Δlog(z) = 5')
+
+true_pos_36sigma = np.sum(delta_logz_water_mixedtrue > 11) / delta_logz_water_mixedtrue.size
+false_pos_36sigma = np.sum(delta_logz_water_ch4true > 11) / delta_logz_water_ch4true.size
+pos_ax.scatter(false_pos_36sigma, true_pos_36sigma, color='black', marker='d', label='Δlog(z) = 11')
+
+# pos_ax.axvline(0.05, linestyle='--', color='r', label='5% false positive rate')
+# pos_ax.axhline(0.95, linestyle='--', color='b', label='95% true positive rate')
+pos_ax.legend()
+pos_ax.set_title('ROC curve for water detection')
+
+
+'''now for methane detection'''
+
+dynamic_range = np.linspace(delta_logz_methane_h2otrue.min(), delta_logz_methane_mixedtrue.max(), num=500)
+
+true_pos = np.empty(dynamic_range.shape)
+for i, bayes_criteria in enumerate(dynamic_range):
+    true_pos[i] = np.sum(delta_logz_methane_mixedtrue > bayes_criteria) / delta_logz_methane_mixedtrue.size
+
+false_pos = np.empty(dynamic_range.shape)
+for i, bayes_criteria in enumerate(dynamic_range):
+    false_pos[i] = np.sum(delta_logz_methane_h2otrue > bayes_criteria) / delta_logz_methane_h2otrue.size
+
+# roc_fig, (pos_ax, negs_ax) = plt.subplots(1, 2, figsize=(12, 6))
+roc_fig, pos_ax = plt.subplots(1, figsize=(6,6))
+# negs_ax.step(false_negs, true_negs)
+# negs_ax.set_xlabel('False Negative')
+# negs_ax.set_ylabel('True Negative')
+
+pos_ax.step(false_pos, true_pos, label='Methane detection ROC curve')
+pos_ax.set_xlabel('False Positive')
+pos_ax.set_ylabel('True Positive')
+diag = np.linspace(0, 1)
+pos_ax.plot(diag, diag, color='k', label='50/50 ROC curve (Equivalent to random)')
+
+true_pos_2sigma = np.sum(delta_logz_methane_mixedtrue > 0.9) / delta_logz_methane_mixedtrue.size
+false_pos_2sigma = np.sum(delta_logz_methane_h2otrue > 0.9) / delta_logz_methane_h2otrue.size
+pos_ax.scatter(false_pos_2sigma, true_pos_2sigma, color='r', marker='d', label='Δlog(z) = 0.9')
+
+true_pos_36sigma = np.sum(delta_logz_methane_mixedtrue > 5) / delta_logz_methane_mixedtrue.size
+false_pos_36sigma = np.sum(delta_logz_methane_h2otrue > 5) / delta_logz_methane_h2otrue.size
+pos_ax.scatter(false_pos_36sigma, true_pos_36sigma, color='purple', marker='d', label='Δlog(z) = 5')
+
+true_pos_36sigma = np.sum(delta_logz_methane_mixedtrue > 11) / delta_logz_methane_mixedtrue.size
+false_pos_36sigma = np.sum(delta_logz_methane_h2otrue > 11) / delta_logz_methane_h2otrue.size
+pos_ax.scatter(false_pos_36sigma, true_pos_36sigma, color='black', marker='d', label='Δlog(z) = 11')
+
+# pos_ax.axvline(0.05, linestyle='--', color='r', label='5% false positive rate')
+# pos_ax.axhline(0.95, linestyle='--', color='b', label='95% true positive rate')
+pos_ax.legend()
+pos_ax.set_title('ROC curve for methane detection')
 
 
 '''degeneracy breaking?'''
