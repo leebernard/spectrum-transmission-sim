@@ -63,13 +63,13 @@ wn_start = 5880  # 1.70068 um
 wn_end = 9302  # 1.075 um
 
 # open these files carefully, because they are potentially over 1Gb in size
-water_data_file = './line_lists/1H2-16O_1785-10000_300K_0.100000.sigma'
+water_data_file = 'line_lists/1H2-16O_1785-10000_300K_0.100000.sigma'
 water_wno, water_cross_sections_raw = open_cross_section(water_data_file, wn_range=(wn_start, wn_end))
 
-ch4_data_file = './line_lists/12C-1H4_1785-10000_300K_0.100000.sigma'
+ch4_data_file = 'line_lists/12C-1H4_1785-10000_300K_0.100000.sigma'
 ch4_wno, ch4_cross_sections_raw = open_cross_section(ch4_data_file, wn_range=(wn_start, wn_end))
 
-h2_data_file = './line_lists/H2H2_CIA_300K_0.3bar.txt'
+h2_data_file = 'line_lists/H2H2_CIA_300K_0.3bar.txt'
 h2_wno, h2_cross_sections_raw = open_cross_section(h2_data_file, wn_range=(wn_start, wn_end))
 
 # interpolate the different cross section grids to the same wavenumber grid

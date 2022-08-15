@@ -1,15 +1,3 @@
-"""
-Charnay: https://ui.adsabs.harvard.edu/abs/2021A%26A...646A.171C/abstract
-Bezard (non-gcm): https://ui.adsabs.harvard.edu/abs/2020arXiv201110424B/abstract
-
-Benneke: https://ui.adsabs.harvard.edu/abs/2019ApJ...887L..14B/abstract
-
-Notes:
-    Need to get line lists for 600 Kelvin
-    Scratch that, 255K
-    Make sure to simulate at 0.1 Barr, not 1.0. Talk to Luis about this
-"""
-
 import sys
 # import os
 print('Python', sys.version)
@@ -26,15 +14,10 @@ from dynesty import plotting as dyplot
 from datetime import datetime
 
 from planet_sim.transit_toolbox import open_cross_section
-from planet_sim.transit_toolbox import transit_model_H2O
-from planet_sim.transit_toolbox import transit_model_CH4
+from planet_sim.transit_toolbox import transit_model_H2OCH4NH3HCN
 from planet_sim.transit_toolbox import transit_model_H2OCH4
-from planet_sim.transit_toolbox import transit_model_NULL
 
-
-
-name = 'k2-18b_ch4_true_1'
-# name = 'h2o_true_test'
+name = 'macdonald_H2OCH4NH3HCN_1'
 number_trials = 100
 plot = False
 
@@ -56,40 +39,43 @@ Account for temperature structure in scale height
 
 # define some housekeeping variables
 wn_start = 5880  # 1.70068 um
-# wn_start = 2500  # ~4 um
-# 1785 cm^-1 ~= 5.602 um
 # wn_end = 10000  # this is 1 um
 wn_end = 9302  # 1.075 um
 
 # open these files carefully, because they are potentially over 1Gb in size
-water_data_file = './line_lists/1H2-16O_1785-10000_300K_0.100000.sigma'
+water_data_file = '../line_lists/H2O_30mbar_1500K.txt'
 water_wno, water_cross_sections_raw = open_cross_section(water_data_file, wn_range=(wn_start, wn_end))
 
-ch4_data_file = './line_lists/12C-1H4_1785-10000_300K_0.100000.sigma'
+ch4_data_file = '../line_lists/CH4_30mbar_1500K'
 ch4_wno, ch4_cross_sections_raw = open_cross_section(ch4_data_file, wn_range=(wn_start, wn_end))
 
-h2_data_file = './line_lists/H2H2_CIA_300K_0.3bar.txt'
+# co_data_file = './line_lists/CO_30mbar_1500K'
+# co_wno, co_cross_sections = open_cross_section(co_data_file, wn_range=(wn_start, wn_end))
+
+nh3_data_file = '../line_lists/NH3_30mbar_1500K'
+nh3_wno, nh3_cross_sections_raw = open_cross_section(nh3_data_file, wn_range=(wn_start, wn_end))
+
+hcn_data_file = '../line_lists/HCN_30mbar_1500K'
+hcn_wno, hcn_cross_sections_raw = open_cross_section(hcn_data_file, wn_range=(wn_start, wn_end))
+
+h2_data_file = '../line_lists/H2H2_CIA_30mbar_1500K.txt'
 h2_wno, h2_cross_sections_raw = open_cross_section(h2_data_file, wn_range=(wn_start, wn_end))
 
 # interpolate the different cross section grids to the same wavenumber grid
 fine_wave_numbers = np.arange(wn_start, wn_end, 3.0)
 
+# na_cross_sections =
+# k_cross_sections =
 water_cross_sections = 10**np.interp(fine_wave_numbers, water_wno, np.log10(water_cross_sections_raw))
+# co_cross_sections = 10**np.interp(fine_wave_numbers, co_wno, np.log10(co_cross_sections))
 ch4_cross_sections = 10**np.interp(fine_wave_numbers, ch4_wno, np.log10(ch4_cross_sections_raw))
+nh3_cross_sections = 10**np.interp(fine_wave_numbers, nh3_wno, np.log10(nh3_cross_sections_raw))
+hcn_cross_sections = 10**np.interp(fine_wave_numbers, hcn_wno, np.log10(hcn_cross_sections_raw))
 h2_cross_sections = 10**np.interp(fine_wave_numbers, h2_wno, np.log10(h2_cross_sections_raw))
 # h2_cross_sections = None
 # convert wavenumber to wavelength in microns
 fine_wavelengths = 1e4/fine_wave_numbers
-if plot:
-    # plot them to check
-    plt.figure('compare_cross_section')
-    plt.plot(fine_wavelengths, water_cross_sections, label='H2O')
-    plt.plot(fine_wavelengths, ch4_cross_sections, label='CH4')
-    plt.plot(fine_wavelengths, h2_cross_sections, label='H2')
-    plt.xlabel('Wavelength (μm)')
-    plt.ylabel('Cross section (cm^2/molecule)')
-    plt.yscale('log')
-    plt.legend()
+
 
 """
 # hot jupiter time!
@@ -101,23 +87,21 @@ p0 = 1
 # temperature is made up
 T = 1500
 """
-# based upon K2-18b
-# pulled from Charnay et al 2021
-rad_planet = 2.71 / 11.2  # earth radii converted to jovian radii
-g_planet = 11.5  # m/s
-# charnay_rad_star = 0.411  # actually taken from Bezard et al 2020
-benneke_rad_star = 0.45  # solar radii
-# use benneke
-rad_star = benneke_rad_star
-p0 = 0.1  # barr
-# approximation of the various literature values
-T = 265  # Kelvin
+# based upon HD209458b
+# pulled from Wikipedia
+rad_planet = 1.35  # in jovian radii
+g_planet = 9.4  # m/s
+rad_star = 1.203  # solar radii
+p0 = 1  # barr
+# below is taken from MacDonald 2017
+T = 1071  # Kelvin
 
-# log_fh20 taken from benneke et al
-log_fh2o = -2.08
-# log_fch4 taken from benneke et al limit
-log_fch4 = -2.60
-
+# log_fna = -5.13
+# log_fk =
+log_f_h2o = -5.24
+log_fch4 = -7.84
+log_fnh3 = -6.03
+log_fhcn = -6.35
 # flip the data to ascending order
 flipped_wl = np.flip(fine_wavelengths)
 # see Hubble WFC3 slitless spectrograph in NIR
@@ -144,73 +128,32 @@ pixel_bins = np.linspace(wfc3_start, wfc3_end, sampling_wl.size + 1)
 # pixel_bins = pixel_wavelengths
 # test the model generation function
 # this produces the 'true' transit spectrum
-fixed_h2o = (fine_wavelengths,
-                    water_cross_sections,
-                    h2_cross_sections,
-                    g_planet,
-                    rad_star,
-                    R)
-theta_h2o = (rad_planet,
-             T,
-             log_fh2o)
-
-fixed_ch4 = (fine_wavelengths,
-                    ch4_cross_sections,
-                    h2_cross_sections,
-                    g_planet,
-                    rad_star,
-                    R)
-
-theta_ch4 = (rad_planet*1.0,
-             T,
-             log_fch4)
-
-fixed_h2och4 = (fine_wavelengths,
+fixed_parameters = (fine_wavelengths,
                     water_cross_sections,
                     ch4_cross_sections,
+                    nh3_cross_sections,
+                    hcn_cross_sections,
                     h2_cross_sections,
                     g_planet,
                     rad_star,
                     R)
-
-theta_h2och4 = (rad_planet,
-                T,
-                log_fh2o,
-                log_fch4)
-
-theta_null = (rad_planet,
-              T)
-
-fixed_null = (fine_wavelengths,
-                    h2_cross_sections,
-                    g_planet,
-                    rad_star,
-                    R)
+theta = (rad_planet,
+         T,
+         log_f_h2o,
+         log_fch4,
+         log_fnh3,
+         log_fhcn)
 
 # generate spectrum
-pixel_wavelengths_h2o, pixel_transit_depth_h2o = transit_model_H2O(pixel_bins, theta_h2o, fixed_h2o, p0=p0)
+pixel_wavelengths, pixel_transit_depth = transit_model_H2OCH4NH3HCN(pixel_bins, theta, fixed_parameters)
 
-pixel_wavelengths_ch4, pixel_transit_depth_ch4 = transit_model_CH4(pixel_bins, theta_ch4, fixed_ch4, p0=p0)
-
-pixel_wavelengths_null, pixel_transit_depth_null = transit_model_NULL(pixel_bins, theta_null, fixed_null, p0=p0)
-
-if plot:
-    # compare the spectrums, to check
-    fig, ax = plt.subplots(figsize=(8, 6))
-    ax.plot(pixel_wavelengths_h2o, pixel_transit_depth_h2o * 1e6, 'o', label='H2O')
-    ax.plot(pixel_wavelengths_ch4, pixel_transit_depth_ch4 * 1e6, 'o', label='CH4')
-    ax.plot(pixel_wavelengths_null, pixel_transit_depth_null * 1e6, 'o', label='H2 only')
-    ax.set_xlabel('Wavelength (μm)')
-    ax.set_ylabel('transit depth (ppm)')
-    ax.legend()
+# generate photon noise from a signal value
+# signal = 1.22e9
+# noise = (np.random.poisson(lam=signal, size=pixel_transit_depth.size) - signal)/signal
 
 '''
 generate noise instances!!!
 '''
-
-# pick the h2o case
-pixel_wavelengths, pixel_transit_depth = pixel_wavelengths_ch4, pixel_transit_depth_ch4
-
 # convert error from parts per million to fractional
 err = sampling_err*1e-6
 
@@ -225,8 +168,10 @@ noisey_transit_depth = pixel_transit_depth + noise_inst
 if plot:
     plt.figure('transit depth R%.2f' %R, figsize=(8, 8))
     plt.subplot(212)
-    plt.plot(flipped_wl, np.flip(water_cross_sections)*10**log_fh2o, label='H2O')
+    plt.plot(flipped_wl, np.flip(water_cross_sections)*10**log_f_h2o, label='H2O')
     plt.plot(flipped_wl, np.flip(ch4_cross_sections)*10**log_fch4, label='CH4')
+    plt.plot(flipped_wl, np.flip(nh3_cross_sections)*10**log_fnh3, label='NH3')
+    plt.plot(flipped_wl, np.flip(hcn_cross_sections)*10**log_fhcn, label='HCN')
     plt.plot(flipped_wl, np.flip(h2_cross_sections), label='H2')
     plt.title('Absorption Cross section')
     plt.legend()
@@ -237,7 +182,7 @@ if plot:
     plt.subplot(211)
     plt.plot(pixel_wavelengths, pixel_transit_depth, label='Ideal')
     plt.errorbar(pixel_wavelengths, noisey_transit_depth[0], yerr=err, label='Photon noise', fmt='o', capsize=2.0)
-    plt.title('Transit depth, R= %d, water= %d ppm' % (R, 10**log_fh2o/1e-6) )
+    plt.title('Transit depth, R= %d, water= %d ppm' % (R, 10**log_f_h2o/1e-6) )
     plt.legend(('Ideal', 'Photon noise'))
     plt.ylabel('($R_p$/$R_{star}$)$^2$ (%)')
     plt.subplot(211).yaxis.set_major_formatter(FormatStrFormatter('% 1.1e'))
@@ -247,16 +192,17 @@ if plot:
 '''Fit the data'''
 
 # define a likelyhood function
-def log_likelihood_h2o(theta, y, fixed_parameters):
+def log_likelihood(theta, y, dummy_arg):
     # retrieve the global variables
-
     global pixel_bins
     global transit_data
     global err
+    global fixed_parameters
     # only 'y' changes on the fly
+    fixed = fixed_parameters
     x = pixel_bins
     yerr = err
-    _, model = transit_model_H2O(x, theta, fixed_parameters, p0=p0)
+    _, model = transit_model_H2OCH4NH3HCN(x, theta, fixed)
 
     sigma = yerr**2
     return -0.5 * np.sum((y - model)**2 / sigma + np.log(sigma))
@@ -270,10 +216,10 @@ def prior_trans(u):
     # planet radius prior
     x[0] = u[0]*10
     # Temperature
-    x[1] = u[1]*(3000-100) + 100
+    x[1] = u[1]*(3000-300) + 300
 
     # set the trace species to uniform priors
-    x[2:] = u[2:]*11 - 11.1
+    x[2:] = u[2:]*11 - 12
 
     # global print_number
     # if print_number < 100:
@@ -285,19 +231,20 @@ def prior_trans(u):
 
 from multiprocessing import Pool
 
-ndim = len(theta_h2o)
+ndim = 6
 full_results = []
+dummy_arg = None
 with Pool() as pool:
     for transit_data in noisey_transit_depth:
-        sampler = dynesty.NestedSampler(log_likelihood_h2o, prior_trans, ndim,
-                                        nlive=500, pool=pool, queue_size=pool._processes, logl_args=(transit_data, fixed_h2o))
+        sampler = dynesty.NestedSampler(log_likelihood, prior_trans, ndim,
+                                        nlive=500, pool=pool, queue_size=pool._processes, logl_args=(transit_data, dummy_arg))
         sampler.run_nested()
         full_results.append(sampler.results)
 
 if plot:
     # make a plot of results
-    labels = ["Rad_planet", "T", "log H2O"]
-    truths = [rad_planet, T, log_fh2o]
+    labels = ["Rad_planet", "T", "log H2O", "log CH4", "log NH3", "log HCN"]
+    truths = [rad_planet, T, log_f_h2o, log_fch4, log_fnh3, log_fhcn]
     for result in full_results:
 
         fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
@@ -313,38 +260,39 @@ if plot:
 
 # define a new prior function, with only H2O and CH4
 # this is basically the same as only H20
-def loglike_ch4(theta, y, fixed_parameters):
+def loglike_h2och4(theta, y, dummy_arg):
     # retrieve the global variables
     global pixel_bins
     global transit_data
     global err
+    global fixed_parameters
     # only 'y' changes on the fly
     fixed = fixed_parameters
     x = pixel_bins
     yerr = err
 
-    _, model = transit_model_CH4(x, theta, fixed, p0=p0)
+    _, model = transit_model_H2OCH4(x, theta, fixed)
 
     sigma = yerr ** 2
     return -0.5 * np.sum((y - model) ** 2 / sigma + np.log(sigma))
 
 
-ndim = len(theta_ch4)
-ch4_results = []
+ndim = 4
+h2och4_results = []
 
 with Pool() as pool:
     for transit_data in noisey_transit_depth:
 
-        sampler = dynesty.NestedSampler(loglike_ch4, prior_trans, ndim,
-                                        nlive=500, pool=pool, queue_size=pool._processes, logl_args=(transit_data, fixed_ch4))
+        sampler = dynesty.NestedSampler(loglike_h2och4, prior_trans, ndim,
+                                        nlive=500, pool=pool, queue_size=pool._processes, logl_args=(transit_data, dummy_arg))
         sampler.run_nested()
-        ch4_results.append(sampler.results)
+        h2och4_results.append(sampler.results)
 
 if plot:
     # make a plot of results
-    labels = ["Rad_planet", "T", "log CH4"]
-    truths = [rad_planet, T, log_fch4]
-    for result in ch4_results:
+    labels = ["Rad_planet", "T", "log H2O", "log CH4"]
+    truths = [rad_planet, T, log_f_h2o, log_fch4]
+    for result in h2och4_results:
 
         fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
                                       title_kwargs={'y': 1.04}, labels=labels,
@@ -369,22 +317,22 @@ for results in full_results:
     full_qauntiles.append(quantiles)
 
 
-ch4_quantiles = []
-for results in ch4_results:
+h2och4_quantiles = []
+for results in h2och4_results:
     # extract samples and weights
     samples = results['samples']
     weights = np.exp(results['logwt'] - results['logz'][-1])
     quantiles = [quantile(x_i, q=[0.025, 0.5, 0.975], weights=weights) for x_i in samples.transpose()]
-    ch4_quantiles.append(quantiles)
+    h2och4_quantiles.append(quantiles)
 
 
 '''Analyze the results'''
 
 # Extract the evidience
 logz_full = np.array([result.logz[-1] for result in full_results])
-logz_ch4 = np.array([result.logz[-1] for result in ch4_results])
+logz_h2och4 = np.array([result.logz[-1] for result in h2och4_results])
 
-delta_logz = logz_full - logz_ch4
+delta_logz = logz_full - logz_h2och4
 
 if plot:
     hist_fig, hist_ax = plt.subplots()
@@ -403,10 +351,10 @@ import os
 # pack the data
 full_results_archive = {'noise_data': noise_inst,
                         'transit_depth':noisey_transit_depth,
-                        'free_param_values': theta_h2o,
+                        'free_param_values': theta,
                         'wavelength_bins': pixel_bins,
-                        'H2O_fit': full_results,
-                        'CH4_fit': ch4_results}
+                        'H2OCH4NH3HCN_fit': full_results,
+                        'H2OCH4_fit': h2och4_results}
 filename = './planet_sim/data/' + name + '_full_retrieval.pkl'
 print('Saving to', filename)
 
@@ -426,11 +374,11 @@ with open(filename, mode='wb') as file:
 
 
 short_archive = {'noise_data': noise_inst,
-                 'free_param_values': theta_h2o,
+                 'free_param_values': theta,
                  'logz_full': logz_full,
-                 'logz_h2och4': logz_ch4,
+                 'logz_h2och4': logz_h2och4,
                  'full_quantiles': full_qauntiles,
-                 'h2och4_quantiles': ch4_quantiles
+                 'h2och4_quantiles': h2och4_quantiles
                  }
 filename = './planet_sim/data/' + name + '_compact_retrieval.pkl'
 print('Saving to', filename)
@@ -453,10 +401,6 @@ with open(filename, mode='wb') as file:
 print('Instance', name, 'completed.')
 print('End time:', datetime.now())
 print('Total runtime: %s seconds' % (time.time() - start_time))
-
-
-
-
 
 
 

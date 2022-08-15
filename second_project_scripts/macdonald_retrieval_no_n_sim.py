@@ -17,7 +17,7 @@ from planet_sim.transit_toolbox import open_cross_section
 from planet_sim.transit_toolbox import transit_model_H2OCH4NH3HCN
 from planet_sim.transit_toolbox import transit_model_H2OCH4
 
-name = 'macdonald_H2OCH4NH3HCN_1'
+name = 'macdonald_H2OCH4_1'
 number_trials = 100
 plot = False
 
@@ -43,22 +43,22 @@ wn_start = 5880  # 1.70068 um
 wn_end = 9302  # 1.075 um
 
 # open these files carefully, because they are potentially over 1Gb in size
-water_data_file = './line_lists/H2O_30mbar_1500K.txt'
+water_data_file = '../line_lists/H2O_30mbar_1500K.txt'
 water_wno, water_cross_sections_raw = open_cross_section(water_data_file, wn_range=(wn_start, wn_end))
 
-ch4_data_file = './line_lists/CH4_30mbar_1500K'
+ch4_data_file = '../line_lists/CH4_30mbar_1500K'
 ch4_wno, ch4_cross_sections_raw = open_cross_section(ch4_data_file, wn_range=(wn_start, wn_end))
 
 # co_data_file = './line_lists/CO_30mbar_1500K'
 # co_wno, co_cross_sections = open_cross_section(co_data_file, wn_range=(wn_start, wn_end))
 
-nh3_data_file = './line_lists/NH3_30mbar_1500K'
+nh3_data_file = '../line_lists/NH3_30mbar_1500K'
 nh3_wno, nh3_cross_sections_raw = open_cross_section(nh3_data_file, wn_range=(wn_start, wn_end))
 
-hcn_data_file = './line_lists/HCN_30mbar_1500K'
+hcn_data_file = '../line_lists/HCN_30mbar_1500K'
 hcn_wno, hcn_cross_sections_raw = open_cross_section(hcn_data_file, wn_range=(wn_start, wn_end))
 
-h2_data_file = './line_lists/H2H2_CIA_30mbar_1500K.txt'
+h2_data_file = '../line_lists/H2H2_CIA_30mbar_1500K.txt'
 h2_wno, h2_cross_sections_raw = open_cross_section(h2_data_file, wn_range=(wn_start, wn_end))
 
 # interpolate the different cross section grids to the same wavenumber grid
@@ -89,6 +89,8 @@ T = 1500
 """
 # based upon HD209458b
 # pulled from Wikipedia
+
+'''
 rad_planet = 1.35  # in jovian radii
 g_planet = 9.4  # m/s
 rad_star = 1.203  # solar radii
@@ -102,6 +104,23 @@ log_f_h2o = -5.24
 log_fch4 = -7.84
 log_fnh3 = -6.03
 log_fhcn = -6.35
+'''
+# change the above values to compensate for lack of nitrogen
+rad_planet = 1.36  # in jovian radii
+g_planet = 9.4  # m/s
+rad_star = 1.203  # solar radii
+p0 = 1  # barr
+# below is taken from MacDonald 2017
+T = 1040  # Kelvin
+
+# log_fna = -5.13
+# log_fk =
+log_f_h2o = -6.00
+log_fch4 = -9.74
+log_fnh3 = -6.03
+log_fhcn = -6.35
+
+
 # flip the data to ascending order
 flipped_wl = np.flip(fine_wavelengths)
 # see Hubble WFC3 slitless spectrograph in NIR
@@ -140,12 +159,10 @@ fixed_parameters = (fine_wavelengths,
 theta = (rad_planet,
          T,
          log_f_h2o,
-         log_fch4,
-         log_fnh3,
-         log_fhcn)
+         log_fch4,)
 
 # generate spectrum
-pixel_wavelengths, pixel_transit_depth = transit_model_H2OCH4NH3HCN(pixel_bins, theta, fixed_parameters)
+pixel_wavelengths, pixel_transit_depth = transit_model_H2OCH4(pixel_bins, theta, fixed_parameters)
 
 # generate photon noise from a signal value
 # signal = 1.22e9
@@ -190,6 +207,7 @@ if plot:
 
 
 '''Fit the data'''
+# plot = True
 
 # define a likelyhood function
 def log_likelihood(theta, y, dummy_arg):
@@ -227,25 +245,24 @@ def prior_trans(u):
     #     print('parameter values:', x)
     return x
 
-# plot = True
 
 from multiprocessing import Pool
 
 ndim = 6
-full_results = []
+nitrogen_results = []
 dummy_arg = None
 with Pool() as pool:
     for transit_data in noisey_transit_depth:
         sampler = dynesty.NestedSampler(log_likelihood, prior_trans, ndim,
                                         nlive=500, pool=pool, queue_size=pool._processes, logl_args=(transit_data, dummy_arg))
         sampler.run_nested()
-        full_results.append(sampler.results)
+        nitrogen_results.append(sampler.results)
 
 if plot:
     # make a plot of results
     labels = ["Rad_planet", "T", "log H2O", "log CH4", "log NH3", "log HCN"]
     truths = [rad_planet, T, log_f_h2o, log_fch4, log_fnh3, log_fhcn]
-    for result in full_results:
+    for result in nitrogen_results:
 
         fig, axes = dyplot.cornerplot(result, truths=truths, show_titles=True,
                                       title_kwargs={'y': 1.04}, labels=labels,
@@ -307,7 +324,7 @@ from dynesty.utils import quantile
 
 # extrat the quantile data
 full_qauntiles = []
-for results in full_results:
+for results in nitrogen_results:
     # extract samples and weights
     samples = results['samples']
     weights = np.exp(results['logwt'] - results['logz'][-1])
@@ -329,16 +346,18 @@ for results in h2och4_results:
 '''Analyze the results'''
 
 # Extract the evidience
-logz_full = np.array([result.logz[-1] for result in full_results])
+logz_nitrogen = np.array([result.logz[-1] for result in nitrogen_results])
 logz_h2och4 = np.array([result.logz[-1] for result in h2och4_results])
 
-delta_logz = logz_full - logz_h2och4
+delta_logz = logz_nitrogen - logz_h2och4
 
 if plot:
     hist_fig, hist_ax = plt.subplots()
     hist_ax.hist(delta_logz)
     plt.title('H2O-CH4-NH3-HCN vs H2O-CH4, on H2O-CH4 data')
     plt.xlabel('Delta log(z)')
+
+    plt.show()
 
 
 '''Save the results'''
@@ -353,7 +372,7 @@ full_results_archive = {'noise_data': noise_inst,
                         'transit_depth':noisey_transit_depth,
                         'free_param_values': theta,
                         'wavelength_bins': pixel_bins,
-                        'H2OCH4NH3HCN_fit': full_results,
+                        'H2OCH4NH3HCN_fit': nitrogen_results,
                         'H2OCH4_fit': h2och4_results}
 filename = './planet_sim/data/' + name + '_full_retrieval.pkl'
 print('Saving to', filename)
@@ -375,9 +394,9 @@ with open(filename, mode='wb') as file:
 
 short_archive = {'noise_data': noise_inst,
                  'free_param_values': theta,
-                 'logz_full': logz_full,
+                 'logz_nitrogen': logz_nitrogen,
                  'logz_h2och4': logz_h2och4,
-                 'full_quantiles': full_qauntiles,
+                 'nitrogen_quantiles': full_qauntiles,
                  'h2och4_quantiles': h2och4_quantiles
                  }
 filename = './planet_sim/data/' + name + '_compact_retrieval.pkl'

@@ -43,22 +43,22 @@ wn_start = 5880  # 1.70068 um
 wn_end = 9302  # 1.075 um
 
 # open these files carefully, because they are potentially over 1Gb in size
-water_data_file = './line_lists/H2O_30mbar_1500K.txt'
+water_data_file = '../line_lists/H2O_30mbar_1500K.txt'
 water_wno, water_cross_sections_raw = open_cross_section(water_data_file, wn_range=(wn_start, wn_end))
 
-ch4_data_file = './line_lists/CH4_30mbar_1500K'
+ch4_data_file = '../line_lists/CH4_30mbar_1500K'
 ch4_wno, ch4_cross_sections_raw = open_cross_section(ch4_data_file, wn_range=(wn_start, wn_end))
 
 # co_data_file = './line_lists/CO_30mbar_1500K'
 # co_wno, co_cross_sections = open_cross_section(co_data_file, wn_range=(wn_start, wn_end))
 
-nh3_data_file = './line_lists/NH3_30mbar_1500K'
+nh3_data_file = '../line_lists/NH3_30mbar_1500K'
 nh3_wno, nh3_cross_sections_raw = open_cross_section(nh3_data_file, wn_range=(wn_start, wn_end))
 
-hcn_data_file = './line_lists/HCN_30mbar_1500K'
+hcn_data_file = '../line_lists/HCN_30mbar_1500K'
 hcn_wno, hcn_cross_sections_raw = open_cross_section(hcn_data_file, wn_range=(wn_start, wn_end))
 
-h2_data_file = './line_lists/H2H2_CIA_30mbar_1500K.txt'
+h2_data_file = '../line_lists/H2H2_CIA_30mbar_1500K.txt'
 h2_wno, h2_cross_sections_raw = open_cross_section(h2_data_file, wn_range=(wn_start, wn_end))
 
 # interpolate the two different wavenumbers to the same wavenumber

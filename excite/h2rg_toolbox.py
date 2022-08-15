@@ -57,16 +57,15 @@ def generate_dc_means(T_data, hpx_thresholds):
     return np.sum(dc_rates, axis=2)
 
 
-def hpx_threshold(u):
+def hpx_threshold(u, tau=6, b=0.01, offset=40):
     '''
     Takes a random number between 0-1, and maps it to a logrithmic distribution.
 
-    This follows a scheme where the number of instances below the threshold
+    By default, this follows a model where the number of instances below the threshold
     doubles for every factor of 6 increase.
     '''
-    tau = 6
-    b = .01
-    return np.log(u/b) * tau/np.log(2) + 40
+
+    return np.log(u/b) * tau/np.log(2) + offset
 
 
 def i_dark(T, parameters=(.004, 507.0, 4.6), lambda_co=5.4):
