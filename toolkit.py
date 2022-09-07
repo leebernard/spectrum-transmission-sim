@@ -11,13 +11,22 @@ def consecutive_mean(data_array):
     return (data_array[:-1] + data_array[1:]) / 2
 
 
-def spectrum_slicer(start_angstrom, end_angstrom, angstrom_data, spectrum_data):
+def spectrum_slicer_old(start_angstrom, end_angstrom, angstrom_data, spectrum_data):
+
     start_index = (np.abs(angstrom_data - start_angstrom)).argmin()
     end_index = (np.abs(angstrom_data - end_angstrom)).argmin()
     spectrum_slice = spectrum_data[start_index:end_index]
     angstrom_slice = angstrom_data[start_index:end_index]
 
     return angstrom_slice, spectrum_slice
+
+
+def spectrum_slicer(start_angstrom, end_angstrom, dataset):
+
+    start_index = (np.abs(dataset[:, 0] - start_angstrom)).argmin()
+    end_index = (np.abs(dataset[:, 0] - end_angstrom)).argmin()
+
+    return dataset[start_index:end_index]
 
 
 @jit(nopython=True)
